@@ -306,7 +306,7 @@
          (file-path-list (org-ref-get-file-list key))
          (file-types (get-file-types-from-file-list file-path-list))
          (file-path-raw (nth 0 file-path-list))
-         (file-name (save-match-data (and (string-match " *:\\(.+\\)\\.\\(.+\\) *" file-path-raw) ; file格式: ":/Users/yuchen/Books/{author}/..."
+         (file-name (save-match-data (and (string-match " *:\\(.+\\)\\.\\(.+\\) *" file-path-raw) ; file: ":/Books/{author}/..."
                                           (match-string 1 file-path-raw))))
          (video-file-ext-candidates (seq-intersection file-types org-media-note--video-types))
          (audio-file-ext-candidates (seq-intersection file-types org-media-note--audio-types))
@@ -319,9 +319,17 @@
                      ))
          )
     (if file-type
-        (concat file-name "." file-type)
+        (org-media-note--get-realpath-for-file (concat file-name "." file-type))
       nil)
     )
+  )
+
+
+(defun org-media-note--get-realpath-for-file (symlink)
+  (replace-regexp-in-string "\n" ""
+                                  (shell-command-to-string
+                                   (concat "realpath \"" symlink "\"")
+                                   ))
   )
 
 ;;;;; Media Control
