@@ -115,7 +115,7 @@
    "File"
    (
     ("o" org-media-note-mpv-smart-play
-     (if (org-entry-get (point) "Custom_ID")
+     (if (org-media-note--current-org-ref-key)
          (concat "Open " org-media-note-ref-key)
        "Open")
      :width 20)
@@ -145,6 +145,11 @@
   )
 
 ;;;;; Add note
+
+(defun org-media-note--current-org-ref-key ()
+  (org-entry-get (point) "Custom_ID")
+  )
+
 (defun org-insert-item--media-note-item (orig-fn &rest args)
   "When item begins with media link, insert playback position."
   (interactive "P")
@@ -354,7 +359,7 @@
 
 (defun org-media-note-mpv-smart-play ()
   (interactive)
-  (let* ((key (org-entry-get (point) "Custom_ID"))
+  (let* ((key (org-media-note--current-org-ref-key))
          )
     (if key
         (mpv-play (org-media-note-get-media-file-by-key key))
@@ -390,7 +395,7 @@ When enabled, will insert org-ref key instead of absolute file path.
 
 
 (defun org-media-note--setup-refcite-mode ()
-  (let* ((key (org-entry-get (point) "Custom_ID"))
+  (let* ((key (org-media-note--current-org-ref-key))
          )
     (if key
         (setq org-media-note-ref-key key)
