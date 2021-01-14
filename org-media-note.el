@@ -6,7 +6,9 @@
 (require 'org)
 (require 'org-timer)
 (require 'pretty-hydra)
+(require 'bibtex-completion)
 
+(declare-function org-timer-secs-to-hms 'org-timer)
 
 ;;;; Customization
 
@@ -73,7 +75,8 @@
                                    speed
                                    "\n\t❯ "
                                    (if org-media-note-ref-key
-                                       (concat (org-ref-get-XXX org-media-note-ref-key "title") " (" org-media-note-ref-key ")")
+                                       ;; TODO 处理依赖
+                                       (concat (bibtex-completion-get-value-by-key org-media-note-ref-key "title") " (" org-media-note-ref-key ")")
                                      file-path)
                                    )
                          1 -0.05)
@@ -111,6 +114,7 @@
    (
     ("i" org-media-note-insert-link "Insert timestamp")
     ("I" org-media-note-insert-screenshot "Insert Screenshot")
+    ("p" org-media-note-insert-note-from-pbf "Import from pbf")
     )
    "Toggle"
    (
@@ -388,6 +392,142 @@
     )
   )
 
+;;;;; Import From other apps
+
+(defun org-media-note-insert-note-from-pbf ()
+  (interactive)
+  (let (
+        (key (org-media-note--current-org-ref-key))
+        pbf-file media-link-type media-file
+        )
+    (if key
+        (progn
+          (setq media-link-type "videocite")
+          (setq media-file key)
+          (let* (
+                 (source-media (org-media-note-get-media-file-by-key key))
+                 ;; (source-dir (file-name-directory source-media))
+                 )
+            (setq pbf-file (concat (file-name-sans-extension source-media) ".pbf"))
+            )
+          )
+      (progn
+        (setq media-link-type "video")
+        ;; TODO
+        (setq media-file (read-file-name "Find media file:"))
+        (setq pbf-file (concat (file-name-sans-extension media-file) ".pbf"))
+        )
+      )
+    (message pbf-file)
+    (if (not (file-exists-p pbf-file))
+        ;; TODO
+        (setq pbf-file (read-file-name "Find pbf file:"))
+      )
+    (insert (org-media-note--convert-from-pbf pbf-file media-link-type media-file))
+    ;; TODO
+    (if (y-or-n-p "Delete the PBF File?")
+        (delete-file pbf-file)
+        )
+    )
+  )
+
+(defun org-media-note-insert-note-from-noted ()
+  (interactive)
+  (let (
+        (key (org-media-note--current-org-ref-key))
+        noted-txt media-link-type media-file
+        )
+    (setq noted-txt (read-file-name "Find exported Noted txt:"))
+    (if key
+        (progn
+          (setq media-file key)
+          (setq media-link-type (concat
+                                 (org-media-note--file-media-type (org-media-note-get-media-file-by-key key))
+                                 "cite"))
+          )
+      (progn
+        ;; TODO
+        (setq media-file (read-file-name "Find media file:"))
+        (setq media-link-type (org-media-note--file-media-type media-file))
+        )
+      )
+    (insert (org-media-note--convert-from-noted noted-txt media-link-type media-file))
+    ;; TODO
+    (if (y-or-n-p "Delete Noted txt?")
+        (delete-file noted-txt)
+        )
+    )
+  )
+
+(defun org-media-note--convert-from-noted (noted-file media-link-type media-file)
+  ;; (with-current-buffer (get-buffer-create "*RESULTS*")
+  (with-temp-buffer
+    (insert-file-contents noted-file)
+    (replace-string "￼" ""
+                    nil (point-min) (point-max))
+    ;; replace unordered list
+    (replace-regexp "[•◦▫]" "-"
+                    nil (point-min) (point-max))
+    (goto-char (point-min))
+    (while (re-search-forward "^\\[\\([:0-9]+\\)\\]\\([[:blank:]]+\\)-[[:blank:]]+"  nil t)
+      (let* (
+            (hms (buffer-substring (match-beginning 1) (match-end 1)))
+            (blank-indent (buffer-substring (match-beginning 2) (match-end 2)))
+            )
+        (replace-match (concat blank-indent "- [[" media-link-type ":" media-file "#" hms "][" hms "]] ") t)
+        )
+      )
+    ;; replace ordered list
+    (goto-char (point-min))
+    (while (re-search-forward "^\\[\\([:0-9]+\\)\\]\\([[:blank:]]+\\)\\([[:digit:]]\\. \\)"  nil t)
+      (let* (
+            (hms (buffer-substring (match-beginning 1) (match-end 1)))
+            (blank-indent (buffer-substring (match-beginning 2) (match-end 2)))
+            (number-bullet (buffer-substring (match-beginning 3) (match-end 3)))
+            )
+        (replace-match (concat blank-indent number-bullet "[[" media-link-type ":" media-file "#" hms "][" hms "]] ") t)
+        )
+      )
+    ;; replace timestamped text
+    (goto-char (point-min))
+    (while (re-search-forward "^\\[\\([:0-9]+\\)\\]\\([[:blank:]]+\\)"  nil t)
+      (let* (
+            (hms (buffer-substring (match-beginning 1) (match-end 1)))
+            (blank-indent (buffer-substring (match-beginning 2) (match-end 2)))
+            )
+        (replace-match (concat blank-indent "- [[" media-link-type ":" media-file "#" hms "][" hms "]] ") t)
+        )
+      )
+    ;; format
+    (replace-regexp "\\]\\] +" "]] "
+                    nil (point-min) (point-max))
+    (buffer-string)
+    )
+  )
+
+
+(defun org-media-note--convert-from-pbf (pbf-file media-link-type media-file)
+  ;; (with-current-buffer (get-buffer-create "*RESULTS*")
+  (with-temp-buffer
+    (insert-file-contents pbf-file)
+    (replace-string "[Bookmark]\n" ""
+                    nil (point-min) (point-max))
+    (replace-regexp "^[[:digit:]]+=$" ""
+                    nil (point-min) (point-max))
+    (goto-char (point-min))
+    (while (re-search-forward "^[[:digit:]]+=\\([[:digit:]]+\\)\\*\\([^\\*]+\\)\\*.+"  nil t)
+      (let* (
+            (millisecs (buffer-substring (match-beginning 1) (match-end 1)))
+            (note (buffer-substring (match-beginning 2) (match-end 2)))
+            (hms (org-media-note--millisecs-to-hms millisecs))
+            )
+        (replace-match (concat "- [[" media-link-type ":" media-file "#" hms "][" hms "]] "
+                               note) t)
+        )
+      )
+    (buffer-string)
+    )
+  )
 
 ;;;;; Customize Org link
 (org-link-set-parameters "video"
