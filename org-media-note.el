@@ -49,31 +49,8 @@
 
 
 ;;;; Commands
-
-(defun org-media-note--get-media-type ()
-  "Get current playing media type."
-  (let* (
-         (file-path (mpv-get-property "path"))
-         (file-ext (if file-path (file-name-extension file-path)))
-         )
-    (cond
-     ((member file-ext org-media-note--video-types)
-      "video")
-     ((member file-ext org-media-note--audio-types)
-      "audio")
-     (t nil)
-     )
-    )
-  )
-
-(defun org-media-note--get-current-hms ()
-  "Get current media timestamp in format h:mm:ss"
-  (let ((time (mpv-get-playback-position)))
-    (org-timer-secs-to-hms (round time))
-    )
-  )
-
 ;;;;; Hydra
+
 
 (defun org-media-note--hydra-title ()
   "Title for `org-media-note-hydra'"
@@ -144,11 +121,74 @@
    )
   )
 
-;;;;; Add note
+;;;;; Utils
+
+(defun org-media-note--millisecs-to-hms (millisecs)
+  (org-timer-secs-to-hms (round (/ (string-to-number millisecs) 1000)))
+)
+
+(defun org-media-note--get-current-hms ()
+  "Get current media timestamp in format h:mm:ss"
+  (let ((time (mpv-get-playback-position)))
+    (org-timer-secs-to-hms (round time))
+    )
+  )
 
 (defun org-media-note--current-org-ref-key ()
   (org-entry-get (point) "Custom_ID")
   )
+
+(defun org-media-note-get-media-file-by-key (key)
+  (let* (
+         ;; TODO
+         (file-types (split-string (bibtex-completion-get-value-by-key key "formats") ", "))
+         (file-path (car (bibtex-completion-find-pdf key)))
+         (file-path-without-ext (file-name-sans-extension file-path))
+         (video-file-ext-candidates (seq-intersection file-types org-media-note--video-types))
+         (audio-file-ext-candidates (seq-intersection file-types org-media-note--audio-types))
+         (file-type (cond
+                     (video-file-ext-candidates
+                      (nth 0 video-file-ext-candidates))
+                     (audio-file-ext-candidates
+                      (nth 0 audio-file-ext-candidates))
+                     (t nil)
+                     ))
+         )
+    (if file-type
+        (org-media-note--get-realpath-for-file (concat file-path-without-ext "." file-type))
+      nil)
+    )
+  )
+
+(defun org-media-note--current-media-type ()
+  "Get current playing media type."
+  (let* (
+         (file-path (mpv-get-property "path"))
+         )
+    (org-media-note--file-media-type file-path)
+    )
+  )
+
+(defun org-media-note--file-media-type (file-path)
+  "Get file media type."
+  (let* (
+         (file-ext (if file-path (file-name-extension file-path)))
+         )
+    (org-media-note--get-media-type file-ext)
+    )
+  )
+
+(defun org-media-note--get-media-type (file-ext)
+    (cond
+     ((member file-ext org-media-note--video-types)
+      "video")
+     ((member file-ext org-media-note--audio-types)
+      "audio")
+     (t nil)
+     )
+  )
+;;;;; Add note
+
 
 (defun org-insert-item--media-note-item (orig-fn &rest args)
   "When item begins with media link, insert playback position."
@@ -205,8 +245,8 @@
   (let* (
          (file-path (mpv-get-property "path"))
          (link-type (if org-media-note-ref-key
-                        (concat (org-media-note--get-media-type) "cite")
-                      (org-media-note--get-media-type)
+                        (concat (org-media-note--current-media-type) "cite")
+                      (org-media-note--current-media-type)
                       ))
          (hms (org-media-note--get-current-hms))
          )
@@ -306,29 +346,6 @@
   (mpv-play (org-media-note-get-media-file-by-key key))
   )
 
-(defun org-media-note-get-media-file-by-key (key)
-  (let* (
-         (file-path-list (org-ref-get-file-list key))
-         (file-types (get-file-types-from-file-list file-path-list))
-         (file-path-raw (nth 0 file-path-list))
-         (file-name (save-match-data (and (string-match " *:\\(.+\\)\\.\\(.+\\) *" file-path-raw) ; file: ":/Books/{author}/..."
-                                          (match-string 1 file-path-raw))))
-         (video-file-ext-candidates (seq-intersection file-types org-media-note--video-types))
-         (audio-file-ext-candidates (seq-intersection file-types org-media-note--audio-types))
-         (file-type (cond
-                     (video-file-ext-candidates
-                      (nth 0 video-file-ext-candidates))
-                     (audio-file-ext-candidates
-                      (nth 0 audio-file-ext-candidates))
-                     (t nil)
-                     ))
-         )
-    (if file-type
-        (org-media-note--get-realpath-for-file (concat file-name "." file-type))
-      nil)
-    )
-  )
-
 
 (defun org-media-note--get-realpath-for-file (symlink)
   "Get realpath for symlink."
@@ -370,6 +387,20 @@
       )
     )
   )
+
+
+;;;;; Customize Org link
+(org-link-set-parameters "video"
+                         :follow 'org-media-note-link-follow)
+
+(org-link-set-parameters "audio"
+                         :follow 'org-media-note-link-follow)
+
+(org-link-set-parameters "videocite"
+                         :follow 'org-media-note-cite-link-follow)
+
+(org-link-set-parameters "audiocite"
+                         :follow 'org-media-note-cite-link-follow)
 
 ;;;;; Minor Mode
 
@@ -417,19 +448,6 @@ When enabled, will insert org-ref key instead of absolute file path.
   (if org-media-note-save-screenshot-p
       (setq org-media-note-save-screenshot-p nil)
     (setq org-media-note-save-screenshot-p t)))
-
-;;;;; Customize Org link
-(org-link-set-parameters "video"
-                         :follow 'org-media-note-link-follow)
-
-(org-link-set-parameters "audio"
-                         :follow 'org-media-note-link-follow)
-
-(org-link-set-parameters "videocite"
-                         :follow 'org-media-note-cite-link-follow)
-
-(org-link-set-parameters "audiocite"
-                         :follow 'org-media-note-cite-link-follow)
 
 ;;;; Footer
 (provide 'org-media-note)
