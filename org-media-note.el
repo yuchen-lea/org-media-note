@@ -331,9 +331,12 @@
 
 
 (defun org-media-note--get-realpath-for-file (symlink)
+  "Get realpath for symlink."
   (replace-regexp-in-string "\n" ""
                                   (shell-command-to-string
-                                   (concat "realpath \"" symlink "\"")
+                                   (concat "realpath \""
+                                           (replace-regexp-in-string "~" (file-truename "~") symlink)
+                                           "\"")
                                    ))
   )
 
