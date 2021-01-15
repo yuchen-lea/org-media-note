@@ -58,21 +58,26 @@
   "Title for `org-media-note-hydra'"
   (let (
         (file-path (mpv-get-property "path"))
-        speed hms duration
+        speed current-hms total-hms duration remaining-hms
         )
     (if file-path
         ;; Title when mpv is playing media
         (progn
-          (setq speed (number-to-string (mpv-get-property "speed")))
-          (setq hms (org-media-note--get-current-hms))
-          (setq duration (org-timer-secs-to-hms (round (mpv-get-property "duration"))))
+          (setq speed (mpv-get-property "speed"))
+          (setq current-hms (org-media-note--get-current-hms))
+          (setq duration (mpv-get-property "duration"))
+          (setq total-hms (org-timer-secs-to-hms (round duration)))
+          (setq remaining-hms (org-timer-secs-to-hms (round (/ (- duration (mpv-get-playback-position))
+                                                               speed))))
           (with-material "ondemand_video"
                          (s-concat "org-media-note: "
-                                   hms
+                                   current-hms
                                    " / "
-                                   duration
-                                   "\t Current Speed:"
-                                   speed
+                                   total-hms
+                                   "\t Current Speed: "
+                                   (number-to-string speed)
+                                   "\t Remaining: "
+                                   remaining-hms
                                    "\n\t❯ "
                                    (if org-media-note-ref-key
                                        ;; TODO 处理依赖
