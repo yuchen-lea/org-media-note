@@ -43,9 +43,6 @@
 (defconst org-media-note--video-types '("avi" "rmvb" "ogg" "ogv" "mp4" "mkv" "mov" "webm" "flv" "ts"))
 (defconst org-media-note--audio-types '("flac" "mp3" "wav"))
 
-(defvar org-media-note-ref-key nil
-  "The ref key which is noting with.")
-
 (defvar org-media-note-last-play-speed 1.0
   "Last play speed in mpv.")
 
@@ -58,6 +55,7 @@
   "Title for `org-media-note-hydra'"
   (let (
         (file-path (mpv-get-property "path"))
+        (ref-key (org-media-note--current-org-ref-key))
         speed current-hms total-hms duration remaining-hms
         )
     (if file-path
@@ -79,9 +77,12 @@
                                    "\t Remaining: "
                                    remaining-hms
                                    "\n\t❯ "
-                                   (if org-media-note-ref-key
+                                   (if ref-key
                                        ;; TODO 处理依赖
-                                       (concat (bibtex-completion-get-value-by-key org-media-note-ref-key "title") " (" org-media-note-ref-key ")")
+                                       (format "%s (%s)"
+                                               (bibtex-completion-get-value-by-key ref-key "title")
+                                               ref-key
+                                               )
                                      file-path)
                                    )
                          1 -0.05)
@@ -101,7 +102,7 @@
    (
     ("o" org-media-note-mpv-smart-play
      (if (org-media-note--current-org-ref-key)
-         (concat "Open " org-media-note-ref-key)
+         (format "Open %s" (org-media-note--current-org-ref-key))
        "Open")
      :width 20)
     )
@@ -124,7 +125,7 @@
    "Toggle"
    (
     ("t m" org-media-note-mode "Auto insert media item" :toggle t)
-    ("t c" org-media-note-refcite-mode "Use ref key instead of absolute path" :toggle org-media-note-ref-key)
+    ("t c" org-media-note-refcite-mode "Use ref key instead of absolute path" :toggle t)
     ("t s" org-media-note-toggle-save-screenshot "Auto save screenshot" :toggle org-media-note-save-screenshot-p)
     )
    )
@@ -253,15 +254,15 @@
   "Return media link."
   (let* (
          (file-path (mpv-get-property "path"))
-         (link-type (if org-media-note-ref-key
+         (link-type (if org-media-note-refcite-mode
                         (concat (org-media-note--current-media-type) "cite")
                       (org-media-note--current-media-type)
                       ))
          (hms (org-media-note--get-current-hms))
          )
-    (if org-media-note-ref-key
-        (concat "[[" link-type ":" org-media-note-ref-key "#" hms "][" hms "]]")
-      (concat "[[" link-type ":" file-path "#" hms "][" hms "]]")
+    (if org-media-note-refcite-mode
+        (format "[[%s:%s#%s][%s]]" link-type (org-media-note--current-org-ref-key) hms hms)
+      (format "[[%s:%s#%s][%s]]" link-type file-path hms hms)
       )
     )
   )
@@ -570,22 +571,18 @@ When enabled, will insert org-ref key instead of absolute file path.
   :global     nil
   (if org-media-note-refcite-mode
       (org-media-note--setup-refcite-mode)
-    (org-media-note--tear-down-refcite-mode)))
+    nil))
 
 
 (defun org-media-note--setup-refcite-mode ()
   (let* ((key (org-media-note--current-org-ref-key))
          )
     (if key
-        (setq org-media-note-ref-key key)
+        nil
       ;; TODO can not set up refcite-mode without key
       (error "Cannot set up refcite-mode without a key.")
       )
     ))
-
-(defun org-media-note--tear-down-refcite-mode ()
-  (setq org-media-note-ref-key nil)
-  )
 
 
 (defun org-media-note-toggle-save-screenshot ()
