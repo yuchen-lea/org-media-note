@@ -38,6 +38,15 @@
     (const :tag "Off" nil)
     ))
 
+(defcustom org-media-note-cite-keymap
+  (let ((map (copy-keymap org-mouse-map)))
+    (define-key map (kbd "H-o") 'org-media-note-open-ref-cite-function)
+    map)
+  "Keymap for cite links."
+  :type 'symbol
+  :group 'org-media-note)
+
+
 ;;;; Variables
 
 (defconst org-media-note--video-types '("avi" "rmvb" "ogg" "ogv" "mp4" "mkv" "mov" "webm" "flv" "ts"))
@@ -382,6 +391,28 @@
                                    ))
   )
 
+(defun org-media-note-open-ref-cite-function ()
+  (interactive)
+  (let* ((object (org-element-context))
+         (media-note-link (if (eq (org-element-type object) 'link)
+                              (org-element-property :path object)
+			    ))
+         (ref-cite-key (car (split-string media-note-link "#")))
+         )
+    (with-temp-buffer
+      (org-mode)
+      ;; TODO bibtex-files dependency
+      ;; insert bibliography in order to find entry in org-ref
+      (insert (s-join "\n" (mapcar (lambda (bib)
+                                     (format "bibliography:%s" bib)
+                                     )
+                                   bibtex-files
+                                   )))
+      (insert (format "\ncite:%s" ref-cite-key))
+      (funcall org-ref-cite-onclick-function nil)
+      )
+    )
+  )
 ;;;;; Media Control
 (defun org-media-note-change-speed-by (speed-step)
   "Set playing speed."
@@ -578,7 +609,9 @@
                          :follow 'org-media-note-link-follow)
 
 (org-link-set-parameters "videocite"
-                         :follow 'org-media-note-cite-link-follow)
+                         :follow 'org-media-note-cite-link-follow
+                         :keymap org-media-note-cite-keymap
+                         )
 
 (org-link-set-parameters "audiocite"
                          :follow 'org-media-note-cite-link-follow)
