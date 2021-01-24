@@ -46,6 +46,9 @@
 (defvar org-media-note-last-play-speed 1.0
   "Last play speed in mpv.")
 
+(defvar org-media-note-last-volume 100.0
+  "Last Volume in mpv.")
+
 
 ;;;; Commands
 ;;;;; Hydra
@@ -62,6 +65,7 @@
         ;; Title when mpv is playing media
         (progn
           (setq speed (mpv-get-property "speed"))
+          (setq volume (mpv-get-property "volume"))
           (setq current-hms (org-media-note--get-current-hms))
           (setq duration (mpv-get-property "duration"))
           (setq total-hms (org-timer-secs-to-hms (round duration)))
@@ -72,7 +76,9 @@
                                    current-hms
                                    " / "
                                    total-hms
-                                   "\t Current Speed: "
+                                   "\t Volume: "
+                                   (number-to-string volume)
+                                   "\t Speed: "
                                    (number-to-string speed)
                                    "\t Remaining: "
                                    remaining-hms
@@ -117,8 +123,14 @@
     ("c" (org-media-note-change-speed-by 0.1)  "increase speed")
     ("x" (org-media-note-change-speed-by -0.1)  "decrease speed")
     ("z" org-media-note-mpv-toggle-speed  "reset speed")
-
     )
+   "Volume"
+   (
+   ("+" (org-media-note-change-volume-by 5) "Up")
+   ("-" (org-media-note-change-volume-by -5) "Down")
+   ("0" org-media-note-mpv-toggle-volume "toggle")
+   ("m" (mpv-cycle-property "mute") "(un)mute")
+   )
    "Note"
    (
     ("i" org-media-note-insert-link "Insert timestamp")
@@ -390,6 +402,25 @@
       )
     )
   )
+
+(defun org-media-note-change-volume-by (step)
+  "Set playing speed."
+  (mpv-run-command "add" "volume" step)
+  (setq org-media-note-last-volume (mpv-get-property "volume"))
+  )
+
+(defun org-media-note-mpv-toggle-volume ()
+  (interactive)
+  (let ((current-volume (mpv-get-property "volume")))
+    (if (= 100.0 current-volume)
+        (mpv-set-property "volume" org-media-note-last-volume)
+      (progn
+        (setq org-media-note-last-volume current-volume)
+        (mpv-set-property "volume" 100))
+      )
+    )
+  )
+
 
 (defun org-media-note-mpv-smart-play ()
   (interactive)
