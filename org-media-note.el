@@ -65,8 +65,8 @@
           (setq current-hms (org-media-note--get-current-hms))
           (setq duration (mpv-get-property "duration"))
           (setq total-hms (org-timer-secs-to-hms (round duration)))
-          (setq remaining-hms (org-timer-secs-to-hms (round (/ (- duration (mpv-get-playback-position))
-                                                               speed))))
+          (setq remaining-hms (org-timer-secs-to-hms (round (mpv-get-property "playtime-remaining")
+                                                               )))
           (with-material "ondemand_video"
                          (s-concat "org-media-note: "
                                    current-hms
@@ -105,12 +105,15 @@
          (format "Open %s" (org-media-note--current-org-ref-key))
        "Open")
      :width 20)
+    ("j" (mpv-cycle-property "sub") "toggle subtitles")
     )
    "Playback"
    (
     ("<SPC>" mpv-pause "Play/Pause")
     ("<left>" mpv-seek-backward "Back 5s")
     ("<right>" mpv-seek-forward "Forward 5s")
+    ("C-<left>"   (mpv-run-command "sub-seek" -1)  "Previous subtitle")
+    ("C-<right>" (mpv-run-command "sub-seek" 1) "Next subtitle")
     ("c" (org-media-note-change-speed-by 0.1)  "increase speed")
     ("x" (org-media-note-change-speed-by -0.1)  "decrease speed")
     ("z" org-media-note-mpv-toggle-speed  "reset speed")
@@ -121,6 +124,7 @@
     ("i" org-media-note-insert-link "Insert timestamp")
     ("I" org-media-note-insert-screenshot "Insert Screenshot")
     ("p" org-media-note-insert-note-from-pbf "Import from pbf")
+    ("s" (insert (mpv-get-property "sub-text")) "Insert sub")
     )
    "Toggle"
    (
