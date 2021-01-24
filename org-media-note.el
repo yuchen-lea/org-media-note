@@ -262,8 +262,7 @@
 (defun org-media-note-insert-link ()
   "Insert current mpv timestamp link into Org-mode note."
   (interactive)
-  (insert (org-media-note--link))
-  (insert " ")
+  (insert (format "%s " (org-media-note--link)))
   )
 
 (defun org-media-note--link ()
@@ -313,7 +312,7 @@
          (image-target-path (expand-file-name image-file-name org-media-note-screenshot-image-dir))
          )
     (mpv--enqueue `("screenshot-to-file" ,image-target-path) #'ignore)
-    (insert (concat "[[file:" image-target-path "]] "))
+    (insert (format "[[file:%s]] " image-target-path))
     (org-media-note--display-inline-images)
     )
   )
@@ -562,8 +561,9 @@
             (note (buffer-substring (match-beginning 2) (match-end 2)))
             (hms (org-media-note--millisecs-to-hms millisecs))
             )
-        (replace-match (concat "- [[" media-link-type ":" media-file "#" hms "][" hms "]] "
-                               note) t)
+        (replace-match
+         (format "- [[%s:%s#%s][%s]] %s" media-link-type media-file hms hms note)
+         t)
         )
       )
     (buffer-string)
