@@ -631,7 +631,8 @@
 When enabled, insert media note.
 "
   :init-value t
-  :global     nil
+  :global     t
+
   (if org-media-note-mode
       (advice-add 'org-insert-item :before-until #'org-insert-item--media-note-item)
     (advice-remove 'org-insert-item #'org-insert-item--media-note-item)
@@ -643,7 +644,7 @@ When enabled, insert media note.
 When enabled, will insert org-ref key instead of absolute file path.
 "
   :init-value nil
-  :global     nil
+  :global     t
   (if org-media-note-refcite-mode
       (org-media-note--setup-refcite-mode)
     nil))
