@@ -30,6 +30,10 @@
   "Whether to save screenshot."
   :type 'boolean)
 
+(defcustom org-media-note-screenshot-with-sub t
+  "Whether to save screenshot."
+  :type 'boolean)
+
 (defcustom org-media-note-display-inline-images t
   "When non-nil display inline images in org buffer after insert screenshot."
   :type
@@ -152,10 +156,10 @@
     ("t m" org-media-note-mode "Auto insert media item" :toggle t)
     ("t c" org-media-note-refcite-mode "Use ref key instead of absolute path" :toggle t)
     ("t s" org-media-note-toggle-save-screenshot "Auto save screenshot" :toggle org-media-note-save-screenshot-p)
+    ("t S" org-media-note-toggle-screenshot-with-sub "Screenshot with subtitles" :toggle org-media-note-screenshot-with-sub)
     )
    )
   )
-
 ;;;;; Utils
 
 (defun org-media-note--millisecs-to-hms (millisecs)
@@ -320,7 +324,10 @@
                           )
          (image-target-path (expand-file-name image-file-name org-media-note-screenshot-image-dir))
          )
-    (mpv--enqueue `("screenshot-to-file" ,image-target-path) #'ignore)
+    (if org-media-note-screenshot-with-sub
+      (mpv-run-command "screenshot-to-file" image-target-path)
+      (mpv-run-command "screenshot-to-file" image-target-path "video")
+    )
     (insert (format "[[file:%s]] " image-target-path))
     (org-media-note--display-inline-images)
     )
@@ -658,6 +665,14 @@ When enabled, will insert org-ref key instead of absolute file path.
   (if org-media-note-save-screenshot-p
       (setq org-media-note-save-screenshot-p nil)
     (setq org-media-note-save-screenshot-p t)))
+
+
+(defun org-media-note-toggle-screenshot-with-sub ()
+  (interactive)
+  (if org-media-note-screenshot-with-sub
+      (setq org-media-note-screenshot-with-sub nil)
+    (setq org-media-note-screenshot-with-sub t)))
+
 
 ;;;; Footer
 (provide 'org-media-note)
