@@ -125,6 +125,7 @@
        "Open")
      :width 20)
     ("j" (mpv-cycle-property "sub") "toggle subtitles")
+    ("T" (mpv-cycle-property "ontop") "toggle ontop")
     )
    "Playback"
    (
