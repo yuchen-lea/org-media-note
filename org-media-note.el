@@ -628,7 +628,27 @@
 (org-link-set-parameters "videocite"
                          :follow 'org-media-note-cite-link-follow
                          :keymap org-media-note-cite-keymap
+                         :help-echo #'org-media-note-help-echo
                          )
+
+
+(defun org-media-note-help-echo (window object position)
+  "A help-echo function for ref links."
+  (save-excursion
+    (goto-char position)
+      (let* ((object (org-element-context))
+             (media-note-link (if (eq (org-element-type object) 'link)
+                                      (org-element-property :path object)
+                                                     ))
+             (ref-cite-key (car (split-string media-note-link "#")))
+             (hms (cdr (split-string media-note-link "#")))
+                                  )
+        (format "%s @ %s"
+                (org-ref-format-entry ref-cite-key) hms)
+        )
+    ))
+
+
 
 (org-link-set-parameters "audiocite"
                          :follow 'org-media-note-cite-link-follow)
