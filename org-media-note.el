@@ -6,7 +6,6 @@
 (require 'org)
 (require 'org-timer)
 (require 'pretty-hydra)
-(require 'bibtex-completion)
 
 (declare-function org-timer-secs-to-hms 'org-timer)
 
@@ -209,6 +208,21 @@
     )
   )
 
+(defun org-media-note-mpv-play-by-key (key)
+  (mpv-play (org-media-note-get-media-file-by-key key))
+  )
+
+
+(defun org-media-note--get-realpath-for-file (symlink)
+  "Get realpath for symlink."
+  (replace-regexp-in-string "\n" ""
+                                  (shell-command-to-string
+                                   (concat "realpath \""
+                                           (replace-regexp-in-string "~" (file-truename "~") symlink)
+                                           "\"")
+                                   ))
+  )
+
 (defun org-media-note--current-media-type ()
   "Get current playing media type."
   (let* (
@@ -237,7 +251,6 @@
      )
   )
 ;;;;; Add note
-
 
 (defun org-insert-item--media-note-item (orig-fn &rest args)
   "When item begins with media link, insert playback position."
@@ -369,67 +382,6 @@
     )
   )
 
-;;;;; Integreted with org-ref
-
-;; TODO maybe move to a seperate file to integerate with org-ref?
-
-(defun org-media-note-cite-link-follow (link)
-  "Open media link like videocite:course.104#0:02:13"
-  (let* (
-         (splitted (split-string link "#"))
-         (key (nth 0 splitted))
-         (file-path (org-media-note-get-media-file-by-key key))
-         (hms (nth 1 splitted))
-         )
-    (cond
-     ((not file-path)
-      (error "Cannot find media file for this Key."))
-     (t
-      (if (not (string= file-path (mpv-get-property "path")))
-          (progn
-            (mpv-play file-path)
-            (sleep-for org-media-note-time-to-wait-after-open)
-            )
-        )
-      (mpv-seek (org-timer-hms-to-secs hms))))))
-
-(defun org-media-note-mpv-play-by-key (key)
-  (mpv-play (org-media-note-get-media-file-by-key key))
-  )
-
-
-(defun org-media-note--get-realpath-for-file (symlink)
-  "Get realpath for symlink."
-  (replace-regexp-in-string "\n" ""
-                                  (shell-command-to-string
-                                   (concat "realpath \""
-                                           (replace-regexp-in-string "~" (file-truename "~") symlink)
-                                           "\"")
-                                   ))
-  )
-
-(defun org-media-note-open-ref-cite-function ()
-  (interactive)
-  (let* ((object (org-element-context))
-         (media-note-link (if (eq (org-element-type object) 'link)
-                              (org-element-property :path object)
-			    ))
-         (ref-cite-key (car (split-string media-note-link "#")))
-         )
-    (with-temp-buffer
-      (org-mode)
-      ;; TODO bibtex-files dependency
-      ;; insert bibliography in order to find entry in org-ref
-      (insert (s-join "\n" (mapcar (lambda (bib)
-                                     (format "bibliography:%s" bib)
-                                     )
-                                   bibtex-files
-                                   )))
-      (insert (format "\ncite:%s" ref-cite-key))
-      (funcall org-ref-cite-onclick-function nil)
-      )
-    )
-  )
 ;;;;; Media Control
 (defun org-media-note-change-speed-by (speed-step)
   "Set playing speed."
@@ -624,34 +576,6 @@
 
 (org-link-set-parameters "audio"
                          :follow 'org-media-note-link-follow)
-
-(org-link-set-parameters "videocite"
-                         :follow 'org-media-note-cite-link-follow
-                         :keymap org-media-note-cite-keymap
-                         :help-echo #'org-media-note-help-echo
-                         )
-
-
-(defun org-media-note-help-echo (window object position)
-  "A help-echo function for ref links."
-  (save-excursion
-    (goto-char position)
-      (let* ((object (org-element-context))
-             (media-note-link (if (eq (org-element-type object) 'link)
-                                      (org-element-property :path object)
-                                                     ))
-             (ref-cite-key (car (split-string media-note-link "#")))
-             (hms (cdr (split-string media-note-link "#")))
-                                  )
-        (format "%s @ %s"
-                (org-ref-format-entry ref-cite-key) hms)
-        )
-    ))
-
-
-
-(org-link-set-parameters "audiocite"
-                         :follow 'org-media-note-cite-link-follow)
 
 ;;;;; Minor Mode
 
