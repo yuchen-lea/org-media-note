@@ -31,7 +31,11 @@
   :type 'boolean)
 
 (defcustom org-media-note-screenshot-with-sub t
-  "Whether to save screenshot."
+  "Whether to save screenshot with subtitles."
+  :type 'boolean)
+
+(defcustom org-media-note-use-refcite-first t
+  "When t, use refcite instead of file path when taking notes."
   :type 'boolean)
 
 (defcustom org-media-note-display-inline-images t
@@ -155,7 +159,7 @@
    "Toggle"
    (
     ("t m" org-media-note-mode "Auto insert media item" :toggle t)
-    ("t c" org-media-note-refcite-mode "Use ref key instead of absolute path" :toggle t)
+    ("t c" org-media-note-toggle-refcite "Use ref key instead of absolute path" :toggle org-media-note-use-refcite-first)
     ("t s" org-media-note-toggle-save-screenshot "Auto save screenshot" :toggle org-media-note-save-screenshot-p)
     ("t S" org-media-note-toggle-screenshot-with-sub "Screenshot with subtitles" :toggle org-media-note-screenshot-with-sub)
     )
@@ -176,6 +180,11 @@
 
 (defun org-media-note--current-org-ref-key ()
   (org-entry-get (point) "Custom_ID")
+  )
+
+(defun org-media-note-ref-cite-p ()
+  (and (org-media-note--current-org-ref-key)
+       org-media-note-use-refcite-first)
   )
 
 (defun org-media-note-get-media-file-by-key (key)
@@ -283,13 +292,13 @@
   "Return media link."
   (let* (
          (file-path (mpv-get-property "path"))
-         (link-type (if org-media-note-refcite-mode
+         (link-type (if (org-media-note-ref-cite-p)
                         (concat (org-media-note--current-media-type) "cite")
                       (org-media-note--current-media-type)
                       ))
          (hms (org-media-note--get-current-hms))
          )
-    (if org-media-note-refcite-mode
+    (if (org-media-note-ref-cite-p)
         (format "[[%s:%s#%s][%s]]" link-type (org-media-note--current-org-ref-key) hms hms)
       (format "[[%s:%s#%s][%s]]" link-type file-path hms hms)
       )
@@ -640,27 +649,11 @@ When enabled, insert media note.
     ))
 
 
-(define-minor-mode org-media-note-refcite-mode
-  "Toggle `org-media-note-refcite-mode'.
-When enabled, will insert org-ref key instead of absolute file path.
-"
-  :init-value nil
-  :global     t
-  (if org-media-note-refcite-mode
-      (org-media-note--setup-refcite-mode)
-    nil))
-
-
-(defun org-media-note--setup-refcite-mode ()
-  (let* ((key (org-media-note--current-org-ref-key))
-         )
-    (if key
-        nil
-      ;; TODO can not set up refcite-mode without key
-      (error "Cannot set up refcite-mode without a key.")
-      )
-    ))
-
+(defun org-media-note-toggle-refcite ()
+  (interactive)
+  (if org-media-note-use-refcite-first
+      (setq org-media-note-use-refcite-first nil)
+    (setq org-media-note-use-refcite-first t)))
 
 (defun org-media-note-toggle-save-screenshot ()
   (interactive)
