@@ -1,0 +1,2 @@
+[[file:README_CN.org][中文文档]]
+
