@@ -24,13 +24,13 @@
 
 快速打开org-ref对应的视频，播放置顶，快速插入当前时间戳、字幕
 
-[[https://github.com/yuchen-lea/org-media-note/blob/demo/org-media-note-add.gif]]
+[[../demo/org-media-note-add.gif?raw=true]]
 
 插入当前视频截图，也可以设置每次插入新笔记时，自动插入截图
-[[https://github.com/yuchen-lea/org-media-note/blob/demo/org-media-note-screenshot.gif]]
+[[../demo/org-media-note-screenshot.gif?raw=true]]
 
 点击链接，从视频指定位置播放；光标位于链接时，minibuffer展示org-ref相关信息
-[[https://github.com/yuchen-lea/org-media-note/blob/demo/org-media-note-follow.gif]]
+[[../demo/org-media-note-follow.gif?raw=true]]
 * 快速指南
 1. 安装
    - doom 用户配置以下代码安装：
