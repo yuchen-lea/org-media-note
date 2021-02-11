@@ -20,6 +20,17 @@
   + 光标或鼠标置于链接时，显示 bib 条目的相关信息
   + 可以快速打开该 bib 条目的 org-ref 动作列表，执行相应动作，例如跳转到对应笔记等
 
+* 功能演示
+
+快速打开org-ref对应的视频，播放置顶，快速插入当前时间戳、字幕
+
+[[https://github.com/yuchen-lea/org-media-note/blob/demo/org-media-note-add.gif]]
+
+插入当前视频截图，也可以设置每次插入新笔记时，自动插入截图
+[[https://github.com/yuchen-lea/org-media-note/blob/demo/org-media-note-screenshot.gif]]
+
+点击链接，从视频指定位置播放；光标位于链接时，minibuffer展示org-ref相关信息
+[[https://github.com/yuchen-lea/org-media-note/blob/demo/org-media-note-follow.gif]]
 * 快速指南
 1. 安装
    - doom 用户配置以下代码安装：
