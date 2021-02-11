@@ -60,6 +60,7 @@
   (setq org-media-note-use-refcite-first t)  ;; 插入链接时，优先使用refcite链接
   )
        #+END_SRC
+   - ℹ 这里，我用 Hyper key =H= 进行绑定，好处在于快速触达功能，且不会与已有快捷键冲突。更多参见 [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]。当然，你也可以设置成任何适合你的快捷键，毕竟这是Emacs ：）
 
 * 依赖
 - [[https://github.com/kljohann/mpv.el][mpv.el]] 媒体的播放与功能接口

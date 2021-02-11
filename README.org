@@ -63,6 +63,7 @@ Jump to the right position by clicking link
   (setq org-media-note-use-refcite-first t)  ;; use videocite link instead of video link if possible
   )
        #+END_SRC
+   - ℹ Here, I use Hyper key =H= for keybinding. In this way, I can quickly access personal functions, and no major or minor modes will stamp on my keys. Look into this for more infomation: [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]. Or you can bind it to any other key you like. After all, it's Emacs ;)
 3. Then, you can access all functions in =org-media-note-hydra/body=
 * Dependencies
 - [[https://github.com/kljohann/mpv.el][mpv.el]] control media inside emacs
