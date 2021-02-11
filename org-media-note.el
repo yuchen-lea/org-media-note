@@ -366,7 +366,7 @@ jump to the correct position when opening the media for the first time."
   (let* ((key (org-media-note--current-org-ref-key)))
     (if (org-media-note-ref-cite-p)
         (mpv-play (org-media-note-get-media-file-by-key key))
-      (mpv-play))))
+      (mpv-play (read-file-name "File to play: ")))))
 
 ;;;;; Import From other apps
 
