@@ -68,8 +68,8 @@ jump to the correct position when opening the media for the first time."
   :type 'float)
 
 (defcustom org-media-note--link-format "%timestamp/%duration"
-  "Link text. Allows the following:
-%filename :: name of the current file
+  "Link text.  Allows the following substitutions:
+%filename :: name of the media file
 %timestamp :: current media timestamp (hms)
 %duration :: length of the media file (hms)
 %file-path :: path of the media file"
@@ -357,7 +357,7 @@ Returns:
                 link-type
                 (org-media-note--current-org-ref-key)
                 timestamp
-                hms)
+                timestamp)
       (format "[[%s:%s#%s][%s]]" link-type file-path
 	      timestamp
 	      (org-media-note--link-formatter
