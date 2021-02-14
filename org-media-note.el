@@ -305,16 +305,19 @@ pause the media."
 
 (defun org-media-note--link-formatter (string map)
   "MAP is an alist in the form of '((PLACEHOLDER . REPLACEMENT))
-STRING is the original string. PLACEHOLDER is a symbol or a string that will
-be converted to a string prefixed with a %: \"%PLACEHOLDER\". 
-REPLACEMENT can be a string, a number, symbol, or function. Replace all
-occurrences of %placeholder with replacement and return a new string.
+STRING is the original string.  Each placeholder can be a string, 
+symbol, or number. REPLACEMENT can be a string, a number, symbol, 
+or function. Replace all occurrences of %placeholder with replacement
+and return a new string.
 
-For example,
- (org-media-note--link-formatter \"%test1 / %test2\"
-               '((\"test1\" . \"asdf\")
-                 (\"test2\" . \"zxcv\")))
-Returns: \"asdf / zxcv\"."
+For example:
+(let ((input-string  \"Words,  %test1%test2 more words %test1.\")
+      (map '((test1 . \"asdf\")
+             (test2 . \"zxcv\"))))
+  (org-media-note--link-formatter input-string map))
+
+Returns:
+\"Words,  asdfzxcv more words asdf.\""
   (cl-loop for (holder . replacement) in map
 	   when replacement
 	   do (setq string
@@ -323,8 +326,10 @@ Returns: \"asdf / zxcv\"."
 			     (pcase holder
 			       ((pred symbolp) (symbol-name holder))
 			       ((pred stringp) holder)
-			       ((pred numberp) (number-to-string holder))))
+			       ((pred numberp) (number-to-string holder))
+			       ((pred functionp) (funcall replacement))))
 		     (pcase replacement
+		       ((pred symbolp) (symbol-name holder))
 		       ((pred stringp) replacement)
 		       ((pred numberp) (number-to-string replacement))
 		       ((pred functionp) (funcall replacement))
