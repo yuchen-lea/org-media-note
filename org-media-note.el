@@ -40,6 +40,10 @@
   :group 'org
   :prefix "org-media-note-")
 
+(defcustom org-media-note-link-prefix nil
+  "Prefix inserted before timestamp in link text."
+  :type '(symbol string)
+  :options '(file-name file-path))
 
 (defcustom org-media-note-screenshot-image-dir org-directory
   "Default dir to save screenshots."
@@ -67,6 +71,14 @@
 If this value is not big enough, clicking the timestamp link may not
 jump to the correct position when opening the media for the first time."
   :type 'float)
+
+(defcustom org-media-note--link-format "%timestamp/%duration"
+  "Link text. Allows the following:
+%filename :: name of the current file
+%timestamp :: current media timestamp (hms)
+%duration :: length of the media file (hms)
+%file-path :: path of the media file"
+  :type 'string)
 
 ;;;; Variables
 
@@ -183,6 +195,11 @@ jump to the correct position when opening the media for the first time."
 (defun org-media-note--millisecs-to-hms (millisecs)
   (org-timer-secs-to-hms (round (/ (string-to-number millisecs) 1000))))
 
+(defun org-media-note--get-duration-hms ()
+  "Get the current media duration in format h:mm:ss"
+  (let ((duration (mpv-get-duration)))
+    (org-timer-secs-to-hms (round duration))))
+
 (defun org-media-note--get-current-hms ()
   "Get current media timestamp in format h:mm:ss"
   (let ((time (mpv-get-playback-position)))
@@ -266,23 +283,59 @@ jump to the correct position when opening the media for the first time."
   (insert (format "%s "
                   (org-media-note--link))))
 
+(defun org-media-note--link-formatter (string map)
+  "MAP is an alist in the form of '((PLACEHOLDER . REPLACEMENT))
+STRING is the original string. PLACEHOLDER is a symbol or a string that will
+be converted to a string prefixed with a %: \"%PLACEHOLDER\". 
+REPLACEMENT can be a string, a number, symbol, or function. Replace all
+occurrences of %placeholder with replacement and return a new string.
+
+For example,
+ (org-media-note--link-formatter \"%test1 / %test2\"
+               '((\"test1\" . \"asdf\")
+                 (\"test2\" . \"zxcv\")))
+Returns: \"asdf / zxcv\"."
+  (cl-loop for (holder . replacement) in map
+	   when replacement
+	   do (setq string
+		    (replace-regexp-in-string
+		     (concat "%"
+			     (pcase holder
+			       ((pred symbolp) (symbol-name holder))
+			       ((pred stringp) holder)
+			       ((pred numberp) (number-to-string holder))))
+		     (pcase replacement
+		       ((pred stringp) replacement)
+		       ((pred numberp) (number-to-string replacement))
+		       ((pred functionp) (funcall replacement))
+		       (_ ""))
+		     string))
+	   finally return string))
+
 (defun org-media-note--link ()
   "Return media link."
   (let* ((file-path (mpv-get-property "path"))
          (link-type (if (org-media-note-ref-cite-p)
                         (concat (org-media-note--current-media-type)
                                 "cite")
-                      (org-media-note--current-media-type)))
-         (hms (org-media-note--get-current-hms)))
+		      (org-media-note--current-media-type)))
+	 (filename (mpv-get-property "filename"))
+	 (duration (org-media-note--get-duration-hms))
+         (timestamp (org-media-note--get-current-hms)))    
     (if (org-media-note-ref-cite-p)
         (format "[[%s:%s#%s][%s]]"
                 link-type
                 (org-media-note--current-org-ref-key)
-                hms
+                timestamp
                 hms)
       (format "[[%s:%s#%s][%s]]" link-type file-path
-              hms hms))))
-
+	      timestamp
+	      (org-media-note--link-formatter
+	       org-media-note--link-format
+	       `(("filename" . ,filename)
+		 ("duration" . ,duration)
+		 ("timestamp" . ,timestamp)
+		 ("file-path" . ,file-path)))))))
 
 (defun org-at-item-meida-item-p ()
   "Is point at a line starting a plain list item with a media-note link?"
