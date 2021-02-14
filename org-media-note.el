@@ -80,6 +80,12 @@ jump to the correct position when opening the media for the first time."
 %file-path :: path of the media file"
   :type 'string)
 
+(defcustom org-media-note-cursor-start-position 'before
+  "After inserting a link, should the cursor move to the point
+before the link, or the point after?"
+  :type 'symbol
+  :options '(before after))
+
 ;;;; Variables
 
 (defconst org-media-note--video-types '("avi" "rmvb" "ogg" "ogv" "mp4" "mkv" "mov" "webm" "flv" "ts"))
@@ -128,10 +134,11 @@ jump to the correct position when opening the media for the first time."
     ;; Title when no media is playing
     (concat icon " org-media-note"))))
 
+
 (pretty-hydra-define org-media-note-hydra
   (:color red
-   :title (org-media-note--hydra-title):hint
-   nil)
+	  :title (org-media-note--hydra-title):hint
+	  nil)
   ("File"
    (("o" org-media-note-mpv-smart-play
      (if (org-media-note--current-org-ref-key)
@@ -175,6 +182,7 @@ jump to the correct position when opening the media for the first time."
      "(un)mute"))
    "Note"
    (("i" org-media-note-insert-link "Insert timestamp")
+    ("n" org-media-note-insert-link-and-pause "Insert timestamp and pause")
     ("I" org-media-note-insert-screenshot "Insert Screenshot")
     ("p" org-media-note-insert-note-from-pbf "Import from pbf")
     ("s"
@@ -282,8 +290,18 @@ jump to the correct position when opening the media for the first time."
 (defun org-media-note-insert-link ()
   "Insert current mpv timestamp link into Org-mode note."
   (interactive)
-  (insert (format "%s "
-                  (org-media-note--link))))
+  (let ((point (point)))
+    (insert (format "%s "
+                    (org-media-note--link)))
+    (when (eq org-media-note-cursor-start-position 'before)
+      (goto-char point))))
+
+(defun org-media-note-insert-link-and-pause ()
+  "Insert current mpv timestamp link into Org-mode note and
+pause the media."
+  (interactive)
+  (org-media-note-insert-link)
+  (mpv-pause))
 
 (defun org-media-note--link-formatter (string map)
   "MAP is an alist in the form of '((PLACEHOLDER . REPLACEMENT))
@@ -354,10 +372,11 @@ Returns: \"asdf / zxcv\"."
 (defun org-media-note-insert-screenshot ()
   "Insert current mpv screenshot into Org-mode note."
   (interactive)
-  (let* ((image-file-name (org-media-note--format-file-name (concat (file-name-base (mpv-get-property "path"))
-                                                                    "-"
-                                                                    (org-media-note--get-current-hms)
-                                                                    ".jpg")))
+  (let* ((image-file-name
+	  (org-media-note--format-file-name (concat (file-name-base (mpv-get-property "path"))
+                                                    "-"
+                                                    (org-media-note--get-current-hms)
+                                                    ".jpg")))
          (image-target-path (expand-file-name image-file-name org-media-note-screenshot-image-dir)))
     (if org-media-note-screenshot-with-sub
         (mpv-run-command "screenshot-to-file" image-target-path)
