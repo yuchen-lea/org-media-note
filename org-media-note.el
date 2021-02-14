@@ -40,11 +40,6 @@
   :group 'org
   :prefix "org-media-note-")
 
-(defcustom org-media-note-link-prefix nil
-  "Prefix inserted before timestamp in link text."
-  :type '(symbol string)
-  :options '(file-name file-path))
-
 (defcustom org-media-note-screenshot-image-dir org-directory
   "Default dir to save screenshots."
   :type 'string)
@@ -85,6 +80,14 @@ jump to the correct position when opening the media for the first time."
 before the link, or the point after?"
   :type 'symbol
   :options '(before after))
+
+(defcustom org-media-note-link-prefix ""
+  "Whether to prefix the link text with any text that is
+not part of the link.  Most common use is to insert a space
+that is not part of the link if the user sets 
+`org-media-note-cursor-start-position' to 'before, they likely
+want a space that is not part of the link itself."
+  :type 'string)
 
 ;;;; Variables
 
@@ -291,8 +294,10 @@ before the link, or the point after?"
   "Insert current mpv timestamp link into Org-mode note."
   (interactive)
   (let ((point (point)))
-    (insert (format "%s "
-                    (org-media-note--link)))
+    (insert
+     org-media-note-link-prefix
+     (format "%s "
+             (org-media-note--link)))
     (when (eq org-media-note-cursor-start-position 'before)
       (goto-char point))))
 
