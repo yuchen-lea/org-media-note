@@ -118,8 +118,8 @@ jump to the correct position when opening the media for the first time."
 
 (pretty-hydra-define org-media-note-hydra
   (:color red
-   :title (org-media-note--hydra-title):hint
-   nil)
+   :title (org-media-note--hydra-title)
+   :hint nil)
   ("File"
    (("o" org-media-note-mpv-smart-play
      (if (org-media-note--current-org-ref-key)
@@ -165,9 +165,7 @@ jump to the correct position when opening the media for the first time."
    (("i" org-media-note-insert-link "Insert timestamp")
     ("I" org-media-note-insert-screenshot "Insert Screenshot")
     ("p" org-media-note-insert-note-from-pbf "Import from pbf")
-    ("s"
-     (insert (mpv-get-property "sub-text"))
-     "Insert sub"))
+    ("s" org-media-note-insert-sub-text "Insert sub"))
    "Toggle"
    (("t m" org-media-note-mode "Auto insert media item"
      :toggle t)
@@ -213,6 +211,14 @@ jump to the correct position when opening the media for the first time."
    ((member file-ext org-media-note--audio-types) "audio")
    (t nil)))
 ;;;;; Add note
+(defun org-media-note-insert-sub-text ()
+  (interactive)
+  (let ((sub-text (condition-case nil
+                      (mpv-get-property "sub-text")
+                    (error nil))))
+    (if sub-text
+        (insert sub-text)
+      (message "No subtitles found in current file."))))
 ;;;;;; media note item
 (defun org-insert-item--media-note-item (orig-fn &rest args)
   "When item begins with media link, insert playback position."
