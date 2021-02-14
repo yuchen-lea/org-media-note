@@ -275,7 +275,9 @@ jump to the correct position when opening the media for the first time."
         ;; (goto-char (match-end 1))
         ))
      ;; In a list of another type, don't break anything: throw an error.
-     (t (error "No playing media file now. Please open the media file first if you want to insert media note, \nor turn off ")))))
+     (t (error (concat "No playing media file now. Please open the media file"
+		       "first if you want to insert media note,"
+		       "\nor turn off "))))))
 
 (defun org-media-note-insert-link ()
   "Insert current mpv timestamp link into Org-mode note."
