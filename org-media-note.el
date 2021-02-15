@@ -67,7 +67,7 @@ If this value is not big enough, clicking the timestamp link may not
 jump to the correct position when opening the media for the first time."
   :type 'float)
 
-(defcustom org-media-note--link-format "%timestamp/%duration"
+(defcustom org-media-note-link-format "%timestamp/%duration"
   "Link text.  Allows the following substitutions:
 %filename :: name of the media file
 %timestamp :: current media timestamp (hms)
@@ -361,7 +361,7 @@ Returns:
       (format "[[%s:%s#%s][%s]]" link-type file-path
 	      timestamp
 	      (org-media-note--link-formatter
-	       org-media-note--link-format
+	       org-media-note-link-format
 	       `(("filename" . ,filename)
 		 ("duration" . ,duration)
 		 ("timestamp" . ,timestamp)
