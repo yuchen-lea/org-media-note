@@ -60,6 +60,11 @@
   "When non-nil, display inline images in org buffer after insert screenshot."
   :type 'boolean)
 
+(defcustom org-media-note-pause-after-insert-link nil
+  "When non-nil, pause the media after inserting timestamp link."
+  :type 'boolean
+  )
+
 ; TODO better way to jump to timestamp
 (defcustom org-media-note-time-to-wait-after-open 0.3
   "Seconds to sleep after opening a media file.
@@ -185,7 +190,6 @@ want a space that is not part of the link itself."
      "(un)mute"))
    "Note"
    (("i" org-media-note-insert-link "Insert timestamp")
-    ("n" org-media-note-insert-link-and-pause "Insert timestamp and pause")
     ("I" org-media-note-insert-screenshot "Insert Screenshot")
     ("p" org-media-note-insert-note-from-pbf "Import from pbf")
     ("s" org-media-note-insert-sub-text "Insert sub"))
@@ -194,6 +198,8 @@ want a space that is not part of the link itself."
      :toggle t)
     ("t c" org-media-note-toggle-refcite "Use ref key instead of absolute path"
      :toggle org-media-note-use-refcite-first)
+    ("t p" org-media-note-toggle-pause-after-insertion "Pause media after insert link"
+     :toggle org-media-note-pause-after-insert-link)
     ("t s" org-media-note-toggle-save-screenshot
      "Auto save screenshot" :toggle org-media-note-save-screenshot-p)
     ("t S" org-media-note-toggle-screenshot-with-sub
@@ -289,8 +295,8 @@ want a space that is not part of the link itself."
         (move-end-of-line 1)
         (if org-media-note-save-screenshot-p
             (org-media-note-insert-screenshot))
-        ;; (goto-char (match-end 1))
-        ))
+        (when org-media-note-pause-after-insert-link
+          (mpv-pause))
      ;; In a list of another type, don't break anything: throw an error.
      (t (error (concat "No playing media file now. Please open the media file"
 		       "first if you want to insert media note,"
@@ -305,14 +311,10 @@ want a space that is not part of the link itself."
      (format "%s "
              (org-media-note--link)))
     (when (eq org-media-note-cursor-start-position 'before)
-      (goto-char point))))
-
-(defun org-media-note-insert-link-and-pause ()
-  "Insert current mpv timestamp link into Org-mode note and
-pause the media."
-  (interactive)
-  (org-media-note-insert-link)
-  (mpv-pause))
+      (goto-char point))
+    (when org-media-note-pause-after-insert-link
+      (mpv-pause))
+    ))
 
 (defun org-media-note--link-formatter (string map)
   "MAP is an alist in the form of '((PLACEHOLDER . REPLACEMENT))
@@ -622,6 +624,13 @@ When enabled, insert media note.
   (if org-media-note-use-refcite-first
       (setq org-media-note-use-refcite-first nil)
     (setq org-media-note-use-refcite-first t)))
+
+(defun org-media-note-toggle-pause-after-insertion ()
+  (interactive)
+  (if org-media-note-pause-after-insert-link
+      (setq org-media-note-pause-after-insert-link nil)
+    (setq org-media-note-pause-after-insert-link t)))
+
 
 (defun org-media-note-toggle-save-screenshot ()
   (interactive)
