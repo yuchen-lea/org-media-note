@@ -122,9 +122,9 @@ jump to the correct position when opening the media for the first time."
    :hint nil)
   ("File"
    (("o" org-media-note-mpv-smart-play
-     (if (org-media-note--current-org-ref-key)
+     (if (org-media-note-ref-cite-p)
          (format "Open %s"
-                 (org-media-note--current-org-ref-key))
+                 (org-media-note-ref-cite-p))
        "Open")
      :width 20)
     ("j"
