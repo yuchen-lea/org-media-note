@@ -67,7 +67,7 @@ If this value is not big enough, clicking the timestamp link may not
 jump to the correct position when opening the media for the first time."
   :type 'float)
 
-(defcustom org-media-note-link-format "%timestamp/%duration"
+(defcustom org-media-note-link-format "%timestamp"
   "Link text.  Allows the following substitutions:
 %filename :: name of the media file
 %timestamp :: current media timestamp (hms)
@@ -75,7 +75,7 @@ jump to the correct position when opening the media for the first time."
 %file-path :: path of the media file"
   :type 'string)
 
-(defcustom org-media-note-cursor-start-position 'before
+(defcustom org-media-note-cursor-start-position 'after
   "After inserting a link, should the cursor move to the point
 before the link, or the point after?"
   :type 'symbol
