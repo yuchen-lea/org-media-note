@@ -40,7 +40,6 @@
   :group 'org
   :prefix "org-media-note-")
 
-
 (defcustom org-media-note-screenshot-image-dir org-directory
   "Default dir to save screenshots."
   :type 'string)
@@ -67,6 +66,28 @@
 If this value is not big enough, clicking the timestamp link may not
 jump to the correct position when opening the media for the first time."
   :type 'float)
+
+(defcustom org-media-note-link-format "%timestamp/%duration"
+  "Link text.  Allows the following substitutions:
+%filename :: name of the media file
+%timestamp :: current media timestamp (hms)
+%duration :: length of the media file (hms)
+%file-path :: path of the media file"
+  :type 'string)
+
+(defcustom org-media-note-cursor-start-position 'before
+  "After inserting a link, should the cursor move to the point
+before the link, or the point after?"
+  :type 'symbol
+  :options '(before after))
+
+(defcustom org-media-note-link-prefix ""
+  "Whether to prefix the link text with any text that is
+not part of the link.  Most common use is to insert a space
+that is not part of the link if the user sets 
+`org-media-note-cursor-start-position' to 'before, they likely
+want a space that is not part of the link itself."
+  :type 'string)
 
 ;;;; Variables
 
@@ -116,6 +137,7 @@ jump to the correct position when opening the media for the first time."
     ;; Title when no media is playing
     (concat icon " org-media-note"))))
 
+
 (pretty-hydra-define org-media-note-hydra
   (:color red
    :title (org-media-note--hydra-title)
@@ -163,6 +185,7 @@ jump to the correct position when opening the media for the first time."
      "(un)mute"))
    "Note"
    (("i" org-media-note-insert-link "Insert timestamp")
+    ("n" org-media-note-insert-link-and-pause "Insert timestamp and pause")
     ("I" org-media-note-insert-screenshot "Insert Screenshot")
     ("p" org-media-note-insert-note-from-pbf "Import from pbf")
     ("s" org-media-note-insert-sub-text "Insert sub"))
@@ -180,6 +203,11 @@ jump to the correct position when opening the media for the first time."
 
 (defun org-media-note--millisecs-to-hms (millisecs)
   (org-timer-secs-to-hms (round (/ (string-to-number millisecs) 1000))))
+
+(defun org-media-note--get-duration-hms ()
+  "Get the current media duration in format h:mm:ss"
+  (let ((duration (mpv-get-duration)))
+    (org-timer-secs-to-hms (round duration))))
 
 (defun org-media-note--get-current-hms ()
   "Get current media timestamp in format h:mm:ss"
@@ -264,13 +292,61 @@ jump to the correct position when opening the media for the first time."
         ;; (goto-char (match-end 1))
         ))
      ;; In a list of another type, don't break anything: throw an error.
-     (t (error "No playing media file now. Please open the media file first if you want to insert media note, \nor turn off ")))))
+     (t (error (concat "No playing media file now. Please open the media file"
+		       "first if you want to insert media note,"
+		       "\nor turn off "))))))
 
 (defun org-media-note-insert-link ()
   "Insert current mpv timestamp link into Org-mode note."
   (interactive)
-  (insert (format "%s "
-                  (org-media-note--link))))
+  (let ((point (point)))
+    (insert
+     org-media-note-link-prefix
+     (format "%s "
+             (org-media-note--link)))
+    (when (eq org-media-note-cursor-start-position 'before)
+      (goto-char point))))
+
+(defun org-media-note-insert-link-and-pause ()
+  "Insert current mpv timestamp link into Org-mode note and
+pause the media."
+  (interactive)
+  (org-media-note-insert-link)
+  (mpv-pause))
+
+(defun org-media-note--link-formatter (string map)
+  "MAP is an alist in the form of '((PLACEHOLDER . REPLACEMENT))
+STRING is the original string.  Each placeholder can be a string, 
+symbol, or number. REPLACEMENT can be a string, a number, symbol, 
+or function. Replace all occurrences of %placeholder with replacement
+and return a new string.
+
+For example:
+(let ((input-string  \"Words,  %test1%test2 more words %test1.\")
+      (map '((test1 . \"asdf\")
+             (test2 . \"zxcv\"))))
+  (org-media-note--link-formatter input-string map))
+
+Returns:
+\"Words,  asdfzxcv more words asdf.\""
+  (cl-loop for (holder . replacement) in map
+	   when replacement
+	   do (setq string
+		    (replace-regexp-in-string
+		     (concat "%"
+			     (pcase holder
+			       ((pred symbolp) (symbol-name holder))
+			       ((pred stringp) holder)
+			       ((pred numberp) (number-to-string holder))
+			       ((pred functionp) (funcall replacement))))
+		     (pcase replacement
+		       ((pred symbolp) (symbol-name holder))
+		       ((pred stringp) replacement)
+		       ((pred numberp) (number-to-string replacement))
+		       ((pred functionp) (funcall replacement))
+		       (_ ""))
+		     string))
+	   finally return string))
 
 (defun org-media-note--link ()
   "Return media link."
@@ -278,17 +354,24 @@ jump to the correct position when opening the media for the first time."
          (link-type (if (org-media-note-ref-cite-p)
                         (concat (org-media-note--current-media-type)
                                 "cite")
-                      (org-media-note--current-media-type)))
-         (hms (org-media-note--get-current-hms)))
+		      (org-media-note--current-media-type)))
+	 (filename (mpv-get-property "filename"))
+	 (duration (org-media-note--get-duration-hms))
+         (timestamp (org-media-note--get-current-hms)))    
     (if (org-media-note-ref-cite-p)
         (format "[[%s:%s#%s][%s]]"
                 link-type
                 (org-media-note--current-org-ref-key)
-                hms
-                hms)
+                timestamp
+                timestamp)
       (format "[[%s:%s#%s][%s]]" link-type file-path
-              hms hms))))
-
+	      timestamp
+	      (org-media-note--link-formatter
+	       org-media-note-link-format
+	       `(("filename" . ,filename)
+		 ("duration" . ,duration)
+		 ("timestamp" . ,timestamp)
+		 ("file-path" . ,file-path)))))))
 
 (defun org-at-item-meida-item-p ()
   "Is point at a line starting a plain list item with a media-note link?"
@@ -305,10 +388,11 @@ jump to the correct position when opening the media for the first time."
 (defun org-media-note-insert-screenshot ()
   "Insert current mpv screenshot into Org-mode note."
   (interactive)
-  (let* ((image-file-name (org-media-note--format-file-name (concat (file-name-base (mpv-get-property "path"))
-                                                                    "-"
-                                                                    (org-media-note--get-current-hms)
-                                                                    ".jpg")))
+  (let* ((image-file-name
+	  (org-media-note--format-file-name (concat (file-name-base (mpv-get-property "path"))
+                                                    "-"
+                                                    (org-media-note--get-current-hms)
+                                                    ".jpg")))
          (image-target-path (expand-file-name image-file-name org-media-note-screenshot-image-dir)))
     (if org-media-note-screenshot-with-sub
         (mpv-run-command "screenshot-to-file" image-target-path)
