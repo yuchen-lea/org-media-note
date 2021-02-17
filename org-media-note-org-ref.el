@@ -112,20 +112,23 @@
 
 ;;;;; Link Follow
 (defun org-media-note-cite-link-follow (link)
-  "Open media link like videocite:course.104#0:02:13"
+  "Open videocite and audiocite links, supported formats:
+1. videocite:course.104#0:02:13: jump to 0:02:13
+2. videocite:course.104#0:02:13-0:02:20: jump to 0:02:13 and loop between 0:02:13 and 0:02:20
+"
   (let* ((splitted (split-string link "#"))
          (key (nth 0 splitted))
          (file-path (org-media-note-get-media-file-by-key key))
-         (hms (nth 1 splitted)))
+         (timestamps (split-string (nth 1 splitted)
+                                   "-"))
+         (time-a (int-to-string (org-timer-hms-to-secs (nth 0 timestamps))))
+         (time-b (if (= (length timestamps) 2)
+                     (int-to-string (org-timer-hms-to-secs (nth 1 timestamps))))))
     (cond
      ((not file-path)
       (error "Cannot find media file for this Key."))
-     (t (if (not (string= file-path
-                          (mpv-get-property "path")))
-            (progn
-              (mpv-play file-path)
-              (sleep-for org-media-note-time-to-wait-after-open)))
-        (mpv-seek (org-timer-hms-to-secs hms))))))
+     (t (org-media-note--follow-link file-path time-a time-b)
+        ))))
 
 ;;;;; Setup
 
