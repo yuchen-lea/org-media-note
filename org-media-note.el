@@ -65,10 +65,19 @@
   :type 'boolean
   )
 
-(defcustom org-media-note-link-format "%timestamp"
-  "Link text.  Allows the following substitutions:
+(defcustom org-media-note-timestamp-link-format "%timestamp"
+  "Timestamp Link text.  Allows the following substitutions:
 %filename :: name of the media file
 %timestamp :: current media timestamp (hms)
+%duration :: length of the media file (hms)
+%file-path :: path of the media file"
+  :type 'string)
+
+(defcustom org-media-note-ab-loop-link-format "%ab-loop-a-%ab-loop-b"
+  "AB-loop Link text.  Allows the following substitutions:
+%filename :: name of the media file
+%ab-loop-a :: timestamp of point a of ab loop (hms)
+%ab-loop-b :: timestamp of point b of ab loop (hms)
 %duration :: length of the media file (hms)
 %file-path :: path of the media file"
   :type 'string)
@@ -205,13 +214,16 @@ want a space that is not part of the link itself."
 
 (defun org-media-note--get-duration-hms ()
   "Get the current media duration in format h:mm:ss"
-  (let ((duration (mpv-get-duration)))
-    (org-timer-secs-to-hms (round duration))))
+  (org-media-note--seconds-to-hms (mpv-get-duration)))
 
 (defun org-media-note--get-current-hms ()
   "Get current media timestamp in format h:mm:ss"
-  (let ((time (mpv-get-playback-position)))
-    (org-timer-secs-to-hms (round time))))
+  (org-media-note--seconds-to-hms (mpv-get-playback-position)))
+
+(defun org-media-note--seconds-to-hms (secs)
+  "Convert secs (float or int) to hms (string)"
+  (org-timer-secs-to-hms (round secs))
+  )
 
 (defun org-media-note--current-org-ref-key ()
   (org-entry-get (point) "Custom_ID"))
@@ -343,30 +355,57 @@ Returns:
 		     string))
 	   finally return string))
 
+(defun org-media-note--ab-loop-p ()
+  "Whether in ab-loop?"
+  (let ((time-a (mpv-get-property "ab-loop-a"))
+        (time-b (mpv-get-property "ab-loop-b"))
+        (pos (mpv-get-playback-position))
+        )
+    (and (numberp time-a)
+         (numberp time-b)
+         (<= time-a pos)
+         (<= pos time-b)
+         )))
+
 (defun org-media-note--link ()
   "Return media link."
   (let* ((file-path (mpv-get-property "path"))
          (link-type (if (org-media-note-ref-cite-p)
                         (concat (org-media-note--current-media-type)
                                 "cite")
-		      (org-media-note--current-media-type)))
-	 (filename (mpv-get-property "filename"))
-	 (duration (org-media-note--get-duration-hms))
-         (timestamp (org-media-note--get-current-hms)))    
-    (if (org-media-note-ref-cite-p)
-        (format "[[%s:%s#%s][%s]]"
-                link-type
-                (org-media-note--current-org-ref-key)
-                timestamp
-                timestamp)
-      (format "[[%s:%s#%s][%s]]" link-type file-path
-	      timestamp
-	      (org-media-note--link-formatter
-	       org-media-note-link-format
-	       `(("filename" . ,filename)
-		 ("duration" . ,duration)
-		 ("timestamp" . ,timestamp)
-		 ("file-path" . ,file-path)))))))
+                      (org-media-note--current-media-type)))
+         (filename (mpv-get-property "filename"))
+         (duration (org-media-note--get-duration-hms))
+         (timestamp (org-media-note--get-current-hms)))
+    (if (org-media-note--ab-loop-p)
+        ;; ab-loop link
+        (let ((time-a (org-media-note--seconds-to-hms (mpv-get-property "ab-loop-a")))
+              (time-b (org-media-note--seconds-to-hms (mpv-get-property "ab-loop-b"))))
+          (format "[[%s:%s#%s-%s][%s]]"
+                  link-type
+                  (if (org-media-note-ref-cite-p)
+                      (org-media-note--current-org-ref-key)
+                    file-path)
+                  time-a
+                  time-b
+                  (org-media-note--link-formatter org-media-note-ab-loop-link-format
+                                                  `(("filename" . ,filename)
+                                                    ("duration" . ,duration)
+                                                    ("ab-loop-a" . ,time-a)
+                                                    ("ab-loop-b" . ,time-b)
+                                                    ("file-path" . ,file-path)))))
+      ;; timestamp link
+      (format "[[%s:%s#%s][%s]]"
+              link-type
+              (if (org-media-note-ref-cite-p)
+                  (org-media-note--current-org-ref-key)
+                file-path)
+              timestamp
+              (org-media-note--link-formatter org-media-note-timestamp-link-format
+                                              `(("filename" . ,filename)
+                                                ("duration" . ,duration)
+                                                ("timestamp" . ,timestamp)
+                                                ("file-path" . ,file-path)))))))
 
 (defun org-at-item-meida-item-p ()
   "Is point at a line starting a plain list item with a media-note link?"
