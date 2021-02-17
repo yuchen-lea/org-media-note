@@ -65,13 +65,6 @@
   :type 'boolean
   )
 
-; TODO better way to jump to timestamp
-(defcustom org-media-note-time-to-wait-after-open 0.3
-  "Seconds to sleep after opening a media file.
-If this value is not big enough, clicking the timestamp link may not
-jump to the correct position when opening the media for the first time."
-  :type 'float)
-
 (defcustom org-media-note-link-format "%timestamp"
   "Link text.  Allows the following substitutions:
 %filename :: name of the media file
@@ -412,17 +405,38 @@ Returns:
 
 ;;;;; Link Follow
 (defun org-media-note-link-follow (link)
-  "Open media link like video:example.mkv#0:02:13"
+  "Open video and audio links, supported formats:
+1. video:example.mkv#0:02:13: jump to 0:02:13
+2. video:example.mkv#0:02:13-0:02:20: jump to 0:02:13 and loop between 0:02:13 and 0:02:20
+"
   (let* ((splitted (split-string link "#"))
          (file-path (nth 0 splitted))
-         (hms (nth 1 splitted)))
-    (if (not (string= file-path
-                      (mpv-get-property "path")))
-        (progn
-          (mpv-play file-path)
-          (sleep-for org-media-note-time-to-wait-after-open) ;; without this, mpv-seek doesn't work for the new opend file.
-          ))
-    (mpv-seek (org-timer-hms-to-secs hms))))
+         (timestamps (split-string (nth 1 splitted)
+                                   "-"))
+         (time-a (int-to-string (org-timer-hms-to-secs (nth 0 timestamps))))
+         (time-b (if (= (length timestamps) 2)
+                     (int-to-string (org-timer-hms-to-secs (nth 1 timestamps))))))
+    (org-media-note--follow-link file-path time-a
+                                 time-b)))
+
+(defun org-media-note--follow-link (file-path time-a time-b)
+  (if (not (string= file-path
+                    (mpv-get-property "path")))
+      ;; file-path is not playing
+      (if time-b
+          (mpv-start file-path
+                     (concat "--start=+" time-a)
+                     (concat "--ab-loop-a=" time-a)
+                     (concat "--ab-loop-b=" time-b))
+        (mpv-start file-path
+                   (concat "--start=+" time-a)))
+    ;; file-path is playing
+    ;; TODO clear a-b loop when only one timestamp?
+    (progn
+      (when time-b
+        (mpv-set-property "ab-loop-a" time-a)
+        (mpv-set-property "ab-loop-b" time-b))
+      (mpv-seek time-a))))
 
 ;;;;; Media Control
 (defun org-media-note-change-speed-by (speed-step)
