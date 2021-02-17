@@ -64,7 +64,7 @@
   )
        #+END_SRC
    - ℹ 这里，我用 Hyper key =H= 进行绑定，好处在于快速触达功能，且不会与已有快捷键冲突。更多参见 [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]。当然，你也可以设置成任何适合你的快捷键，毕竟这是Emacs ：）
-* 功能
+* 功能详解
 
 所有功能都可由 =org-media-note-hydra/body= 触达：
 
@@ -72,12 +72,12 @@
 
 - Header：展示当前播放的基本信息，文件路径、音量、播放进度、播放速度等
 - File：关于视频文件的操作
-  + =o= 选择文件进行播放。如果配合 org-ref 并在org-ref的笔记条目中执行，则自动打开当前条目对应的媒体文件 （=org-media-note-mpv-smart-play= ）
+  + =o= 选择文件进行播放。如果配合 org-ref 并在org-ref的笔记条目中执行，则自动打开当前条目对应的媒体文件 (=org-media-note-mpv-smart-play=)
   + =j= 切换视频的字幕显示
   + =T= 切换mpv的置顶显示
   + =c= 播放速度加0.1
   + =x= 播放速度减0.1
-  + =z= 播放速度在原速和刚才自定义速度之间切换 （=org-media-note-mpv-toggle-speed=）
+  + =z= 播放速度在原速和刚才自定义速度之间切换 (=org-media-note-mpv-toggle-speed=)
 - Playback：关于播放进度的操作
   + =<SPC>= 播放/暂停
   + =l= 设置A-B循环，如果已设置，会显示当前的A-B区间
@@ -88,10 +88,10 @@
 - Volume：关于音量的操作
   + =+= 音量加5
   + =-= 音量减5
-  + =0= 音量在100和刚才自定义的音量之间切换 （=org-media-note-mpv-toggle-volume=）
+  + =0= 音量在100和刚才自定义的音量之间切换 (=org-media-note-mpv-toggle-volume=)
   + =m= 切换静音状态
 - Note：插入笔记
-  + =i= 插入当前视频的链接，根据不同的设置和播放状态，具体插入的链接有以下几种情况：（=org-media-note-insert-link=）
+  + =i= 插入当前视频的链接，根据不同的设置和播放状态，具体插入的链接有以下几种情况：(=org-media-note-insert-link=)
     - 当前是否为A-B循环
       + 在进行A-B循环，也就是当 Playback 中显示「Clear A-B loop (xxx - xxx)」，插入 *区间循环链接* 。链接描述默认为当前 =A点时间戳-B点时间戳= ，可通过 =org-media-note-ab-loop-link-format= 进行自定义
       + 没在进行A-B循环，插入 *时间戳链接* 。链接描述默认为 =当前时间戳= ，可通过 =org-media-note-timestamp-link-format= 进行自定义
@@ -99,16 +99,16 @@
       + 优先使用ref key，即 Toggle 中显示 「Use ref key instead of absolute path (*)」，插入 =videocite= 或 =audiocite= 链接
       + 否则，即 Toggle 中显示 「Use ref key instead of absolute path ( )」，插入 =video= 或 =audio= 链接
     - 💡 如果位于形如 =- [[video:video.mp4#00:03:24][00:03:24]] description= 的列表中，直接 =<M-return>= 新建列表项就会自动插入对应的链接，无需手动调用 =i=
-    - 💡 如果设置 =org-media-note-cursor-start-position= 为 =before=，则插入链接后光标跳转到链接的开始位置。此选项只在单独插入链接时起作用，对通过 =<M-return>= 自动插入的时间戳不起作用。
-  + =S= 插入当前的视频截图 （=org-media-note-insert-screenshot=）
-  + =s= 插入当前的字幕文本 （=org-media-note-insert-sub-text=）
-  + =I p= 从已有的PotPlayer PBF文件导入笔记，会尝试搜寻当前条目对应的媒体文件的同名PBF （=org-media-note-insert-note-from-pbf=）
-  + =I n= 从已有的Noted TXT文件导入笔记 （=org-media-note-insert-note-from-noted=）
+    - 💡 如果设置 =org-media-note-cursor-start-position= 为 =before= ，则插入链接后光标跳转到链接的开始位置。此选项只在单独插入链接时起作用，对通过 =<M-return>= 自动插入的时间戳不起作用。
+  + =S= 插入当前的视频截图 (=org-media-note-insert-screenshot=)
+  + =s= 插入当前的字幕文本 (=org-media-note-insert-sub-text=)
+  + =I p= 从已有的PotPlayer PBF文件导入笔记，会尝试搜寻当前条目对应的媒体文件的同名PBF (=org-media-note-insert-note-from-pbf=)
+  + =I n= 从已有的Noted TXT文件导入笔记 (=org-media-note-insert-note-from-noted=)
 - Toggle：笔记功能的设置
-  + =t m= 是否启用在形如 =- [[video:video.mp4#00:03:24][00:03:24]] description= 的列表中，=<M-return>= 新建列表项时自动插入对应链接的功能。
-  + =t c= 启用时，会优先使用=videocite= 或 =audiocite= 链接，而非=video= 或 =audio= 链接
+  + =t m= 是否启用在形如 =- [[video:video.mp4#00:03:24][00:03:24]] description= 的列表中， =<M-return>= 新建列表项时自动插入对应链接的功能。
+  + =t c= 启用时，会优先使用 =videocite= 或 =audiocite= 链接，而非 =video= 或 =audio= 链接
   + =t p= 启用后，会在插入链接后，自动暂停媒体
-  + =t s= 启用后，=<M-return>= 新建列表项时除了自动插入对应链接，也会自动插入当前视频截图
+  + =t s= 启用后， =<M-return>= 新建列表项时除了自动插入对应链接，也会自动插入当前视频截图
   + =t S= 启用后，保存的截图包含字幕，否则不包含字幕
 
 ℹ 末尾括号为调用的函数，没有标注的功能多为直接调用mpv命令，可查阅 =org-media-note-hydra= 了解更多。
