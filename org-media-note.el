@@ -161,7 +161,14 @@ want a space that is not part of the link itself."
      "toggle subtitles")
     ("T"
      (mpv-cycle-property "ontop")
-     "toggle ontop"))
+     "toggle ontop")
+        ("c"
+     (org-media-note-change-speed-by 0.1)
+     "increase speed")
+    ("x"
+     (org-media-note-change-speed-by -0.1)
+     "decrease speed")
+    ("z" org-media-note-mpv-toggle-speed "reset speed"))
    "Playback"
    (("<SPC>" mpv-pause "Play/Pause")
     ("<left>" mpv-seek-backward "Back 5s")
@@ -184,14 +191,7 @@ want a space that is not part of the link itself."
      "Previous subtitle")
     ("C-<right>"
      (mpv-run-command "sub-seek" 1)
-     "Next subtitle")
-    ("c"
-     (org-media-note-change-speed-by 0.1)
-     "increase speed")
-    ("x"
-     (org-media-note-change-speed-by -0.1)
-     "decrease speed")
-    ("z" org-media-note-mpv-toggle-speed "reset speed"))
+     "Next subtitle"))
    "Volume"
    (("+"
      (org-media-note-change-volume-by 5)
@@ -205,9 +205,11 @@ want a space that is not part of the link itself."
      "(un)mute"))
    "Note"
    (("i" org-media-note-insert-link "Insert timestamp")
-    ("I" org-media-note-insert-screenshot "Insert Screenshot")
-    ("p" org-media-note-insert-note-from-pbf "Import from pbf")
-    ("s" org-media-note-insert-sub-text "Insert sub"))
+    ("S" org-media-note-insert-screenshot "Insert Screenshot")
+    ("s" org-media-note-insert-sub-text "Insert subtitle")
+    ("I p" org-media-note-insert-note-from-pbf "Import from pbf")
+    ("I n" org-media-note-insert-note-from-noted "Import from Noted")
+    )
    "Toggle"
    (("t m" org-media-note-mode "Auto insert media item"
      :toggle t)
