@@ -162,7 +162,7 @@ want a space that is not part of the link itself."
     ("T"
      (mpv-cycle-property "ontop")
      "toggle ontop")
-        ("c"
+    ("c"
      (org-media-note-change-speed-by 0.1)
      "increase speed")
     ("x"
@@ -171,8 +171,6 @@ want a space that is not part of the link itself."
     ("z" org-media-note-mpv-toggle-speed "reset speed"))
    "Playback"
    (("<SPC>" mpv-pause "Play/Pause")
-    ("<left>" mpv-seek-backward "Back 5s")
-    ("<right>" mpv-seek-forward "Forward 5s")
     ("l"
      (mpv-run-command "ab-loop")
      (let ((time-a (mpv-get-property "ab-loop-a"))
@@ -186,6 +184,8 @@ want a space that is not part of the link itself."
                      (org-media-note--seconds-to-hms time-a))
            "Set A of A-B loop")))
      :width 35)
+    ("<left>" mpv-seek-backward "Back 5s")
+    ("<right>" mpv-seek-forward "Forward 5s")
     ("C-<left>"
      (mpv-run-command "sub-seek" -1)
      "Previous subtitle")
