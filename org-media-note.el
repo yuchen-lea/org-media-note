@@ -166,6 +166,19 @@ want a space that is not part of the link itself."
    (("<SPC>" mpv-pause "Play/Pause")
     ("<left>" mpv-seek-backward "Back 5s")
     ("<right>" mpv-seek-forward "Forward 5s")
+    ("l"
+     (mpv-run-command "ab-loop")
+     (let ((time-a (mpv-get-property "ab-loop-a"))
+           (time-b (mpv-get-property "ab-loop-b")))
+       (if (org-media-note--ab-loop-p)
+           (format "Clear A-B loop (%s - %s)"
+                   (org-media-note--seconds-to-hms time-a)
+                   (org-media-note--seconds-to-hms time-b))
+         (if (numberp time-a)
+             (format "Set B of A-B loop (%s - )"
+                     (org-media-note--seconds-to-hms time-a))
+           "Set A of A-B loop")))
+     :width 35)
     ("C-<left>"
      (mpv-run-command "sub-seek" -1)
      "Previous subtitle")
