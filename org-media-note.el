@@ -316,11 +316,11 @@ want a space that is not part of the link itself."
         (if org-media-note-save-screenshot-p
             (org-media-note-insert-screenshot))
         (when org-media-note-pause-after-insert-link
-          (mpv-pause))
+          (mpv-pause))))
      ;; In a list of another type, don't break anything: throw an error.
      (t (error (concat "No playing media file now. Please open the media file"
-		       "first if you want to insert media note,"
-		       "\nor turn off "))))))
+                       "first if you want to insert media note,"
+                       "\nor turn off "))))))
 
 (defun org-media-note-insert-link ()
   "Insert current mpv timestamp link into Org-mode note."
