@@ -522,11 +522,34 @@ Returns:
         (mpv-set-property "volume" 100)))))
 
 (defun org-media-note-mpv-smart-play ()
+  "Open media file in mpv:
+1. When there's just one media file in attach dir, or found media file by key, play this file im mpv;
+2. When there're multiple media files in attach dir, open the attach dir to select;
+3. Else, open the current dir of note file to selet"
   (interactive)
-  (let* ((key (org-media-note--current-org-ref-key)))
+  (let* ((key (org-media-note--current-org-ref-key))
+         (attach-dir (if (org-attach-dir)
+                         (format "%s/"
+                                 (org-attach-dir))))
+         (media-files-in-attach-dir (org-media-note--media-files-in-dir attach-dir))
+         (number-of-media-files (length media-files-in-attach-dir)))
     (if (org-media-note-ref-cite-p)
         (mpv-play (org-media-note-get-media-file-by-key key))
-      (mpv-play (read-file-name "File to play: ")))))
+      (if media-files-in-attach-dir
+          (if (= 1 number-of-media-files)
+              (mpv-play (car media-files-in-attach-dir))
+            (mpv-play (read-file-name "File to play: " attach-dir)))
+        (mpv-play (read-file-name "File to play: "))))))
+
+(defun org-media-note--media-files-in-dir (dir)
+  "Get supported media file list in dir."
+  (if dir
+      (directory-files dir
+                       'full
+                       (rx (eval (cons 'or (append org-media-note--video-types org-media-note--audio-types)))
+                           eos))
+    nil))
+
 
 ;;;;; Import From other apps
 
