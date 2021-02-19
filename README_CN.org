@@ -72,7 +72,9 @@
 
 - Header：展示当前播放的基本信息，文件路径、音量、播放进度、播放速度等
 - File：关于视频文件的操作
-  + =o= 选择文件进行播放。如果配合 org-ref 并在org-ref的笔记条目中执行，则自动打开当前条目对应的媒体文件 (=org-media-note-mpv-smart-play=)
+  + =o= 选择文件进行播放  (=org-media-note-mpv-smart-play=)
+    - 如果配合 org-ref 并在org-ref的笔记条目中执行，则自动打开当前条目对应的媒体文件
+    - 如果对应的attach dir中有多媒体文件，如果只有一个，直接播放；如果有多个，从attach dir中选择
   + =j= 切换视频的字幕显示
   + =T= 切换mpv的置顶显示
   + =c= 播放速度加0.1
@@ -101,6 +103,12 @@
     - 💡 如果位于形如 =- [[video:video.mp4#00:03:24][00:03:24]] description= 的列表中，直接 =<M-return>= 新建列表项就会自动插入对应的链接，无需手动调用 =i=
     - 💡 如果设置 =org-media-note-cursor-start-position= 为 =before= ，则插入链接后光标跳转到链接的开始位置。此选项只在单独插入链接时起作用，对通过 =<M-return>= 自动插入的时间戳不起作用。
   + =S= 插入当前的视频截图 (=org-media-note-insert-screenshot=)
+    - ℹ 相关变量:
+      + =org-media-note-screenshot-save-method= : 定义截图的保存位置
+        - directory: 保存到 =org-media-note-screenshot-image-dir=
+        - attach: 保存到对应 org-attach-dir.
+      + =org-media-note-screenshot-link-type-when-save-in-attach-dir= 当保存到对应 org-attach-dir时，使用file链接或attachment链接
+      + =org-media-note-abbreviate-filename-function= file链接使用绝对路径或相对路径
   + =s= 插入当前的字幕文本 (=org-media-note-insert-sub-text=)
   + =I p= 从已有的PotPlayer PBF文件导入笔记，会尝试搜寻当前条目对应的媒体文件的同名PBF (=org-media-note-insert-note-from-pbf=)
   + =I n= 从已有的Noted TXT文件导入笔记 (=org-media-note-insert-note-from-noted=)

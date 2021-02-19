@@ -75,7 +75,9 @@ All functions can be reached from =org-media-note-hydra/body= :
 
 - Header：Display basic info, file path, volume, duration and so on
 - File：Functions about media file
-  + =o= Select a file and play it in mpv. When integrets with org-ref and call this function in an org-ref note, it will open the media file described in bib entry. (=org-media-note-mpv-smart-play=)
+  + =o= Select a file and play it in mpv.  (=org-media-note-mpv-smart-play=)
+    - When integrets with org-ref and call this function in an org-ref note, it will open the media file described in bib entry.
+    - When media files found in org-attach-dir, open this file if there's only one file, else, let user chose file from attach directory.
   + =j= Cycle through subtitles
   + =T= Toggle video window ontop of other windows
   + =c= Increase speed by 0.1
@@ -104,6 +106,12 @@ All functions can be reached from =org-media-note-hydra/body= :
     - 💡 When in a list like =- [[video:video.mp4#00:03:24][00:03:24]] description=, =<M-return>= will auto insert media link.
     - 💡 When set =org-media-note-cursor-start-position= to =before= , move curor to the start of link after insertion. This works for manual insertion only. Cursor is always at the end of link for those auto inserted by =<M-return>=.
   + =S= Insert current screenshot (=org-media-note-insert-screenshot=)
+    - ℹ variables related:
+      + =org-media-note-screenshot-save-method= : customize the place to save screenshot
+        - directory: save to =org-media-note-screenshot-image-dir=
+        - attach: save to corresponding org-attach-dir.
+      + =org-media-note-screenshot-link-type-when-save-in-attach-dir= when save screenshots to attach dir, use file link or attachment link
+      + =org-media-note-abbreviate-filename-function= use absolute or relative file path for file link
   + =s= Insert curretn subtitle text (=org-media-note-insert-sub-text=)
   + =I p= Import from PotPlayer PBF file (=org-media-note-insert-note-from-pbf=)
   + =I n= Import from Noted TXT file (=org-media-note-insert-note-from-noted=)
@@ -118,6 +126,6 @@ All functions can be reached from =org-media-note-hydra/body= :
 
 * Dependencies
 - [[https://github.com/kljohann/mpv.el][mpv.el]] control media inside emacs
-- [[https://github.com/jerrypnz/major-mode-hydra.el][pretty-hydra]] create a amiable hydra
+- [[https://github.com/jerrypnz/major-mode-hydra.el][pretty-hydra]] create an amiable hydra
 
  [[https://github.com/jkitchin/org-ref][org-ref]] is not required, but it's worth to have a try if you use bib to manage your media file!
