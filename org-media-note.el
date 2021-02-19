@@ -40,9 +40,31 @@
   :group 'org
   :prefix "org-media-note-")
 
+(defcustom org-media-note-screenshot-save-method 'directory
+  "The way images should be stored.
+1. directory: save to `org-media-note-screenshot-image-dir'
+2. attach: save to corresponding org-attach-dir."
+  :type '(choice
+          (const :tag "Directory" directory)
+          (const :tag "Attachment" attach)))
+
+(defcustom org-media-note-screenshot-link-type-when-save-in-attach-dir 'file
+  "Use file: link or attachment: link when `org-media-note-screenshot-save-method' is attach?
+file link is more general while attachment link is more concise."
+  :type '(choice
+          (const :tag "file:" file)
+          (const :tag "attachment:" attach)))
+
 (defcustom org-media-note-screenshot-image-dir org-directory
-  "Default dir to save screenshots."
+  "Default dir to save screenshots when `org-media-note-screenshot-save-method' is set to directory."
   :type 'string)
+
+(defcustom org-media-note-abbreviate-filename-function #'file-relative-name
+  "Function that takes FILENAME and returns an abbreviated file name.
+Used for file link only. Have no effects on attachment link."
+  :type '(choice
+          (const :tag "relative" file-relative-name)
+          (const :tag "absolute" expand-file-name)))
 
 (defcustom org-media-note-save-screenshot-p nil
   "Whether to save screenshot."
@@ -437,17 +459,32 @@ Returns:
 (defun org-media-note-insert-screenshot ()
   "Insert current mpv screenshot into Org-mode note."
   (interactive)
-  (let* ((image-file-name
-	  (org-media-note--format-file-name (concat (file-name-base (mpv-get-property "path"))
-                                                    "-"
-                                                    (org-media-note--get-current-hms)
-                                                    ".jpg")))
-         (image-target-path (expand-file-name image-file-name org-media-note-screenshot-image-dir)))
+  (let* ((image-file-name (org-media-note--format-file-name (concat (file-name-base (mpv-get-property "path"))
+                                                                    "-"
+                                                                    (org-media-note--get-current-hms)
+                                                                    ".jpg")))
+         (image-target-path (cond
+                             ((eq org-media-note-screenshot-save-method
+                                  'attach)
+                              (expand-file-name image-file-name
+                                                (org-attach-dir t)))
+                             ((eq org-media-note-screenshot-save-method
+                                  'directory)
+                              (expand-file-name image-file-name org-media-note-screenshot-image-dir)))))
     (if org-media-note-screenshot-with-sub
         (mpv-run-command "screenshot-to-file" image-target-path)
       (mpv-run-command "screenshot-to-file" image-target-path
                        "video"))
-    (insert (format "[[file:%s]] " image-target-path))
+    (if (and (eq org-media-note-screenshot-save-method
+                 'attach)
+             (eq org-media-note-screenshot-link-type-when-save-in-attach-dir
+                 'attach))
+        (insert (format "[[attachment:%s]] "
+                        (file-relative-name image-target-path
+                                            (org-attach-dir))))
+      (insert (format "[[file:%s]] "
+                      (funcall org-media-note-abbreviate-filename-function
+                               image-target-path))))
     (org-media-note--display-inline-images)))
 
 (defun org-media-note--display-inline-images ()
