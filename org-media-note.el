@@ -539,9 +539,9 @@ Returns:
                                  time-b)))
 
 (defun org-media-note--follow-link (file-path time-a time-b)
-  (let ((file-path (if (file-exists-p file-path) ;; local file?
-                       (expand-file-name file-path)
-                     file-path)))
+  (let ((file-path (if (org-media-note--online-video-p file-path)
+                       file-path
+                     (expand-file-name file-path))))
     (if (not (string= file-path
                       (mpv-get-property "path")))
         ;; file-path is not playing
