@@ -38,36 +38,53 @@ Insert current screenshot. Also, you can customize to auto insert screenshot whe
 Jump to the right position by clicking link
 [[../demo/org-media-note-follow.gif?raw=true]]
 * QuickStart
-1. Install
-   - for doom users：
+ℹ Currently, you have to install this package from github.
+
+- for doom users：
+  1. Install
      #+BEGIN_SRC emacs-lisp :tangle "packages.el"
+(package! pretty-hydra)  ;; dependency
 (package! org-media-note :recipe (:host github :repo "yuchen-lea/org-media-note"))
      #+END_SRC
-2. Config
-   - for doom users：
+  2. Config
      + don't use org-ref
        #+BEGIN_SRC emacs-lisp
-(use-package! org-media-note
-  :hook (org-mode .  org-media-note-mode)
-  :bind (
-         ("H-v" . org-media-note-hydra/body))  ;; Main entrance
-  :config
-  (setq org-media-note-screenshot-image-dir "~/Notes/imgs/")  ;; Folder to save screenshot
-  )
+  (use-package! org-media-note
+    :hook (org-mode .  org-media-note-mode)
+    :bind (
+           ("H-v" . org-media-note-hydra/body))  ;; Main entrance
+    :config
+    (setq org-media-note-screenshot-image-dir "~/Notes/imgs/")  ;; Folder to save screenshot
+    )
        #+END_SRC
      + use org-ref
        #+BEGIN_SRC emacs-lisp
-(use-package! org-media-note
-  :hook (org-mode .  org-media-note-setup-org-ref)
-  :bind (
-         ("H-v" . org-media-note-hydra/body))  ;; Main entrance
-  :config
-  (setq org-media-note-screenshot-image-dir "~/Notes/imgs/")  ;; Folder to save screenshot
-  (setq org-media-note-use-refcite-first t)  ;; use videocite link instead of video link if possible
-  )
+  (use-package! org-media-note
+    :hook (org-mode .  org-media-note-setup-org-ref)
+    :bind (
+           ("H-v" . org-media-note-hydra/body))  ;; Main entrance
+    :config
+    (setq org-media-note-screenshot-image-dir "~/Notes/imgs/")  ;; Folder to save screenshot
+    (setq org-media-note-use-refcite-first t)  ;; use videocite link instead of video link if possible
+    )
        #+END_SRC
-   - ℹ Here, I use Hyper key =H= for keybinding. In this way, I can quickly access personal functions, and no major or minor modes will stamp on my keys. Look into this for more infomation: [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]. Or you can bind it to any other key you like. After all, it's Emacs ;)
-3. Then, you can access all functions in =org-media-note-hydra/body=
+- for non-doom users: You can
+   1. Manually download org-media-note, include it in your =load-path=, then refers to the above config
+   2. Or use quelpa-use-package (thanks [[https://github.com/japhir][japhir]] for kindly providing this snippet)
+      #+BEGIN_SRC emacs-lisp
+(use-package quelpa-use-package)  ;; to allow installation of github packages
+(use-package pretty-hydra)
+(use-package org-media-note
+  :quelpa (org-media-note :fetcher github :repo "yuchen-lea/org-media-note")
+  :hook (org-mode .  org-media-note-mode)
+  :bind (("H-v" . org-media-note-hydra/body))  ;; Main entrance
+  :config
+  (setq org-media-note-screenshot-image-dir "~/notes/imgs/"))
+      #+END_SRC
+
+Now, you can access all functions in =org-media-note-hydra/body=
+
+ℹ Here, I use Hyper key =H= for keybinding. In this way, I can quickly access personal functions, and no major or minor modes will stamp on my keys. Look into this for more infomation: [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]. Or you can bind it to any other key you like. After all, it's Emacs ;)
 * Functions
 All functions can be reached from =org-media-note-hydra/body= :
 
