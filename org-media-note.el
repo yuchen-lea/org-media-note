@@ -605,14 +605,14 @@ Returns:
           (setq pbf-file (concat (file-name-sans-extension source-media)
                                  ".pbf")))
       (progn
-        ;; TODO need nore test
+        ;; TODO need more test
         (setq media-file (read-file-name "Find media file:"))
         (setq media-link-type (org-media-note--file-media-type media-file))
         (setq pbf-file (concat (file-name-sans-extension media-file)
                                ".pbf"))))
     (message pbf-file)
     (if (not (file-exists-p pbf-file))
-        ;; TODO need nore test
+        ;; TODO need more test
         (setq pbf-file (read-file-name "Find pbf file:")))
     (insert (org-media-note--convert-from-pbf pbf-file
                                               media-link-type media-file))
@@ -631,7 +631,7 @@ Returns:
           (setq media-link-type (concat (org-media-note--file-media-type (org-media-note-get-media-file-by-key key))
                                         "cite")))
       (progn
-        ;; TODO  need nore test
+        ;; TODO  need more test
         (setq media-file (read-file-name "Find media file:"))
         (setq media-link-type (org-media-note--file-media-type media-file))))
     (insert (org-media-note--convert-from-noted noted-txt
