@@ -154,9 +154,14 @@ want a space that is not part of the link itself."
                   "\n\t❯ "
                   (if (org-media-note-ref-cite-p)
                       (format "%s (%s)"
-                              (bibtex-completion-get-value-by-key ref-key "title")
+                              (bibtex-completion-get-value-by-key ref-key
+                                                                  "title")
                               ref-key)
-                    file-path)))
+                    (if (org-media-note--online-video-p file-path)
+                        (format "%s (%s)"
+                                (mpv-get-property "media-title")
+                                file-path)
+                      file-path))))
     ;; Title when no media is playing
     (concat icon " org-media-note"))))
 
@@ -166,12 +171,14 @@ want a space that is not part of the link itself."
    :title (org-media-note--hydra-title)
    :hint nil)
   ("File"
-   (("o" org-media-note-mpv-smart-play
+   (("o l" org-media-note-mpv-smart-play
      (if (org-media-note-ref-cite-p)
          (format "Open %s"
-                 (org-media-note-ref-cite-p))
-       "Open")
+                 (org-media-note--current-org-ref-key))
+       "Open local file")
      :width 20)
+    ("o o" org-media-note-mpv-play-online-video
+     "Open online file")
     ("j"
      (mpv-cycle-property "sub")
      "toggle subtitles")
@@ -223,16 +230,17 @@ want a space that is not part of the link itself."
    (("i" org-media-note-insert-link "Insert timestamp")
     ("S" org-media-note-insert-screenshot "Insert Screenshot")
     ("s" org-media-note-insert-sub-text "Insert subtitle")
-    ("I p" org-media-note-insert-note-from-pbf "Import from pbf")
-    ("I n" org-media-note-insert-note-from-noted "Import from Noted")
-    )
+    ("I p" org-media-note-insert-note-from-pbf
+     "Import from pbf")
+    ("I n" org-media-note-insert-note-from-noted
+     "Import from Noted"))
    "Toggle"
    (("t m" org-media-note-mode "Auto insert media item"
      :toggle t)
     ("t c" org-media-note-toggle-refcite "Use ref key instead of absolute path"
      :toggle org-media-note-use-refcite-first)
-    ("t p" org-media-note-toggle-pause-after-insertion "Pause media after insert link"
-     :toggle org-media-note-pause-after-insert-link)
+    ("t p" org-media-note-toggle-pause-after-insertion
+     "Pause media after insert link" :toggle org-media-note-pause-after-insert-link)
     ("t s" org-media-note-toggle-save-screenshot
      "Auto save screenshot" :toggle org-media-note-save-screenshot-p)
     ("t S" org-media-note-toggle-screenshot-with-sub
@@ -414,7 +422,7 @@ Returns:
                         (concat (org-media-note--current-media-type)
                                 "cite")
                       (org-media-note--current-media-type)))
-         (filename (mpv-get-property "filename"))
+         (filename (mpv-get-property "media-title"))
          (duration (org-media-note--get-duration-hms))
          (timestamp (org-media-note--get-current-hms)))
     (if (org-media-note--ab-loop-p)
@@ -469,7 +477,7 @@ Returns:
   (let* ((image-file-name (org-media-note--format-file-name (concat (file-name-base (mpv-get-property "path"))
                                                                     "-"
                                                                     (org-media-note--get-current-hms)
-                                                                    ".jpg")))
+                                                                    ".jpg")))  ;; TODO let user customize this
          (image-target-path (cond
                              ((eq org-media-note-screenshot-save-method
                                   'attach)
@@ -590,7 +598,7 @@ Returns:
         (mpv-set-property "volume" 100)))))
 
 (defun org-media-note-mpv-smart-play ()
-  "Open media file in mpv:
+  "Open local media file in mpv:
 1. When there's just one media file in attach dir, or found media file by key, play this file im mpv;
 2. When there're multiple media files in attach dir, open the attach dir to select;
 3. Else, open the current dir of note file to selet"
@@ -608,6 +616,18 @@ Returns:
               (mpv-play (car media-files-in-attach-dir))
             (mpv-play (read-file-name "File to play: " attach-dir)))
         (mpv-play (read-file-name "File to play: "))))))
+
+(defun org-media-note-mpv-play-online-video ()
+  "Open online media file in mpv."
+  (interactive)
+  (let ((video-url (read-string "Url to play: ")))
+    (if (org-media-note--online-video-p video-url)
+        (mpv-start video-url)
+      (error (format "'%s' is not a valid url!" video-url))
+        )
+    )
+  )
+
 
 (defun org-media-note--media-files-in-dir (dir)
   "Get supported media file list in dir."
