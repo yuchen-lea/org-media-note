@@ -121,6 +121,7 @@ All functions can be reached from =org-media-note-hydra/body= :
       + When prefers ref key, whiech means Toggle displays Use ref key instead of absolute path (*), =videocite= or =audiocite= link is inserted
       + else, =video= or =audio= link is inserted
     - 💡 When in a list like =- [[video:video.mp4#00:03:24][00:03:24]] description=, =<M-return>= will auto insert media link.
+    - 💡 Video path format is consistent with =org-link-file-path-type=
     - 💡 When set =org-media-note-cursor-start-position= to =before= , move curor to the start of link after insertion. This works for manual insertion only. Cursor is always at the end of link for those auto inserted by =<M-return>=.
   + =S= Insert current screenshot (=org-media-note-insert-screenshot=)
     - ℹ variables related:
@@ -128,7 +129,7 @@ All functions can be reached from =org-media-note-hydra/body= :
         - directory: save to =org-media-note-screenshot-image-dir=
         - attach: save to corresponding org-attach-dir.
       + =org-media-note-screenshot-link-type-when-save-in-attach-dir= when save screenshots to attach dir, use file link or attachment link
-      + =org-media-note-abbreviate-filename-function= use absolute or relative file path for file link
+      + Screenshot path format is consistent with =org-link-file-path-type= in file: link
   + =s= Insert curretn subtitle text (=org-media-note-insert-sub-text=)
   + =I p= Import from PotPlayer PBF file (=org-media-note-insert-note-from-pbf=)
   + =I n= Import from Noted TXT file (=org-media-note-insert-note-from-noted=)
