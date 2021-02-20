@@ -60,13 +60,6 @@ file link is more general while attachment link is more concise."
   "Default dir to save screenshots when `org-media-note-screenshot-save-method' is set to directory."
   :type 'string)
 
-(defcustom org-media-note-abbreviate-filename-function #'file-relative-name
-  "Function that takes FILENAME and returns an abbreviated file name.
-Used for file link only. Have no effects on attachment link."
-  :type '(choice
-          (const :tag "relative" file-relative-name)
-          (const :tag "absolute" expand-file-name)))
-
 (defcustom org-media-note-save-screenshot-p nil
   "Whether to save screenshot."
   :type 'boolean)
@@ -423,7 +416,7 @@ Returns:
                   link-type
                   (if (org-media-note-ref-cite-p)
                       (org-media-note--current-org-ref-key)
-                    file-path)
+                    (org-media-note--format-file-path file-path))
                   time-a
                   time-b
                   (org-media-note--link-formatter org-media-note-ab-loop-link-format
@@ -437,7 +430,7 @@ Returns:
               link-type
               (if (org-media-note-ref-cite-p)
                   (org-media-note--current-org-ref-key)
-                file-path)
+                (org-media-note--format-file-path file-path))
               timestamp
               (org-media-note--link-formatter org-media-note-timestamp-link-format
                                               `(("filename" . ,filename)
@@ -484,9 +477,30 @@ Returns:
                         (file-relative-name image-target-path
                                             (org-attach-dir))))
       (insert (format "[[file:%s]] "
-                      (funcall org-media-note-abbreviate-filename-function
-                               image-target-path))))
+                      (org-media-note--format-file-path image-target-path)
+                      )))
     (org-media-note--display-inline-images)))
+
+(defun org-media-note--format-file-path (path)
+  "Convert PATH into the format defined by `org-link-file-path-type'"
+  (cond
+   ((eq org-link-file-path-type 'absolute)
+    (abbreviate-file-name (expand-file-name path)))
+   ((eq org-link-file-path-type 'noabbrev)
+    (expand-file-name path))
+   ((eq org-link-file-path-type 'relative)
+    (file-relative-name path))
+   ((eq org-link-file-path-type 'adaptive)
+    (save-match-data (if (string-match (concat "^"
+                                               (regexp-quote (expand-file-name (file-name-as-directory default-directory))))
+                                       (expand-file-name path))
+                         ;; We are linking a file with relative path name.
+                         (substring (expand-file-name path)
+                                    (match-end 0))
+                       (abbreviate-file-name (expand-file-name path)))))
+   ((functionp org-link-file-path-type)
+    (funcall org-link-file-path-type
+             (expand-file-name path)))))
 
 (defun org-media-note--display-inline-images ()
   (cond
@@ -512,23 +526,26 @@ Returns:
                                  time-b)))
 
 (defun org-media-note--follow-link (file-path time-a time-b)
-  (if (not (string= file-path
-                    (mpv-get-property "path")))
-      ;; file-path is not playing
-      (if time-b
+  (let ((file-path (if (file-exists-p file-path) ;; local file?
+                       (expand-file-name file-path)
+                     file-path)))
+    (if (not (string= file-path
+                      (mpv-get-property "path")))
+        ;; file-path is not playing
+        (if time-b
+            (mpv-start file-path
+                       (concat "--start=+" time-a)
+                       (concat "--ab-loop-a=" time-a)
+                       (concat "--ab-loop-b=" time-b))
           (mpv-start file-path
-                     (concat "--start=+" time-a)
-                     (concat "--ab-loop-a=" time-a)
-                     (concat "--ab-loop-b=" time-b))
-        (mpv-start file-path
-                   (concat "--start=+" time-a)))
-    ;; file-path is playing
-    ;; TODO clear a-b loop when only one timestamp?
-    (progn
-      (when time-b
-        (mpv-set-property "ab-loop-a" time-a)
-        (mpv-set-property "ab-loop-b" time-b))
-      (mpv-seek time-a))))
+                     (concat "--start=+" time-a)))
+      ;; file-path is playing
+      ;; TODO clear a-b loop when only one timestamp?
+      (progn
+        (when time-b
+          (mpv-set-property "ab-loop-a" time-a)
+          (mpv-set-property "ab-loop-b" time-b))
+        (mpv-seek time-a)))))
 
 ;;;;; Media Control
 (defun org-media-note-change-speed-by (speed-step)
