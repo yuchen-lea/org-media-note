@@ -121,7 +121,7 @@ want a space that is not part of the link itself."
 
 ;;;; Variables
 
-(defconst org-media-note--video-types '("avi" "rmvb" "ogg" "ogv" "mp4" "mkv" "mov" "webm" "flv" "ts"))
+(defconst org-media-note--video-types '("avi" "rmvb" "ogg" "ogv" "mp4" "mkv" "mov" "webm" "flv" "ts" "mpg"))
 (defconst org-media-note--audio-types '("flac" "mp3" "wav"))
 
 (defvar org-media-note-last-play-speed 1.0
