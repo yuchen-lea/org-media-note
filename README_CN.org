@@ -35,6 +35,10 @@
 
 点击链接，从视频指定位置播放；光标位于链接时，minibuffer展示org-ref相关信息
 [[../demo/org-media-note-follow.gif?raw=true]]
+
+打开在线视频后，与本地文件的操作相同！
+[[../demo/org-media-note-online-video.gif?raw=true]]
+
 * 快速指南
 1. 安装
    - doom 用户配置以下代码安装：

@@ -38,6 +38,10 @@ Insert current screenshot. Also, you can customize to auto insert screenshot whe
 
 Jump to the right position by clicking link
 [[../demo/org-media-note-follow.gif?raw=true]]
+
+Open online video, then operate the same as local files!
+[[../demo/org-media-note-online-video.gif?raw=true]]
+
 * QuickStart
 ℹ Currently, you have to install this package from github.
 
