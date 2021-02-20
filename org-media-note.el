@@ -30,9 +30,9 @@
 (require 'org)
 (require 'pretty-hydra)
 
-(declare-function org-timer-secs-to-hms 'org-timer)
-(declare-function org-timer-hms-to-secs 'org-timer)
-(declare-function org-attach-dir 'org-attach)
+(declare-function org-timer-secs-to-hms "org-timer")
+(declare-function org-timer-hms-to-secs "org-timer")
+(declare-function org-attach-dir "org-attach")
 
 ;;;; Customization
 
