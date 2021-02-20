@@ -264,10 +264,19 @@ want a space that is not part of the link itself."
   (and (org-media-note--current-org-ref-key)
        org-media-note-use-refcite-first))
 
+
+(defun org-media-note--online-video-p (path)
+  (string-match "^http" path)
+  )
+
 (defun org-media-note--current-media-type ()
   "Get current playing media type."
   (let* ((file-path (mpv-get-property "path")))
-    (org-media-note--file-media-type file-path)))
+    (if (org-media-note--online-video-p file-path)
+        "video"  ;; TODO audio?
+      (org-media-note--file-media-type file-path)
+        )
+    ))
 
 (defun org-media-note--file-media-type (file-path)
   "Get file media type."
@@ -416,7 +425,9 @@ Returns:
                   link-type
                   (if (org-media-note-ref-cite-p)
                       (org-media-note--current-org-ref-key)
-                    (org-media-note--format-file-path file-path))
+                    (if (org-media-note--online-video-p file-path)
+                        file-path
+                      (org-media-note--format-file-path file-path)))
                   time-a
                   time-b
                   (org-media-note--link-formatter org-media-note-ab-loop-link-format
@@ -430,7 +441,9 @@ Returns:
               link-type
               (if (org-media-note-ref-cite-p)
                   (org-media-note--current-org-ref-key)
-                (org-media-note--format-file-path file-path))
+                (if (org-media-note--online-video-p file-path)
+                    file-path
+                  (org-media-note--format-file-path file-path)))
               timestamp
               (org-media-note--link-formatter org-media-note-timestamp-link-format
                                               `(("filename" . ,filename)
