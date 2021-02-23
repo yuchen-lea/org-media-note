@@ -23,8 +23,8 @@
 ;;;; Commands
 ;;;;; Utils
 (defun org-media-note-get-media-file-by-key (key)
-  (let* (
-         (file-types (split-string (bibtex-completion-get-value-by-key key "formats")
+  (let* ((bib-entry (bibtex-completion-get-entry key))
+         (file-types (split-string (bibtex-completion-get-value "formats" bib-entry)
                                    ", "))
          (file-path (car (bibtex-completion-find-pdf key)))
          (file-path-without-ext (file-name-sans-extension file-path))
