@@ -11,6 +11,7 @@
 
 ;;; Code:
 ;;;; Requirements
+(require 'seq)
 (require 'org-ref)
 (require 'org-media-note)
 
@@ -23,20 +24,21 @@
 ;;;; Commands
 ;;;;; Utils
 (defun org-media-note-get-media-file-by-key (key)
-  (let* ((bib-entry (bibtex-completion-get-entry key))
-         (file-types (split-string (bibtex-completion-get-value "formats" bib-entry)
-                                   ", "))
-         (file-path (car (bibtex-completion-find-pdf key)))
-         (file-path-without-ext (file-name-sans-extension file-path))
-         (video-file-ext-candidates (seq-intersection file-types org-media-note--video-types))
-         (audio-file-ext-candidates (seq-intersection file-types org-media-note--audio-types))
-         (file-type (cond
-                     (video-file-ext-candidates (nth 0 video-file-ext-candidates))
-                     (audio-file-ext-candidates (nth 0 audio-file-ext-candidates))
-                     (t nil))))
-    (if file-type
-        (org-media-note--get-realpath-for-file (concat file-path-without-ext "." file-type))
-      nil)))
+  (let* ((files (bibtex-completion-find-pdf key))
+         (video-files (seq-filter (lambda (elt)
+                                    (s-matches-p (rx (eval (cons 'or org-media-note--video-types))
+                                                     eos)
+                                                 elt))
+                                  files))
+         (audio-files (seq-filter (lambda (elt)
+                                    (s-matches-p (rx (eval (cons 'or org-media-note--audio-types))
+                                                     eos)
+                                                 elt))
+                                  files)))
+    (cond
+     (video-files (org-media-note--get-realpath-for-file (nth 0 video-files)))
+     (audio-files (org-media-note--get-realpath-for-file (nth 0 audio-files)))
+     (t nil))))
 
 (defun org-media-note--get-realpath-for-file (symlink)
   "Get realpath for symlink."
