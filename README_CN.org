@@ -79,6 +79,10 @@
 - File：关于视频文件的操作
   + =o l= 选择本地文件进行播放  (=org-media-note-mpv-smart-play=)
     - 如果配合 org-ref 并在org-ref的笔记条目中执行，则自动打开当前条目对应的媒体文件
+      + 需要满足以下所有条件：
+        - 当前位于org-ref笔记，即，当前heading的 =Custom_ID= 存放entry key
+        - 文件可通过 =bibtex-completion-find-pdf= 获得。一般地，保证变量 =bibtex-completion-pdf-field= 的值为存放文件路径的 field 即可。
+        - 文件类型包含于 =org-media-note--video-types= 或 =org-media-note--audio-types=
     - 如果对应的attach dir中有多媒体文件，如果只有一个，直接播放；如果有多个，从attach dir中选择
     - 如果不匹配上述规则，手动选择本地媒体文件
   + =o o= 输入在线视频的url，在mpv中播放  (=org-media-note-mpv-play-online-video=)

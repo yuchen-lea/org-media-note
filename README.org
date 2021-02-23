@@ -99,9 +99,13 @@ All functions can be reached from =org-media-note-hydra/body= :
 - File：Functions about media file
   + =o l= Select a local file and play it in mpv.  (=org-media-note-mpv-smart-play=)
     - When integrets with org-ref and call this function in an org-ref note, it will open the media file described in bib entry.
-    - When media files found in org-attach-dir, open this file if there's only one file, else, let user chose file from attach directory.
-    - Else, find the file by yourself.
-  + =o o= Input a url of online video and play it in mpv.  (=org-media-note-mpv-play-online-video=)
+      + Your media file will be auto opened if all of the following are true:
+        - You're under an org-ref note, which means the =Custom_ID= stores the entry key.
+        - Files can be found by =bibtex-completion-find-pdf=. You should keep the value of =bibtex-completion-pdf-field= and the field which store files consistent.
+        - Your media file extension is included in =org-media-note--video-types= or =org-media-note--audio-types=
+  + When media files found in org-attach-dir, open this file if there's only one file, else, let user chose file from attach directory.
+  + Else, find the file by yourself.
+- =o o= Input a url of online video and play it in mpv.  (=org-media-note-mpv-play-online-video=)
   + =j= Cycle through subtitles
   + =T= Toggle video window ontop of other windows
   + =c= Increase speed by 0.1
