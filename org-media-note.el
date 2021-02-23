@@ -4,6 +4,7 @@
 
 ;; Author: Yuchen Lea <yuchen.lea@gmail.com>
 ;; URL: https://github.com/yuchen-lea/org-media-note
+;; Package-Requires: ((emacs "27.1") mpv pretty-hydra)
 
 ;;; Commentary:
 
