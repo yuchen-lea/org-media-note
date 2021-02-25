@@ -128,42 +128,52 @@ want a space that is not part of the link itself."
 ;;;;; Hydra
 
 (defun org-media-note--hydra-title ()
-"Title for `org-media-note-hydra'"
-(let ((file-path (mpv-get-property "path"))
-      (ref-key (org-media-note--current-org-ref-key))
-      (icon (if (featurep 'all-the-icons) (all-the-icons-material "ondemand_video") ""))
-      speed current-hms total-hms duration remaining-hms)
-  (if file-path
-      ;; Title when mpv is playing media
-      (progn
-        (setq speed (mpv-get-property "speed"))
-        (setq volume (mpv-get-property "volume"))
-        (setq current-hms (org-media-note--get-current-hms))
-        (setq duration (mpv-get-property "duration"))
-        (setq total-hms (org-timer-secs-to-hms (round duration)))
-        (setq remaining-hms (org-timer-secs-to-hms (round (mpv-get-property "playtime-remaining"))))
-        (setq bib-entry (bibtex-completion-get-entry ref-key))
-        (setq title (bibtex-completion-get-value "title" bib-entry))
-        (s-concat icon " org-media-note: "
-                  current-hms
-                  " / "
-                  total-hms
-                  "\t Volume: "
-                  (number-to-string volume)
-                  "\t Speed: "
-                  (number-to-string speed)
-                  "\t Remaining: "
-                  remaining-hms
-                  "\n\t❯ "
-                  (if (org-media-note-ref-cite-p)
-                      (format "%s (%s)" title ref-key)
-                    (if (org-media-note--online-video-p file-path)
-                        (format "%s (%s)"
-                                (mpv-get-property "media-title")
-                                file-path)
-                      file-path))))
-    ;; Title when no media is playing
-    (concat icon " org-media-note"))))
+  "Title for `org-media-note-hydra'"
+  (let ((file-path (mpv-get-property "path"))
+        (ref-key (org-media-note--current-org-ref-key))
+        (icon (if (featurep 'all-the-icons)
+                  (all-the-icons-material "ondemand_video")
+                ""))
+        speed
+        current-hms
+        total-hms
+        duration
+        remaining-hms
+        bib-entry
+        title)
+    (if file-path
+        ;; Title when mpv is playing media
+        (progn
+          (setq speed (mpv-get-property "speed"))
+          (setq volume (mpv-get-property "volume"))
+          (setq current-hms (org-media-note--get-current-hms))
+          (setq duration (mpv-get-property "duration"))
+          (setq total-hms (org-timer-secs-to-hms (round duration)))
+          (setq remaining-hms (org-timer-secs-to-hms (round (mpv-get-property "playtime-remaining"))))
+          (s-concat icon
+                    " org-media-note: "
+                    current-hms
+                    " / "
+                    total-hms
+                    "\t Volume: "
+                    (number-to-string volume)
+                    "\t Speed: "
+                    (number-to-string speed)
+                    "\t Remaining: "
+                    remaining-hms
+                    "\n\t❯ "
+                    (if (org-media-note-ref-cite-p)
+                        (progn
+                          (setq bib-entry (bibtex-completion-get-entry ref-key))
+                          (setq title (bibtex-completion-get-value "title" bib-entry))
+                          (format "%s (%s)" title ref-key))
+                      (if (org-media-note--online-video-p file-path)
+                          (format "%s (%s)"
+                                  (mpv-get-property "media-title")
+                                  file-path)
+                        file-path))))
+      ;; Title when no media is playing
+      (concat icon " org-media-note"))))
 
 
 (pretty-hydra-define org-media-note-hydra
