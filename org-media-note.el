@@ -30,6 +30,7 @@
 (require 'mpv)
 (require 'org)
 (require 'pretty-hydra)
+(require 'org-attach)
 
 (declare-function org-timer-secs-to-hms "org-timer")
 (declare-function org-timer-hms-to-secs "org-timer")
@@ -142,6 +143,8 @@ want a space that is not part of the link itself."
         (setq duration (mpv-get-property "duration"))
         (setq total-hms (org-timer-secs-to-hms (round duration)))
         (setq remaining-hms (org-timer-secs-to-hms (round (mpv-get-property "playtime-remaining"))))
+        (setq bib-entry (bibtex-completion-get-entry ref-key))
+        (setq title (bibtex-completion-get-value "title" bib-entry))
         (s-concat icon " org-media-note: "
                   current-hms
                   " / "
@@ -154,10 +157,7 @@ want a space that is not part of the link itself."
                   remaining-hms
                   "\n\t❯ "
                   (if (org-media-note-ref-cite-p)
-                      (format "%s (%s)"
-                              (bibtex-completion-get-value-by-key ref-key
-                                                                  "title")
-                              ref-key)
+                      (format "%s (%s)" title ref-key)
                     (if (org-media-note--online-video-p file-path)
                         (format "%s (%s)"
                                 (mpv-get-property "media-title")
