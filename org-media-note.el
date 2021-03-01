@@ -51,7 +51,7 @@
           (const :tag "Attachment" attach)))
 
 (defcustom org-media-note-screenshot-link-type-when-save-in-attach-dir 'file
-  "Use file: link or attachment: link when `org-media-note-screenshot-save-method' is attach?
+  "Use file link or attachment link when `org-media-note-screenshot-save-method' is attach?
 file link is more general while attachment link is more concise."
   :type '(choice
           (const :tag "file:" file)
@@ -62,7 +62,7 @@ file link is more general while attachment link is more concise."
   :type 'string)
 
 (defcustom org-media-note-save-screenshot-p nil
-  "Whether to save screenshot."
+  "Whether to auto save screenshot when insert media link."
   :type 'boolean)
 
 (defcustom org-media-note-screenshot-with-sub t
@@ -175,7 +175,6 @@ want a space that is not part of the link itself."
       ;; Title when no media is playing
       (concat icon " org-media-note"))))
 
-
 (pretty-hydra-define org-media-note-hydra
   (:color red
    :title (org-media-note--hydra-title)
@@ -258,8 +257,13 @@ want a space that is not part of the link itself."
 
 ;;;;; Utils
 
+(defun org-media-note--seconds-to-hms (secs)
+  "Convert secs (float or int) to hms (string)"
+  (org-timer-secs-to-hms (round secs)))
+
 (defun org-media-note--millisecs-to-hms (millisecs)
-  (org-timer-secs-to-hms (round (/ (string-to-number millisecs) 1000))))
+  (org-media-note--seconds-to-hms (/ (string-to-number millisecs)
+                                     1000)))
 
 (defun org-media-note--get-duration-hms ()
   "Get the current media duration in format h:mm:ss"
@@ -269,32 +273,15 @@ want a space that is not part of the link itself."
   "Get current media timestamp in format h:mm:ss"
   (org-media-note--seconds-to-hms (mpv-get-playback-position)))
 
-(defun org-media-note--seconds-to-hms (secs)
-  "Convert secs (float or int) to hms (string)"
-  (org-timer-secs-to-hms (round secs))
-  )
-
 (defun org-media-note--current-org-ref-key ()
   (org-entry-get (point) "Custom_ID"))
-
-(defun org-media-note-ref-cite-p ()
-  "Whether to use refcite link instead of file path."
-  (and (org-media-note--current-org-ref-key)
-       org-media-note-use-refcite-first))
-
-
-(defun org-media-note--online-video-p (path)
-  (string-match "^http" path)
-  )
 
 (defun org-media-note--current-media-type ()
   "Get current playing media type."
   (let* ((file-path (mpv-get-property "path")))
     (if (org-media-note--online-video-p file-path)
-        "video"  ;; TODO audio?
-      (org-media-note--file-media-type file-path)
-        )
-    ))
+        "video" ;; TODO online audio?
+      (org-media-note--file-media-type file-path))))
 
 (defun org-media-note--file-media-type (file-path)
   "Get file media type."
@@ -307,6 +294,15 @@ want a space that is not part of the link itself."
    ((member file-ext org-media-note--video-types) "video")
    ((member file-ext org-media-note--audio-types) "audio")
    (t nil)))
+
+(defun org-media-note-ref-cite-p ()
+  "Whether to use refcite link instead of file path."
+  (and (org-media-note--current-org-ref-key)
+       org-media-note-use-refcite-first))
+
+(defun org-media-note--online-video-p (path)
+  (string-match "^http" path))
+
 ;;;;; Add note
 (defun org-media-note-insert-sub-text ()
   (interactive)
@@ -317,72 +313,76 @@ want a space that is not part of the link itself."
         (insert sub-text)
       (message "No subtitles found in current file."))))
 ;;;;;; media note item
-(defun org-insert-item--media-note-item (orig-fn &rest args)
-  "When item begins with media link, insert playback position."
-  (interactive "P")
-  (let ((itemp (org-in-item-p))
-        (pos (point)))
-    ;; If cursor isn't is a list or if list is invisible, return nil.
-    (unless (or (not itemp)
-                (save-excursion
-                  (goto-char itemp)
-                  (org-invisible-p)))
-      (if (save-excursion
-            (goto-char itemp)
-            (org-at-item-meida-item-p))
-          (progn
-            (org-media-note-item)
-            t)))))
-
-
-(defun org-media-note-item (&optional arg)
-  "Insert a item with link to media file."
-  (interactive "P")
-  (let ((itemp (org-in-item-p))
-        (pos (point)))
-    (cond
-     ;; In a media note list and media file is open: insert with `org-list-insert-item',
-     ((and itemp
-           (goto-char itemp)
-           (org-at-item-meida-item-p)
-           (mpv-get-property "path"))
-      (let* ((struct (org-list-struct))
-             (prevs (org-list-prevs-alist struct))
-             (s (concat (org-media-note--link)
-                        " ")))
-        (setq struct (org-list-insert-item pos struct prevs nil
-                                           s))
-        (org-list-write-struct struct
-                               (org-list-parents-alist struct))
-        (looking-at org-list-full-item-re)
-        (move-end-of-line 1)
-        (if org-media-note-save-screenshot-p
-            (org-media-note-insert-screenshot))
-        (when org-media-note-pause-after-insert-link
-          (mpv-pause))))
-     ;; In a list of another type, don't break anything: throw an error.
-     (t (error (concat "No playing media file now. Please open the media file"
-                       "first if you want to insert media note,"
-                       "\nor turn off "))))))
 
 (defun org-media-note-insert-link ()
   "Insert current mpv timestamp link into Org-mode note."
   (interactive)
   (let ((point (point)))
-    (insert
-     org-media-note-link-prefix
-     (format "%s "
-             (org-media-note--link)))
+    (insert org-media-note-link-prefix
+            (format "%s "
+                    (org-media-note--link)))
     (when (eq org-media-note-cursor-start-position 'before)
       (goto-char point))
     (when org-media-note-pause-after-insert-link
-      (mpv-pause))
-    ))
+      (mpv-pause))))
+
+(defun org-media-note--link ()
+  "Return media link."
+  (let* ((file-path (mpv-get-property "path"))
+         (link-type (if (org-media-note-ref-cite-p)
+                        (concat (org-media-note--current-media-type)
+                                "cite")
+                      (org-media-note--current-media-type)))
+         (filename (mpv-get-property "media-title"))
+         (duration (org-media-note--get-duration-hms))
+         (timestamp (org-media-note--get-current-hms)))
+    (if (org-media-note--ab-loop-p)
+        ;; ab-loop link
+        (let ((time-a (org-media-note--seconds-to-hms (mpv-get-property "ab-loop-a")))
+              (time-b (org-media-note--seconds-to-hms (mpv-get-property "ab-loop-b"))))
+          (format "[[%s:%s#%s-%s][%s]]"
+                  link-type
+                  (org-media-note--link-base-file file-path)
+                  time-a
+                  time-b
+                  (org-media-note--link-formatter org-media-note-ab-loop-link-format
+                                                  `(("filename" . ,filename)
+                                                    ("duration" . ,duration)
+                                                    ("ab-loop-a" . ,time-a)
+                                                    ("ab-loop-b" . ,time-b)
+                                                    ("file-path" . ,file-path)))))
+      ;; timestamp link
+      (format "[[%s:%s#%s][%s]]"
+              link-type
+              (org-media-note--link-base-file file-path)
+              timestamp
+              (org-media-note--link-formatter org-media-note-timestamp-link-format
+                                              `(("filename" . ,filename)
+                                                ("duration" . ,duration)
+                                                ("timestamp" . ,timestamp)
+                                                ("file-path" . ,file-path)))))))
+
+(defun org-media-note--ab-loop-p ()
+  "Whether in ab-loop?"
+  (let ((time-a (mpv-get-property "ab-loop-a"))
+        (time-b (mpv-get-property "ab-loop-b"))
+        (pos (mpv-get-playback-position)))
+    (and (numberp time-a)
+         (numberp time-b)
+         (<= time-a pos)
+         (<= pos time-b))))
+
+(defun org-media-note--link-base-file (file-path)
+  (if (org-media-note-ref-cite-p)
+      (org-media-note--current-org-ref-key)
+    (if (org-media-note--online-video-p file-path)
+        file-path
+      (org-media-note--format-file-path file-path))))
 
 (defun org-media-note--link-formatter (string map)
   "MAP is an alist in the form of '((PLACEHOLDER . REPLACEMENT))
-STRING is the original string.  Each placeholder can be a string, 
-symbol, or number. REPLACEMENT can be a string, a number, symbol, 
+STRING is the original string.  Each placeholder can be a string,
+symbol, or number. REPLACEMENT can be a string, a number, symbol,
 or function. Replace all occurrences of %placeholder with replacement
 and return a new string.
 
@@ -413,81 +413,66 @@ Returns:
 		     string))
 	   finally return string))
 
-(defun org-media-note--ab-loop-p ()
-  "Whether in ab-loop?"
-  (let ((time-a (mpv-get-property "ab-loop-a"))
-        (time-b (mpv-get-property "ab-loop-b"))
-        (pos (mpv-get-playback-position))
-        )
-    (and (numberp time-a)
-         (numberp time-b)
-         (<= time-a pos)
-         (<= pos time-b)
-         )))
+(defun org-insert-item--media-note-item (orig-fn &rest args)
+  "When item begins with media link, insert playback position."
+  (interactive "P")
+  (let ((itemp (org-in-item-p))
+        (pos (point)))
+    ;; If cursor isn't is a list or if list is invisible, return nil.
+    (unless (or (not itemp)
+                (save-excursion
+                  (goto-char itemp)
+                  (org-invisible-p)))
+      (if (save-excursion
+            (goto-char itemp)
+            (org-media-note--at-media-item-p))
+          (progn
+            (org-media-note-item)
+            t)))))
 
-(defun org-media-note--link ()
-  "Return media link."
-  (let* ((file-path (mpv-get-property "path"))
-         (link-type (if (org-media-note-ref-cite-p)
-                        (concat (org-media-note--current-media-type)
-                                "cite")
-                      (org-media-note--current-media-type)))
-         (filename (mpv-get-property "media-title"))
-         (duration (org-media-note--get-duration-hms))
-         (timestamp (org-media-note--get-current-hms)))
-    (if (org-media-note--ab-loop-p)
-        ;; ab-loop link
-        (let ((time-a (org-media-note--seconds-to-hms (mpv-get-property "ab-loop-a")))
-              (time-b (org-media-note--seconds-to-hms (mpv-get-property "ab-loop-b"))))
-          (format "[[%s:%s#%s-%s][%s]]"
-                  link-type
-                  (if (org-media-note-ref-cite-p)
-                      (org-media-note--current-org-ref-key)
-                    (if (org-media-note--online-video-p file-path)
-                        file-path
-                      (org-media-note--format-file-path file-path)))
-                  time-a
-                  time-b
-                  (org-media-note--link-formatter org-media-note-ab-loop-link-format
-                                                  `(("filename" . ,filename)
-                                                    ("duration" . ,duration)
-                                                    ("ab-loop-a" . ,time-a)
-                                                    ("ab-loop-b" . ,time-b)
-                                                    ("file-path" . ,file-path)))))
-      ;; timestamp link
-      (format "[[%s:%s#%s][%s]]"
-              link-type
-              (if (org-media-note-ref-cite-p)
-                  (org-media-note--current-org-ref-key)
-                (if (org-media-note--online-video-p file-path)
-                    file-path
-                  (org-media-note--format-file-path file-path)))
-              timestamp
-              (org-media-note--link-formatter org-media-note-timestamp-link-format
-                                              `(("filename" . ,filename)
-                                                ("duration" . ,duration)
-                                                ("timestamp" . ,timestamp)
-                                                ("file-path" . ,file-path)))))))
-
-(defun org-at-item-meida-item-p ()
+(defun org-media-note--at-media-item-p ()
   "Is point at a line starting a plain list item with a media-note link?"
   (or (org-list-at-regexp-after-bullet-p "\\(\\[\\[video.+\\)")
       (org-list-at-regexp-after-bullet-p "\\(\\[\\[audio.+\\)")))
 
-;;;;;; screenshot
-(defun org-media-note--format-file-name (name)
-  (let (new-name)
-    (setq new-name (replace-regexp-in-string " - " "-" name))
-    (setq new-name (replace-regexp-in-string ":" "_" name))
-    (replace-regexp-in-string " " "_" new-name)))
+(defun org-media-note-item (&optional arg)
+  "Insert a item with the link to media file."
+  (interactive "P")
+  (let ((itemp (org-in-item-p))
+        (pos (point)))
+    (cond
+     ;; In a media note list and media file is open: insert with `org-list-insert-item',
+     ((and itemp
+           (goto-char itemp)
+           (org-media-note--at-media-item-p)
+           (mpv-get-property "path"))
+      (let* ((struct (org-list-struct))
+             (prevs (org-list-prevs-alist struct))
+             (s (concat (org-media-note--link)
+                        " ")))
+        (setq struct (org-list-insert-item pos struct prevs nil
+                                           s))
+        (org-list-write-struct struct
+                               (org-list-parents-alist struct))
+        (looking-at org-list-full-item-re)
+        (move-end-of-line 1)
+        (when org-media-note-pause-after-insert-link
+          (mpv-pause))
+        (when org-media-note-save-screenshot-p
+          (org-media-note-insert-screenshot))))
+     ;; In a list of another type, don't break anything: throw an error.
+     (t (error (concat "No playing media file now. Please open the media file"
+                       "first if you want to insert media note,"
+                       "\nor turn off "))))))
 
+;;;;;; screenshot
 (defun org-media-note-insert-screenshot ()
   "Insert current mpv screenshot into Org-mode note."
   (interactive)
   (let* ((image-file-name (org-media-note--format-file-name (concat (file-name-base (mpv-get-property "path"))
                                                                     "-"
                                                                     (org-media-note--get-current-hms)
-                                                                    ".jpg")))  ;; TODO let user customize this
+                                                                    ".jpg"))) ;; TODO let user customize this
          (image-target-path (cond
                              ((eq org-media-note-screenshot-save-method
                                   'attach)
@@ -498,8 +483,7 @@ Returns:
                               (expand-file-name image-file-name org-media-note-screenshot-image-dir)))))
     (if org-media-note-screenshot-with-sub
         (mpv-run-command "screenshot-to-file" image-target-path)
-      (mpv-run-command "screenshot-to-file" image-target-path
-                       "video"))
+      (mpv-run-command "screenshot-to-file" image-target-path "video"))
     (if (and (eq org-media-note-screenshot-save-method
                  'attach)
              (eq org-media-note-screenshot-link-type-when-save-in-attach-dir
@@ -508,9 +492,14 @@ Returns:
                         (file-relative-name image-target-path
                                             (org-attach-dir))))
       (insert (format "[[file:%s]] "
-                      (org-media-note--format-file-path image-target-path)
-                      )))
+                      (org-media-note--format-file-path image-target-path))))
     (org-media-note--display-inline-images)))
+
+(defun org-media-note--format-file-name (name)
+  (let (new-name)
+    (setq new-name (replace-regexp-in-string " - " "-" name))
+    (setq new-name (replace-regexp-in-string ":" "_" name))
+    (replace-regexp-in-string " " "_" new-name)))
 
 (defun org-media-note--format-file-path (path)
   "Convert PATH into the format defined by `org-link-file-path-type'"
@@ -534,11 +523,10 @@ Returns:
              (expand-file-name path)))))
 
 (defun org-media-note--display-inline-images ()
-  (cond
-   ((eq org-media-note-display-inline-images t)
+  (when org-media-note-display-inline-images
     ;; TODO beteer way?
     (sleep-for 0.1)
-    (org-display-inline-images))))
+    (org-display-inline-images)))
 
 ;;;;; Link Follow
 (defun org-media-note-link-follow (link)
@@ -579,6 +567,44 @@ Returns:
         (mpv-seek time-a)))))
 
 ;;;;; Media Control
+
+(defun org-media-note-mpv-smart-play ()
+  "Open local media file in mpv:
+1. When there's just one media file in attach dir, or found media file by key, play this file im mpv;
+2. When there're multiple media files in attach dir, open the attach dir to select;
+3. Else, open the current dir of note file to selet"
+  (interactive)
+  (let* ((key (org-media-note--current-org-ref-key))
+         (attach-dir (if (org-attach-dir)
+                         (format "%s/"
+                                 (org-attach-dir))))
+         (media-files-in-attach-dir (org-media-note--media-files-in-dir attach-dir))
+         (number-of-media-files (length media-files-in-attach-dir)))
+    (if (org-media-note-ref-cite-p)
+        (mpv-play (org-media-note-get-media-file-by-key key))
+      (if media-files-in-attach-dir
+          (if (= 1 number-of-media-files)
+              (mpv-play (car media-files-in-attach-dir))
+            (mpv-play (read-file-name "File to play: " attach-dir)))
+        (mpv-play (read-file-name "File to play: "))))))
+
+(defun org-media-note--media-files-in-dir (dir)
+  "Get supported media file list in dir."
+  (if dir
+      (directory-files dir
+                       'full
+                       (rx (eval (cons 'or (append org-media-note--video-types org-media-note--audio-types)))
+                           eos))
+    nil))
+
+(defun org-media-note-mpv-play-online-video ()
+  "Open online media file in mpv."
+  (interactive)
+  (let ((video-url (read-string "Url to play: ")))
+    (if (org-media-note--online-video-p video-url)
+        (mpv-start video-url)
+      (error (format "'%s' is not a valid url!" video-url)))))
+
 (defun org-media-note-change-speed-by (speed-step)
   "Set playing speed."
   (let ((current-speed (mpv-get-property "speed")))
@@ -606,48 +632,6 @@ Returns:
       (progn
         (setq org-media-note-last-volume current-volume)
         (mpv-set-property "volume" 100)))))
-
-(defun org-media-note-mpv-smart-play ()
-  "Open local media file in mpv:
-1. When there's just one media file in attach dir, or found media file by key, play this file im mpv;
-2. When there're multiple media files in attach dir, open the attach dir to select;
-3. Else, open the current dir of note file to selet"
-  (interactive)
-  (let* ((key (org-media-note--current-org-ref-key))
-         (attach-dir (if (org-attach-dir)
-                         (format "%s/"
-                                 (org-attach-dir))))
-         (media-files-in-attach-dir (org-media-note--media-files-in-dir attach-dir))
-         (number-of-media-files (length media-files-in-attach-dir)))
-    (if (org-media-note-ref-cite-p)
-        (mpv-play (org-media-note-get-media-file-by-key key))
-      (if media-files-in-attach-dir
-          (if (= 1 number-of-media-files)
-              (mpv-play (car media-files-in-attach-dir))
-            (mpv-play (read-file-name "File to play: " attach-dir)))
-        (mpv-play (read-file-name "File to play: "))))))
-
-(defun org-media-note-mpv-play-online-video ()
-  "Open online media file in mpv."
-  (interactive)
-  (let ((video-url (read-string "Url to play: ")))
-    (if (org-media-note--online-video-p video-url)
-        (mpv-start video-url)
-      (error (format "'%s' is not a valid url!" video-url))
-        )
-    )
-  )
-
-
-(defun org-media-note--media-files-in-dir (dir)
-  "Get supported media file list in dir."
-  (if dir
-      (directory-files dir
-                       'full
-                       (rx (eval (cons 'or (append org-media-note--video-types org-media-note--audio-types)))
-                           eos))
-    nil))
-
 
 ;;;;; Import From other apps
 
