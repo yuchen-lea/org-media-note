@@ -13,7 +13,8 @@
 ;;;; Requirements
 (require 'seq)
 (require 'org-ref)
-(require 'org-media-note)
+
+(require 'org-media-note-core)
 
 ;;;; Customization
 (defcustom org-media-note-bibtex-files bibtex-files
@@ -22,46 +23,18 @@
                          directory file)))
 ;;;; Variables
 ;;;; Commands
-;;;;; Utils
-(defun org-media-note-get-media-file-by-key (key)
-  (let* ((files (bibtex-completion-find-pdf key))
-         (video-files (seq-filter (lambda (elt)
-                                    (s-matches-p (rx (eval (cons 'or org-media-note--video-types))
-                                                     eos)
-                                                 elt))
-                                  files))
-         (audio-files (seq-filter (lambda (elt)
-                                    (s-matches-p (rx (eval (cons 'or org-media-note--audio-types))
-                                                     eos)
-                                                 elt))
-                                  files)))
-    (cond
-     (video-files (org-media-note--get-realpath-for-file (nth 0 video-files)))
-     (audio-files (org-media-note--get-realpath-for-file (nth 0 audio-files)))
-     (t nil))))
-
-(defun org-media-note--get-realpath-for-file (symlink)
-  "Get realpath for symlink."
-  (replace-regexp-in-string "\n"
-                            ""
-                            (shell-command-to-string (concat "realpath \""
-                                                             (replace-regexp-in-string "~"
-                                                                                       (file-truename "~")
-                                                                                       symlink)
-                                                             "\""))))
-
 ;;;;; Help echo
 (defun org-media-note-help-echo (window object position)
   "A help-echo function for ref links."
   (save-excursion
     (goto-char position)
-    (let ((s (org-media-note-link-message)))
+    (let ((s (org-media-note-media-cite-link-message)))
       (with-temp-buffer
         (insert s)
         (fill-paragraph)
         (buffer-string)))))
 
-(defun org-media-note-link-message ()
+(defun org-media-note-media-cite-link-message ()
   "Print a minibuffer message about the link that point is on."
   (interactive)
   ;; the way links are recognized in org-element-context counts blank spaces
@@ -86,8 +59,8 @@
                                         (org-ref-format-entry ref-cite-key)
                                         hms))))))))))
 
-(defun org-media-note-link-message-display-in-eldoc (&rest _)
-  (org-media-note-link-message))
+(defun org-media-note-display-media-cite-link-message-in-eldoc (&rest _)
+  (org-media-note-media-cite-link-message))
 
 ;;;;; Keymap
 (defun org-media-note-open-ref-cite-function ()
@@ -115,7 +88,7 @@
   :group 'org-media-note)
 
 ;;;;; Link Follow
-(defun org-media-note-cite-link-follow (link)
+(defun org-media-note-media-cite-link-follow (link)
   "Open videocite and audiocite links, supported formats:
 1. videocite:course.104#0:02:13: jump to 0:02:13
 2. videocite:course.104#0:02:13-0:02:20: jump to 0:02:13 and loop between 0:02:13 and 0:02:20
@@ -131,21 +104,48 @@
     (cond
      ((not file-path)
       (error "Cannot find media file for this Key."))
-     (t (org-media-note--follow-link file-path time-a time-b)
-        ))))
+     (t (org-media-note--follow-link file-path time-a
+                                     time-b)))))
 
+(defun org-media-note-get-media-file-by-key (key)
+  (let* ((files (bibtex-completion-find-pdf key))
+         (video-files (seq-filter (lambda (elt)
+                                    (s-matches-p (rx (eval (cons 'or org-media-note--video-types))
+                                                     eos)
+                                                 elt))
+                                  files))
+         (audio-files (seq-filter (lambda (elt)
+                                    (s-matches-p (rx (eval (cons 'or org-media-note--audio-types))
+                                                     eos)
+                                                 elt))
+                                  files)))
+    (cond
+     (video-files (org-media-note--get-realpath-for-file (nth 0 video-files)))
+     (audio-files (org-media-note--get-realpath-for-file (nth 0 audio-files)))
+     (t nil))))
+
+(defun org-media-note--get-realpath-for-file (symlink)
+  "Get realpath for symlink."
+  (replace-regexp-in-string "\n"
+                            ""
+                            (shell-command-to-string (concat "realpath \""
+                                                             (replace-regexp-in-string "~"
+                                                                                       (file-truename "~")
+                                                                                       symlink)
+                                                             "\""))))
 ;;;;; Setup
 
 ;;;###autoload
 (defun org-media-note-setup-org-ref ()
   (dolist (link '("videocite" "audiocite"))
-    (org-link-set-parameters link :follow 'org-media-note-cite-link-follow
+    (org-link-set-parameters link :follow 'org-media-note-media-cite-link-follow
                              :keymap org-media-note-cite-keymap
                              :help-echo #'org-media-note-help-echo))
 
   ;; Display media link description in minibuffer when cursor is over it.
   (advice-add #'org-eldoc-documentation-function
-              :before-until #'org-media-note-link-message-display-in-eldoc))
+              :before-until #'org-media-note-display-media-cite-link-message-in-eldoc))
+
 ;;;; Footer
 (provide 'org-media-note-org-ref)
 ;;; org-media-note-org-ref.el ends here
