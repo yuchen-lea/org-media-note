@@ -52,6 +52,28 @@
     (if (y-or-n-p "Delete Noted txt?")
         (delete-file noted-txt))))
 
+(defun org-media-note-convert-from-org-timer ()
+  (interactive)
+  (let* ((key (org-media-note--current-org-ref-key))
+         (source-media (org-media-note-get-media-file-by-key key))
+         (media-file source-media)
+         (media-link-type (org-media-note--file-media-type source-media)))
+    (if (org-media-note-ref-cite-p)
+        (progn
+          (setq media-file key)
+          (setq media-link-type (format "%scite" media-link-type))))
+    (save-excursion
+      (org-narrow-to-subtree)
+      (goto-char (point-min))
+      (while (re-search-forward org-media-note--timestamp-pattern
+                                nil t)
+        (let* ((hms (buffer-substring (match-beginning 1)
+                                      (match-end 1))))
+          (replace-match (format "[[%s:%s#%s][%s]] " media-link-type
+                                 media-file hms hms)
+                         'fixedcase)))
+      (widen))))
+
 (defun org-media-note--convert-from-noted (noted-file media-link-type media-file)
   ;; (with-current-buffer (get-buffer-create "*RESULTS*")
   (with-temp-buffer
