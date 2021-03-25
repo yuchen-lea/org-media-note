@@ -370,6 +370,34 @@ Returns:
     (if sub-text
         (insert sub-text)
       (message "No subtitles found in current file."))))
+;;;;; Adjust timestamp
+
+(defun org-media-note-adjust-timestamp-offset ()
+  (interactive)
+  (let* ((current-playing-position (mpv-get-playback-position)) link
+         current-link-position
+         offset)
+    (cl-multiple-value-bind (_ _ link _)
+        (org-link-edit--link-data)
+      (let* ((splitted (split-string link "#"))
+             (timestamps (split-string (nth 1 splitted))))
+        (setq current-link-position (org-timer-hms-to-secs (nth 0 timestamps)))
+        (setq offset (- current-playing-position current-link-position))))
+    (save-excursion
+      (org-narrow-to-subtree)
+      (goto-char (point-min))
+      (while (re-search-forward org-media-note--timestamp-pattern
+                                nil t)
+        (let* ((beg (match-beginning 1))
+               (end (match-end 1))
+               (hms (buffer-substring beg end))
+               (adjusted-hms (org-media-note--seconds-to-hms (+ (org-timer-hms-to-secs hms)
+                                                                offset))))
+          (goto-char beg)
+          (delete-region beg end)
+          (insert adjusted-hms)))
+      (widen))))
+
 ;;;;; Link Follow
 (defun org-media-note-media-link-follow (link)
   "Open video and audio links, supported formats:

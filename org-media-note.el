@@ -99,6 +99,7 @@
      "(un)mute"))
    "Note"
    (("i" org-media-note-insert-link "Insert timestamp")
+    ("a" org-media-note-adjust-timestamp-offset "Adjust timestamp")
     ("S" org-media-note-insert-screenshot "Insert Screenshot")
     ("s" org-media-note-insert-sub-text "Insert subtitle")
     ("I p" org-media-note-insert-note-from-pbf
