@@ -92,7 +92,7 @@ want a space that is not part of the link itself."
 ;;;; Variables
 
 (defconst org-media-note--video-types '("avi" "rmvb" "ogg" "ogv" "mp4" "mkv" "mov" "webm" "flv" "ts" "mpg"))
-(defconst org-media-note--audio-types '("flac" "mp3" "wav"))
+(defconst org-media-note--audio-types '("flac" "mp3" "wav" "m4a"))
 (defconst org-media-note--timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\)[ \t]?")
 
 ;;;; Commands
