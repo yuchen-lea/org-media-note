@@ -1,5 +1,6 @@
 [[file:README_CN.org][中文文档]]
 
+[[file:CHANGELOG.org][Changelog]]
 * About
 Take notes for video and audio files in org-mode! Now supported:
 

@@ -1,3 +1,5 @@
+[[file:CHANGELOG.org][Changelog]]
+
 * 功能介绍
 这是一个方便在 org-mode 中为视频、音频做笔记的插件。基本功能：
 
