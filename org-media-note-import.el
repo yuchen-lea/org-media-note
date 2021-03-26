@@ -6,7 +6,8 @@
 
 (defun org-media-note-insert-note-from-pbf ()
   (interactive)
-  (let ((key (org-media-note--current-org-ref-key)) pbf-file
+  (let ((key (org-media-note--current-org-ref-key))
+        pbf-file
         media-link-type
         media-file)
     (if (org-media-note-ref-cite-p)
@@ -34,7 +35,8 @@
 
 (defun org-media-note-insert-note-from-noted ()
   (interactive)
-  (let ((key (org-media-note--current-org-ref-key)) noted-txt
+  (let ((key (org-media-note--current-org-ref-key))
+        noted-txt
         media-link-type
         media-file)
     (setq noted-txt (read-file-name "Find exported Noted txt:"))
