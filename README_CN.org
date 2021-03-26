@@ -14,6 +14,7 @@
 - 可以从已有文件导入笔记，目前支持的格式：
   + PotPlayer 生成的 PBF 文件
   + 由 [[https://www.notedapp.io/][Noted]] 导出的 TXT 文件
+  + [[https://orgmode.org/manual/Timers.html][Timers]]
 
 如果你使用 [[https://github.com/jkitchin/org-ref][org-ref]]，可以与 org-ref 笔记协同使用：
 
@@ -94,6 +95,7 @@
 - Playback：关于播放进度的操作
   + =<SPC>= 播放/暂停
   + =l= 设置A-B循环，如果已设置，会显示当前的A-B区间
+  + =g= 跳转到当前行所包含的时间戳，方便在浏览对应字幕时快速跳转。如果当前行没有找到时间戳，可以手动输入。
   + =<left>= 后退5s
   + =<right>= 前进5s
   + =C-<left>= 跳转到前一字幕
@@ -114,6 +116,7 @@
     - 💡 如果位于形如 =- [[video:video.mp4#00:03:24][00:03:24]] description= 的列表中，直接 =<M-return>= 新建列表项就会自动插入对应的链接，无需手动调用 =i=
     - 💡 视频的路径格式与 =org-link-file-path-type= 一致
     - 💡 如果设置 =org-media-note-cursor-start-position= 为 =before= ，则插入链接后光标跳转到链接的开始位置。此选项只在单独插入链接时起作用，对通过 =<M-return>= 自动插入的时间戳不起作用。
+  + =a= 将光标所在位置的链接，调整为当前播放位置。并将该时间偏移（offset），应用到当前笔记的其他链接。适合导入org-timer后，或者更新视频后，统一调整偏移。
   + =S= 插入当前的视频截图 (=org-media-note-insert-screenshot=)
     - ℹ 相关变量:
       + =org-media-note-screenshot-save-method= : 定义截图的保存位置
@@ -124,6 +127,8 @@
   + =s= 插入当前的字幕文本 (=org-media-note-insert-sub-text=)
   + =I p= 从已有的PotPlayer PBF文件导入笔记，会尝试搜寻当前条目对应的媒体文件的同名PBF (=org-media-note-insert-note-from-pbf=)
   + =I n= 从已有的Noted TXT文件导入笔记 (=org-media-note-insert-note-from-noted=)
+  + =I t= 从 org-timer 形式的列表导入笔记
+
 - Toggle：笔记功能的设置
   + =t m= 是否启用在形如 =- [[video:video.mp4#00:03:24][00:03:24]] description= 的列表中， =<M-return>= 新建列表项时自动插入对应链接的功能。
   + =t c= 启用时，会优先使用 =videocite= 或 =audiocite= 链接，而非 =video= 或 =audio= 链接
