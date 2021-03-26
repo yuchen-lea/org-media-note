@@ -133,6 +133,11 @@
                                                                                        (file-truename "~")
                                                                                        symlink)
                                                              "\""))))
+
+(defun org-media-note-get-url-by-key (key)
+  (if key
+      (let ((entry (bibtex-completion-get-entry1 key t)))
+        (bibtex-completion-get-value "url" entry))))
 ;;;;; Setup
 
 ;;;###autoload

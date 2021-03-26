@@ -43,14 +43,12 @@
    :title (org-media-note--hydra-title)
    :hint nil)
   ("File"
-   (("o l" org-media-note-mpv-smart-play
+   (("o" org-media-note-mpv-smart-play
      (if (org-media-note-ref-cite-p)
          (format "Open %s"
                  (org-media-note--current-org-ref-key))
-       "Open local file")
+       "Open file")
      :width 20)
-    ("o o" org-media-note-mpv-play-online-video
-     "Open online file")
     ("j"
      (mpv-cycle-property "sub")
      "toggle subtitles")
