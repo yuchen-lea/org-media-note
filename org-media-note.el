@@ -78,6 +78,7 @@
                      (org-media-note--seconds-to-hms time-a))
            "Set A of A-B loop")))
      :width 35)
+    ("g" org-media-note-goto-timestamp "Jump to the timestamp")
     ("<left>" mpv-seek-backward "Back 5s")
     ("<right>" mpv-seek-forward "Forward 5s")
     ("C-<left>"

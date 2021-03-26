@@ -398,7 +398,7 @@ Returns:
           (insert adjusted-hms)))
       (widen))))
 
-;;;;; Link Follow
+;;;;; Jump to the right position
 (defun org-media-note-media-link-follow (link)
   "Open video and audio links, supported formats:
 1. video:example.mkv#0:02:13: jump to 0:02:13
@@ -428,12 +428,27 @@ Returns:
           (mpv-start path
                      (concat "--start=+" time-a)))
       ;; file-path is playing
-      ;; TODO clear a-b loop when only one timestamp?
-      (progn
-        (when time-b
-          (mpv-set-property "ab-loop-a" time-a)
-          (mpv-set-property "ab-loop-b" time-b))
-        (mpv-seek time-a)))))
+      (org-media-note--seek-position-in-current-media-file time-a time-b))))
+
+(defun org-media-note-goto-timestamp ()
+  (interactive)
+  (let ((line (thing-at-point 'line t))
+        timestamp)
+    (save-match-data (and (string-match org-media-note--timestamp-pattern
+                                        line)
+                          (setq timestamp (match-string 1 line))))
+    (if (not timestamp)
+        ; TODO refers to `run-at-time'
+        (setq timestamp (read-string "Enter timestamp: "))
+        )
+    (org-media-note--seek-position-in-current-media-file (org-timer-hms-to-secs timestamp))))
+
+(defun org-media-note--seek-position-in-current-media-file (time-a &optional time-b)
+  ;; TODO clear a-b loop when only one timestamp?
+  (when time-b
+    (mpv-set-property "ab-loop-a" time-a)
+    (mpv-set-property "ab-loop-b" time-b))
+  (mpv-seek time-a))
 
 ;;;; Footer
 (provide 'org-media-note-core)
