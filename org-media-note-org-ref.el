@@ -95,17 +95,16 @@
 "
   (let* ((splitted (split-string link "#"))
          (key (nth 0 splitted))
-         (file-path (org-media-note-get-media-file-by-key key))
+         (file-path-or-url (or (org-media-note-get-media-file-by-key key) (org-media-note-get-url-by-key key)))
          (timestamps (split-string (nth 1 splitted)
                                    "-"))
          (time-a (int-to-string (org-timer-hms-to-secs (nth 0 timestamps))))
          (time-b (if (= (length timestamps) 2)
                      (int-to-string (org-timer-hms-to-secs (nth 1 timestamps))))))
     (cond
-     ((not file-path)
+     ((not file-path-or-url)
       (error "Cannot find media file for this Key."))
-     (t (org-media-note--follow-link file-path time-a
-                                     time-b)))))
+     (t (org-media-note--follow-link file-path-or-url time-a time-b)))))
 
 (defun org-media-note-get-media-file-by-key (key)
   (let* ((files (bibtex-completion-find-pdf key))
