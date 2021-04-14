@@ -24,8 +24,8 @@
 ;;;; Variables
 ;;;; Commands
 ;;;;; Help echo
-(defun org-media-note-help-echo (window object position)
-  "A help-echo function for ref links."
+(defun org-media-note-help-echo (_window _object position)
+  "Return help-echo for ref link at POSITION."
   (save-excursion
     (goto-char position)
     (let ((s (org-media-note-media-cite-link-message)))
@@ -60,10 +60,12 @@
                                         hms))))))))))
 
 (defun org-media-note-display-media-cite-link-message-in-eldoc (&rest _)
+  "Display media's cite link message when `eldoc' enabled."
   (org-media-note-media-cite-link-message))
 
 ;;;;; Keymap
 (defun org-media-note-open-ref-cite-function ()
+  "Open a ref-cite link."
   (interactive)
   (let* ((object (org-element-context))
          (media-note-link (if (eq (org-element-type object) 'link)
@@ -89,10 +91,9 @@
 
 ;;;;; Link Follow
 (defun org-media-note-media-cite-link-follow (link)
-  "Open videocite and audiocite links, supported formats:
+  "Open videocite and audiocite LINKs, supported formats:
 1. videocite:course.104#0:02:13: jump to 0:02:13
-2. videocite:course.104#0:02:13-0:02:20: jump to 0:02:13 and loop between 0:02:13 and 0:02:20
-"
+2. videocite:course.104#0:02:13-0:02:20: jump to 0:02:13 and loop between 0:02:13 and 0:02:20"
   (let* ((splitted (split-string link "#"))
          (key (nth 0 splitted))
          (file-path-or-url (or (org-media-note-get-media-file-by-key key) (org-media-note-get-url-by-key key)))
@@ -103,10 +104,11 @@
                      (int-to-string (org-timer-hms-to-secs (nth 1 timestamps))))))
     (cond
      ((not file-path-or-url)
-      (error "Cannot find media file for this Key."))
+      (error "Cannot find media file for this Key"))
      (t (org-media-note--follow-link file-path-or-url time-a time-b)))))
 
 (defun org-media-note-get-media-file-by-key (key)
+  "Get media file by KEY."
   (let* ((files (bibtex-completion-find-pdf key))
          (video-files (seq-filter (lambda (elt)
                                     (s-matches-p (rx (eval (cons 'or org-media-note--video-types))
@@ -124,7 +126,7 @@
      (t nil))))
 
 (defun org-media-note--get-realpath-for-file (symlink)
-  "Get realpath for symlink."
+  "Get realpath for SYMLINK."
   (replace-regexp-in-string "\n"
                             ""
                             (shell-command-to-string (concat "realpath \""
@@ -134,6 +136,7 @@
                                                              "\""))))
 
 (defun org-media-note-get-url-by-key (key)
+  "Get URL by KEY."
   (if key
       (let ((entry (bibtex-completion-get-entry1 key t)))
         (bibtex-completion-get-value "url" entry))))
@@ -141,6 +144,7 @@
 
 ;;;###autoload
 (defun org-media-note-setup-org-ref ()
+  "Set org link parameters for video/audiocite links."
   (dolist (link '("videocite" "audiocite"))
     (org-link-set-parameters link :follow 'org-media-note-media-cite-link-follow
                              :keymap org-media-note-cite-keymap
