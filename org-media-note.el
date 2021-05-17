@@ -1,4 +1,4 @@
-;;; org-media-note.el --- Taking video and audio notes with Org-mode -*- lexical-binding: t; -*-
+;;; org-media-note.el --- Take video and audio notes with Org-mode -*- lexical-binding: t; -*-
 
 ;; Copyright (c) 2021 Yuchen Lea
 
@@ -29,7 +29,6 @@
 ;;; Code:
 ;;;; Requirements
 (require 'pretty-hydra)
-
 (require 'org-media-note-core)
 (require 'org-media-note-mpv)
 (require 'org-media-note-import)
@@ -121,7 +120,7 @@
      "Screenshot with subtitles" :toggle org-media-note-screenshot-with-sub))))
 
 (defun org-media-note--hydra-title ()
-  "Title for `org-media-note-hydra'"
+  "Return title string for `org-media-note-hydra'."
   (let ((file-path (mpv-get-property "path"))
         (ref-key (org-media-note--current-org-ref-key))
         (icon (if (featurep 'all-the-icons)
@@ -178,9 +177,7 @@
 
 ;;;###autoload
 (define-minor-mode org-media-note-mode
-  "Toggle `org-media-note-mode'.
-When enabled, insert media note.
-"
+  "Minor mode for taking audio and video notes with `org-mode'."
   :init-value t
   :global t
   (if org-media-note-mode
@@ -189,12 +186,14 @@ When enabled, insert media note.
 
 
 (defun org-media-note-toggle-refcite ()
+  "Toggle refcite for links."
   (interactive)
   (if org-media-note-use-refcite-first
       (setq org-media-note-use-refcite-first nil)
     (setq org-media-note-use-refcite-first t)))
 
 (defun org-media-note-toggle-pause-after-insertion ()
+  "Toggle pausing after inserting a link."
   (interactive)
   (if org-media-note-pause-after-insert-link
       (setq org-media-note-pause-after-insert-link nil)
@@ -202,12 +201,14 @@ When enabled, insert media note.
 
 
 (defun org-media-note-toggle-save-screenshot ()
+  "Toggle `org-media-note-save-screenshot-p'."
   (interactive)
   (if org-media-note-save-screenshot-p
       (setq org-media-note-save-screenshot-p nil)
     (setq org-media-note-save-screenshot-p t)))
 
 (defun org-media-note-toggle-screenshot-with-sub ()
+  "Toggle screenshot with sub."
   (interactive)
   (if org-media-note-screenshot-with-sub
       (setq org-media-note-screenshot-with-sub nil)

@@ -1,10 +1,16 @@
-;;; org-media-note-import.el -*- lexical-binding: t; -*-
+;;; package --- org-media-note-import.el -*- lexical-binding: t; -*-
 
+
+;;; Commentary:
+;;
 
 (require 'org-media-note-core)
 
 
+;;; Code:
+
 (defun org-media-note-insert-note-from-pbf ()
+  "Insert note from PBF file."
   (interactive)
   (let ((key (org-media-note--current-org-ref-key))
         pbf-file
@@ -30,10 +36,11 @@
         (setq pbf-file (read-file-name "Find pbf file:")))
     (insert (org-media-note--convert-from-pbf pbf-file
                                               media-link-type media-file))
-    (if (y-or-n-p "Delete the PBF File?")
+    (if (y-or-n-p "Delete the PBF File? ")
         (delete-file pbf-file))))
 
 (defun org-media-note-insert-note-from-noted ()
+  "Insert note from noted txt."
   (interactive)
   (let ((key (org-media-note--current-org-ref-key))
         noted-txt
@@ -51,10 +58,11 @@
         (setq media-link-type (org-media-note--file-media-type media-file))))
     (insert (org-media-note--convert-from-noted noted-txt
                                                 media-link-type media-file))
-    (if (y-or-n-p "Delete Noted txt?")
+    (if (y-or-n-p "Delete Noted txt? ")
         (delete-file noted-txt))))
 
 (defun org-media-note-convert-from-org-timer ()
+  "Convert `org-timer' to media link."
   (interactive)
   (let* ((key (org-media-note--current-org-ref-key))
          (source-media (org-media-note-get-media-file-by-key key))
@@ -77,7 +85,7 @@
       (widen))))
 
 (defun org-media-note--convert-from-noted (noted-file media-link-type media-file)
-  ;; (with-current-buffer (get-buffer-create "*RESULTS*")
+  "Return converted link for MEDIA-FILE of MEDIA-LINK-TYPE from NOTED-FILE."
   (with-temp-buffer
     (insert-file-contents noted-file)
     (replace-string "￼"
@@ -137,8 +145,7 @@
     (buffer-string)))
 
 (defun org-media-note--convert-from-pbf (pbf-file media-link-type media-file)
-  ;; FOR DEBUG
-  ;; (with-current-buffer (get-buffer-create "*RESULTS*")
+  "Return link for MEDIA-FILE of MEDIA-LINK-TYPE from PBF-FILE."
   (with-temp-buffer
     (insert-file-contents pbf-file)
     (replace-string "[Bookmark]\n"
@@ -166,3 +173,5 @@
 
 ;;;; Footer
 (provide 'org-media-note-import)
+
+;;; org-media-note-import.el ends here

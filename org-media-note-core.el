@@ -27,8 +27,8 @@
           (const :tag "Attachment" attach)))
 
 (defcustom org-media-note-screenshot-link-type-when-save-in-attach-dir 'file
-  "Use file link or attachment link when `org-media-note-screenshot-save-method' is attach?
-file link is more general while attachment link is more concise."
+  "Link type to use with the `attach` `org-media-note-screenshot-save-method'.
+File links are more general, while attachment links are more concise."
   :type '(choice
           (const :tag "file:" file)
           (const :tag "attachment:" attach)))
@@ -60,33 +60,30 @@ file link is more general while attachment link is more concise."
 
 (defcustom org-media-note-timestamp-link-format "%timestamp"
   "Timestamp Link text.  Allows the following substitutions:
-%filename :: name of the media file
-%timestamp :: current media timestamp (hms)
-%duration :: length of the media file (hms)
-%file-path :: path of the media file"
+- %filename :: name of the media file
+- %timestamp :: current media timestamp (hms)
+- %duration :: length of the media file (hms)
+- %file-path :: path of the media file"
   :type 'string)
 
 (defcustom org-media-note-ab-loop-link-format "%ab-loop-a-%ab-loop-b"
   "AB-loop Link text.  Allows the following substitutions:
-%filename :: name of the media file
-%ab-loop-a :: timestamp of point a of ab loop (hms)
-%ab-loop-b :: timestamp of point b of ab loop (hms)
-%duration :: length of the media file (hms)
-%file-path :: path of the media file"
+- %filename :: name of the media file
+- %ab-loop-a :: timestamp of point a of ab loop (hms)
+- %ab-loop-b :: timestamp of point b of ab loop (hms)
+- %duration :: length of the media file (hms)
+- %file-path :: path of the media file"
   :type 'string)
 
 (defcustom org-media-note-cursor-start-position 'after
-  "After inserting a link, should the cursor move to the point
-before the link, or the point after?"
+  "Determine where to position point after inserting a link."
   :type 'symbol
   :options '(before after))
 
 (defcustom org-media-note-link-prefix ""
-  "Whether to prefix the link text with any text that is
-not part of the link.  Most common use is to insert a space
-that is not part of the link if the user sets
-`org-media-note-cursor-start-position' to 'before, they likely
-want a space that is not part of the link itself."
+  "String concatenated to the beginning of links.
+e.g. setting this to \" \" will insert a space before the link.
+This is useful when `org-media-note-cursor-start-position' is set to`before`."
   :type 'string)
 
 ;;;; Variables
@@ -99,22 +96,23 @@ want a space that is not part of the link itself."
 ;;;;; Utils
 
 (defun org-media-note--seconds-to-hms (secs)
-  "Convert secs (float or int) to hms (string)"
+  "Convert SECS (float or int) to hms (string)."
   (org-timer-secs-to-hms (round secs)))
 
 (defun org-media-note--millisecs-to-hms (millisecs)
-  (org-media-note--seconds-to-hms (/ (string-to-number millisecs)
-                                     1000)))
+  "Convert MILLISECS to HMS."
+  (org-media-note--seconds-to-hms (/ (string-to-number millisecs) 1000)))
 
 (defun org-media-note--get-duration-hms ()
-  "Get the current media duration in format h:mm:ss"
+  "Get the current media duration in format H:MM:SS."
   (org-media-note--seconds-to-hms (mpv-get-duration)))
 
 (defun org-media-note--get-current-hms ()
-  "Get current media timestamp in format h:mm:ss"
+  "Get current media timestamp in format H:MM:SS."
   (org-media-note--seconds-to-hms (mpv-get-playback-position)))
 
 (defun org-media-note--current-org-ref-key ()
+  "Return CUSTOM_ID property of current org entry."
   (org-entry-get (point) "Custom_ID"))
 
 (defun org-media-note--current-media-type ()
@@ -125,23 +123,25 @@ want a space that is not part of the link itself."
       (org-media-note--file-media-type file-path))))
 
 (defun org-media-note--file-media-type (file-path)
-  "Get file media type."
+  "Get media type of file at FILE-PATH."
   (let* ((file-ext (if file-path
                        (file-name-extension file-path))))
     (org-media-note--get-media-type file-ext)))
 
 (defun org-media-note--get-media-type (file-ext)
+  "Return media type based off of FILE-EXT."
   (cond
    ((member file-ext org-media-note--video-types) "video")
    ((member file-ext org-media-note--audio-types) "audio")
    (t nil)))
 
 (defun org-media-note-ref-cite-p ()
-  "Whether to use refcite link instead of file path."
+  "Return t if refcite link should be used instead of file path, nil otherwise."
   (and (org-media-note--current-org-ref-key)
        org-media-note-use-refcite-first))
 
 (defun org-media-note--online-video-p (path)
+  "Return t if PATH is an HTTP URL."
   (string-match "^http" path))
 
 ;;;;; Add note
@@ -206,6 +206,7 @@ want a space that is not part of the link itself."
          (<= pos time-b))))
 
 (defun org-media-note--link-base-file (file-path)
+  "Return base file for FILE-PATH."
   (if (org-media-note-ref-cite-p)
       (org-media-note--current-org-ref-key)
     (if (org-media-note--online-video-p file-path)
@@ -213,41 +214,41 @@ want a space that is not part of the link itself."
       (org-media-note--format-file-path file-path))))
 
 (defun org-media-note--link-formatter (string map)
-  "MAP is an alist in the form of '((PLACEHOLDER . REPLACEMENT))
-STRING is the original string.  Each placeholder can be a string,
-symbol, or number. REPLACEMENT can be a string, a number, symbol,
-or function. Replace all occurrences of %placeholder with replacement
-and return a new string.
+  "Return a copy of STRING with replacements from MAP.
+MAP is an alist in the form of '((PLACEHOLDER . REPLACEMENT))
+Each placeholder can be a string, symbol, or number.
+REPLACEMENT can be a string, a number, symbol, or function. Replace all
+occurrences of %-escaped PLACEHOLDER with replacement and return a new string.
 
-For example:
-(let ((input-string  \"Words,  %test1%test2 more words %test1.\")
-      (map '((test1 . \"asdf\")
-             (test2 . \"zxcv\"))))
-  (org-media-note--link-formatter input-string map))
+  For example:
+  (let ((input-string  \"Words,  %test1%test2 more words %test1.\")
+        (map '((test1 . \"asdf\")
+               (test2 . \"zxcv\"))))
+    (org-media-note--link-formatter input-string map))
 
-Returns:
-\"Words,  asdfzxcv more words asdf.\""
+  Returns:
+  \"Words,  asdfzxcv more words asdf.\""
   (cl-loop for (holder . replacement) in map
-	   when replacement
-	   do (setq string
-		    (replace-regexp-in-string
-		     (concat "%"
-			     (pcase holder
-			       ((pred symbolp) (symbol-name holder))
-			       ((pred stringp) holder)
-			       ((pred numberp) (number-to-string holder))
-			       ((pred functionp) (funcall replacement))))
-		     (pcase replacement
-		       ((pred symbolp) (symbol-name holder))
-		       ((pred stringp) replacement)
-		       ((pred numberp) (number-to-string replacement))
-		       ((pred functionp) (funcall replacement))
-		       (_ ""))
-		     string))
-	   finally return string))
-
+           when replacement
+           do (setq string
+                    (replace-regexp-in-string
+                     (concat "%"
+                             (pcase holder
+                               ((pred symbolp) (symbol-name holder))
+                               ((pred stringp) holder)
+                               ((pred numberp) (number-to-string holder))
+                               ((pred functionp) (funcall replacement))))
+                     (pcase replacement
+                       ((pred symbolp) (symbol-name holder))
+                       ((pred stringp) replacement)
+                       ((pred numberp) (number-to-string replacement))
+                       ((pred functionp) (funcall replacement))
+                       (_ ""))
+                     string))
+           finally return string))
 (defun org-insert-item--media-note-item (orig-fn &rest args)
-  "When item begins with media link, insert playback position."
+  "When item begins with media link, insert playback position.
+Pass ARGS to ORIG-FN, `org-insert-item'."
   (interactive "P")
   (let ((itemp (org-in-item-p))
         (pos (point)))
@@ -268,7 +269,7 @@ Returns:
   (or (org-list-at-regexp-after-bullet-p "\\(\\[\\[video.+\\)")
       (org-list-at-regexp-after-bullet-p "\\(\\[\\[audio.+\\)")))
 
-(defun org-media-note-item (&optional arg)
+(defun org-media-note-item ()
   "Insert a item with the link to media file."
   (interactive "P")
   (let ((itemp (org-in-item-p))
@@ -302,10 +303,12 @@ Returns:
 (defun org-media-note-insert-screenshot ()
   "Insert current mpv screenshot into Org-mode note."
   (interactive)
-  (let* ((image-file-name (org-media-note--format-picture-file-name (concat (file-name-base (mpv-get-property "path"))
-                                                                    "-"
-                                                                    (org-media-note--get-current-hms)
-                                                                    ".jpg"))) ;; TODO let user customize this
+  (let* ((image-file-name
+          (org-media-note--format-picture-file-name
+           (concat (file-name-base (mpv-get-property "path"))
+                   "-"
+                   (org-media-note--get-current-hms)
+                   ".jpg"))) ;; TODO let user customize this
          (image-target-path (cond
                              ((eq org-media-note-screenshot-save-method
                                   'attach)
@@ -329,13 +332,14 @@ Returns:
     (org-media-note--display-inline-images)))
 
 (defun org-media-note--format-picture-file-name (name)
+  "Format picture file NAME."
   (let (new-name)
     (setq new-name (replace-regexp-in-string " - " "-" name))
     (setq new-name (replace-regexp-in-string ":" "_" name))
     (replace-regexp-in-string " " "_" new-name)))
 
 (defun org-media-note--format-file-path (path)
-  "Convert PATH into the format defined by `org-link-file-path-type'"
+  "Convert PATH into the format defined by `org-link-file-path-type'."
   (cond
    ((eq org-link-file-path-type 'absolute)
     (abbreviate-file-name (expand-file-name path)))
@@ -356,13 +360,15 @@ Returns:
              (expand-file-name path)))))
 
 (defun org-media-note--display-inline-images ()
+  "Redisplay inline images."
   (when org-media-note-display-inline-images
-    ;; TODO beteer way?
+    ;; TODO Avoid sleeping here?
     (sleep-for 0.1)
     (org-display-inline-images)))
 
 ;;;;;; sub-text
 (defun org-media-note-insert-sub-text ()
+  "Insert subtitle text."
   (interactive)
   (let ((sub-text (condition-case nil
                       (mpv-get-property "sub-text")
@@ -373,6 +379,7 @@ Returns:
 ;;;;; Adjust timestamp
 
 (defun org-media-note-adjust-timestamp-offset ()
+  "Adjust timestamp offset."
   (interactive)
   (let* ((current-playing-position (mpv-get-playback-position)) link
          current-link-position
@@ -400,10 +407,12 @@ Returns:
 
 ;;;;; Jump to the right position
 (defun org-media-note-media-link-follow (link)
-  "Open video and audio links, supported formats:
-1. video:example.mkv#0:02:13: jump to 0:02:13
-2. video:example.mkv#0:02:13-0:02:20: jump to 0:02:13 and loop between 0:02:13 and 0:02:20
-"
+  "Open media LINK.
+Supported formats:
+- video:example.mkv#0:02:13
+  jump to 0:02:13
+- video:example.mkv#0:02:13-0:02:20
+  jump to 0:02:13 and loop between 0:02:13 and 0:02:20."
   (let* ((splitted (split-string link "#"))
          (file-path-or-url (nth 0 splitted))
          (timestamps (split-string (nth 1 splitted)
@@ -414,9 +423,11 @@ Returns:
     (org-media-note--follow-link file-path-or-url time-a time-b)))
 
 (defun org-media-note--follow-link (file-path-or-url time-a time-b)
+  "Open FILE-PATH-OR-URL in mpv.
+TIME-A and TIME-B indicate the start and end of a playback loop."
   (let ((path (if (org-media-note--online-video-p file-path-or-url)
-                       file-path-or-url
-                     (expand-file-name file-path-or-url))))
+                  file-path-or-url
+                (expand-file-name file-path-or-url))))
     (if (not (string= path
                       (mpv-get-property "path")))
         ;; file-path is not playing
@@ -431,6 +442,7 @@ Returns:
       (org-media-note--seek-position-in-current-media-file time-a time-b))))
 
 (defun org-media-note-goto-timestamp ()
+  "Seek media to position in timestamp at point."
   (interactive)
   (let ((line (thing-at-point 'line t))
         timestamp)
@@ -438,12 +450,14 @@ Returns:
                                         line)
                           (setq timestamp (match-string 1 line))))
     (if (not timestamp)
-        ; TODO refers to `run-at-time'
+        ;; TODO refers to `run-at-time'
         (setq timestamp (read-string "Enter timestamp: "))
-        )
+      )
     (org-media-note--seek-position-in-current-media-file (org-timer-hms-to-secs timestamp))))
 
 (defun org-media-note--seek-position-in-current-media-file (time-a &optional time-b)
+  "Seek position to TIME-A.
+If TIME-B is non-nil, loop media between TIME-A and TIME-B."
   ;; TODO clear a-b loop when only one timestamp?
   (when time-b
     (mpv-set-property "ab-loop-a" time-a)
