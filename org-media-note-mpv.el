@@ -31,9 +31,7 @@
          (media-url-by-key (org-media-note-get-url-by-key key))
          (attach-dir (if (org-attach-dir)
                          (format "%s/"
-                                 (org-attach-dir))))
-         (media-files-in-attach-dir (org-media-note--media-files-in-dir attach-dir))
-         (number-of-media-files (length media-files-in-attach-dir)))
+                                 (org-attach-dir)))))
     (cond
      ((and (org-media-note-ref-cite-p)
            media-file-by-key)
@@ -41,10 +39,12 @@
      ((and (org-media-note-ref-cite-p)
            media-url-by-key)
       (org-media-note--mpv-play-online-video media-url-by-key))
-     (media-files-in-attach-dir
-      (if (= 1 number-of-media-files)
+     (attach-dir
+      (let* ((media-files-in-attach-dir (org-media-note--media-files-in-dir attach-dir))
+             (number-of-media-files (length media-files-in-attach-dir)))
+       (if (= 1 number-of-media-files)
           (mpv-play (car media-files-in-attach-dir))
-        (mpv-play (read-file-name "File to play: " attach-dir))))
+        (mpv-play (read-file-name "File to play: " attach-dir)))))
      (t
       (if (y-or-n-p "Local media (`n` to enter remote URL)? ")
           (mpv-play (read-file-name "File to play: "))
