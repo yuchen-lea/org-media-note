@@ -26,12 +26,14 @@
 2. With multiple attachments, open the attach dir to select;
 3. Else, answer y to find local file to open, n to input URL."
   (interactive)
-  (let* ((key (org-media-note--current-org-ref-key))
-         (media-file-by-key (org-media-note-get-media-file-by-key key))
-         (media-url-by-key (org-media-note-get-url-by-key key))
-         (attach-dir (if (org-attach-dir)
+  (let* ((attach-dir (if (org-attach-dir)
                          (format "%s/"
-                                 (org-attach-dir)))))
+                                 (org-attach-dir))))
+         key media-file-by-key media-url-by-key)
+    (when org-media-note-use-org-ref
+      (setq key (org-media-note--current-org-ref-key))
+      (setq media-file-by-key (org-media-note-get-media-file-by-key key))
+      (setq media-url-by-key (org-media-note-get-url-by-key key)))
     (cond
      ((and (org-media-note-ref-cite-p)
            media-file-by-key)
@@ -39,16 +41,14 @@
      ((and (org-media-note-ref-cite-p)
            media-url-by-key)
       (org-media-note--mpv-play-online-video media-url-by-key))
-     (attach-dir
-      (let* ((media-files-in-attach-dir (org-media-note--media-files-in-dir attach-dir))
-             (number-of-media-files (length media-files-in-attach-dir)))
-       (if (= 1 number-of-media-files)
-          (mpv-play (car media-files-in-attach-dir))
-        (mpv-play (read-file-name "File to play: " attach-dir)))))
-     (t
-      (if (y-or-n-p "Local media (`n` to enter remote URL)? ")
-          (mpv-play (read-file-name "File to play: "))
-        (org-media-note-play-online-video))))))
+     (attach-dir (let* ((media-files-in-attach-dir (org-media-note--media-files-in-dir attach-dir))
+                        (number-of-media-files (length media-files-in-attach-dir)))
+                   (if (= 1 number-of-media-files)
+                       (mpv-play (car media-files-in-attach-dir))
+                     (mpv-play (read-file-name "File to play: " attach-dir)))))
+     (t (if (y-or-n-p "Local media (`n` to enter remote URL)? ")
+            (mpv-play (read-file-name "File to play: "))
+          (org-media-note-play-online-video))))))
 
 (defun org-media-note--media-files-in-dir (dir)
   "Get supported media file list in DIR."

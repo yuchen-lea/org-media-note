@@ -181,7 +181,10 @@
   :init-value t
   :global t
   (if org-media-note-mode
-      (advice-add 'org-insert-item :before-until #'org-insert-item--media-note-item)
+      (progn
+        (advice-add 'org-insert-item :before-until #'org-insert-item--media-note-item)
+        (when org-media-note-use-org-ref
+          (org-media-note-setup-org-ref)))
     (advice-remove 'org-insert-item #'org-insert-item--media-note-item)))
 
 

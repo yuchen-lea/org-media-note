@@ -63,7 +63,8 @@
      + 需要配合 org-ref
        #+BEGIN_SRC emacs-lisp
 (use-package! org-media-note
-  :hook (org-mode .  org-media-note-setup-org-ref)
+  :init (setq org-media-note-use-org-ref t)
+  :hook (org-mode .  org-media-note-mode)
   :bind (
          ("H-v" . org-media-note-hydra/body))  ;; 主功能入口
   :config

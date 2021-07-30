@@ -18,6 +18,10 @@
   :group 'org
   :prefix "org-media-note-")
 
+(defcustom org-media-note-use-org-ref nil
+  "Whether to use org-ref together with org-media-note."
+  :type 'boolean)
+
 (defcustom org-media-note-screenshot-save-method 'directory
   "The way images should be stored.
 1. directory: save to `org-media-note-screenshot-image-dir'
