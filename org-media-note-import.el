@@ -9,6 +9,7 @@
 
 ;;; Code:
 
+;;;; import from pbf (potplayer bookmark):
 (defun org-media-note-insert-note-from-pbf ()
   "Insert note from PBF file."
   (interactive)
@@ -39,6 +40,34 @@
     (if (y-or-n-p "Delete the PBF File? ")
         (delete-file pbf-file))))
 
+(defun org-media-note--convert-from-pbf (pbf-file media-link-type media-file)
+  "Return link for MEDIA-FILE of MEDIA-LINK-TYPE from PBF-FILE."
+  (with-temp-buffer
+    (insert-file-contents pbf-file)
+    (replace-string "[Bookmark]\n"
+                    ""
+                    nil
+                    (point-min)
+                    (point-max))
+    (replace-regexp "^[[:digit:]]+=$"
+                    ""
+                    nil
+                    (point-min)
+                    (point-max))
+    (goto-char (point-min))
+    (while (re-search-forward "^[[:digit:]]+=\\([[:digit:]]+\\)\\*\\([^\\*]+\\)\\*.+"
+                              nil t)
+      (let* ((millisecs (buffer-substring (match-beginning 1)
+                                          (match-end 1)))
+             (note (buffer-substring (match-beginning 2)
+                                     (match-end 2)))
+             (hms (org-media-note--millisecs-to-hms millisecs)))
+        (replace-match (format "- [[%s:%s#%s][%s]] %s" media-link-type
+                               media-file hms hms note)
+                       t)))
+    (buffer-string)))
+
+;;;; import from noted:
 (defun org-media-note-insert-note-from-noted ()
   "Insert note from noted txt."
   (interactive)
@@ -60,29 +89,6 @@
                                                 media-link-type media-file))
     (if (y-or-n-p "Delete Noted txt? ")
         (delete-file noted-txt))))
-
-(defun org-media-note-convert-from-org-timer ()
-  "Convert `org-timer' to media link."
-  (interactive)
-  (let* ((key (org-media-note--current-org-ref-key))
-         (source-media (org-media-note-get-media-file-by-key key))
-         (media-file source-media)
-         (media-link-type (org-media-note--file-media-type source-media)))
-    (if (org-media-note-ref-cite-p)
-        (progn
-          (setq media-file key)
-          (setq media-link-type (format "%scite" media-link-type))))
-    (save-excursion
-      (org-narrow-to-subtree)
-      (goto-char (point-min))
-      (while (re-search-forward (concat org-media-note--timestamp-pattern "::[ \t]+")
-                                nil t)
-        (let* ((hms (buffer-substring (match-beginning 1)
-                                      (match-end 1))))
-          (replace-match (format "[[%s:%s#%s][%s]] " media-link-type
-                                 media-file hms hms)
-                         'fixedcase)))
-      (widen))))
 
 (defun org-media-note--convert-from-noted (noted-file media-link-type media-file)
   "Return converted link for MEDIA-FILE of MEDIA-LINK-TYPE from NOTED-FILE."
@@ -144,32 +150,29 @@
                     (point-max))
     (buffer-string)))
 
-(defun org-media-note--convert-from-pbf (pbf-file media-link-type media-file)
-  "Return link for MEDIA-FILE of MEDIA-LINK-TYPE from PBF-FILE."
-  (with-temp-buffer
-    (insert-file-contents pbf-file)
-    (replace-string "[Bookmark]\n"
-                    ""
-                    nil
-                    (point-min)
-                    (point-max))
-    (replace-regexp "^[[:digit:]]+=$"
-                    ""
-                    nil
-                    (point-min)
-                    (point-max))
-    (goto-char (point-min))
-    (while (re-search-forward "^[[:digit:]]+=\\([[:digit:]]+\\)\\*\\([^\\*]+\\)\\*.+"
-                              nil t)
-      (let* ((millisecs (buffer-substring (match-beginning 1)
-                                          (match-end 1)))
-             (note (buffer-substring (match-beginning 2)
-                                     (match-end 2)))
-             (hms (org-media-note--millisecs-to-hms millisecs)))
-        (replace-match (format "- [[%s:%s#%s][%s]] %s" media-link-type
-                               media-file hms hms note)
-                       t)))
-    (buffer-string)))
+;;;; import org-timer:
+(defun org-media-note-convert-from-org-timer ()
+  "Convert `org-timer' to media link."
+  (interactive)
+  (let* ((key (org-media-note--current-org-ref-key))
+         (source-media (org-media-note-get-media-file-by-key key))
+         (media-file source-media)
+         (media-link-type (org-media-note--file-media-type source-media)))
+    (if (org-media-note-ref-cite-p)
+        (progn
+          (setq media-file key)
+          (setq media-link-type (format "%scite" media-link-type))))
+    (save-excursion
+      (org-narrow-to-subtree)
+      (goto-char (point-min))
+      (while (re-search-forward (concat org-media-note--timestamp-pattern "::[ \t]+")
+                                nil t)
+        (let* ((hms (buffer-substring (match-beginning 1)
+                                      (match-end 1))))
+          (replace-match (format "[[%s:%s#%s][%s]] " media-link-type
+                                 media-file hms hms)
+                         'fixedcase)))
+      (widen))))
 
 ;;;; Footer
 (provide 'org-media-note-import)
