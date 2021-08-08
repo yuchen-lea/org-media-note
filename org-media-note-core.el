@@ -272,6 +272,7 @@ occurrences of %-escaped PLACEHOLDER with replacement and return a new string.
                        (_ ""))
                      string))
            finally return string))
+
 (defun org-insert-item--media-note-item (orig-fn &rest args)
   "When item begins with media link, insert playback position.
 Pass ARGS to ORIG-FN, `org-insert-item'."

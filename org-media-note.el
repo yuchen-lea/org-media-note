@@ -179,20 +179,7 @@
 (org-link-set-parameters "audio"
                          :follow 'org-media-note-media-link-follow)
 
-;;;;; Minor Mode
-
-;;;###autoload
-(define-minor-mode org-media-note-mode
-  "Minor mode for taking audio and video notes with `org-mode'."
-  :init-value t
-  :global t
-  (if org-media-note-mode
-      (progn
-        (advice-add 'org-insert-item :before-until #'org-insert-item--media-note-item)
-        (when org-media-note-use-org-ref
-          (org-media-note-setup-org-ref)))
-    (advice-remove 'org-insert-item #'org-insert-item--media-note-item)))
-
+;;;;; Toggle
 
 (defun org-media-note-toggle-refcite ()
   "Toggle refcite for links."
@@ -232,6 +219,20 @@
    ((eq org-media-note-timestamp-pattern 'hmsf)
     (setq org-media-note-timestamp-pattern 'hms))))
 
+
+;;;;; Minor Mode
+
+;;;###autoload
+(define-minor-mode org-media-note-mode
+  "Minor mode for taking audio and video notes with `org-mode'."
+  :init-value t
+  :global t
+  (if org-media-note-mode
+      (progn
+        (advice-add 'org-insert-item :before-until #'org-insert-item--media-note-item)
+        (when org-media-note-use-org-ref
+          (org-media-note-setup-org-ref)))
+    (advice-remove 'org-insert-item #'org-insert-item--media-note-item)))
 
 ;;;; Footer
 (provide 'org-media-note)
