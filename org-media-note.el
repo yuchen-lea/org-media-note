@@ -69,13 +69,13 @@
            (time-b (mpv-get-property "ab-loop-b")))
        (if (org-media-note--ab-loop-p)
            (format "Clear A-B loop (%s - %s)"
-                   (org-media-note--seconds-to-hms time-a)
-                   (org-media-note--seconds-to-hms time-b))
+                   (org-media-note--seconds-to-timestamp time-a)
+                   (org-media-note--seconds-to-timestamp time-b))
          (if (numberp time-a)
              (format "Set B of A-B loop (%s - )"
-                     (org-media-note--seconds-to-hms time-a))
+                     (org-media-note--seconds-to-timestamp time-a))
            "Set A of A-B loop")))
-     :width 35)
+     :width 45)
     ("g" org-media-note-goto-timestamp "Jump to the timestamp")
     ("<left>" mpv-seek-backward "Back 5s")
     ("<right>" mpv-seek-forward "Forward 5s")

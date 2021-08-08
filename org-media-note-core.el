@@ -193,12 +193,12 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
                                 "cite")
                       (org-media-note--current-media-type)))
          (filename (mpv-get-property "media-title"))
-         (duration (org-media-note--get-duration-hms))
-         (timestamp (org-media-note--get-current-hms)))
+         (duration (org-media-note--get-duration-timestamp))
+         (timestamp (org-media-note--get-current-timestamp)))
     (if (org-media-note--ab-loop-p)
         ;; ab-loop link
-        (let ((time-a (org-media-note--seconds-to-hms (mpv-get-property "ab-loop-a")))
-              (time-b (org-media-note--seconds-to-hms (mpv-get-property "ab-loop-b"))))
+        (let ((time-a (org-media-note--seconds-to-timestamp (mpv-get-property "ab-loop-a")))
+              (time-b (org-media-note--seconds-to-timestamp (mpv-get-property "ab-loop-b"))))
           (format "[[%s:%s#%s-%s][%s]]"
                   link-type
                   (org-media-note--link-base-file file-path)
