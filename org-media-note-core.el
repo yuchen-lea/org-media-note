@@ -62,6 +62,12 @@ File links are more general, while attachment links are more concise."
   :type 'boolean
   )
 
+(defcustom org-media-note-timestamp-pattern 'hms
+  ""
+  :type '(choice
+          (const :tag "hh:mm:ss" hms)
+          (const :tag "hh:mm:ss.fff" hmsf)))
+
 (defcustom org-media-note-timestamp-link-format "%timestamp"
   "Timestamp Link text.  Allows the following substitutions:
 - %filename :: name of the media file
@@ -94,7 +100,8 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 
 (defconst org-media-note--video-types '("avi" "rmvb" "ogg" "ogv" "mp4" "mkv" "mov" "webm" "flv" "ts" "mpg"))
 (defconst org-media-note--audio-types '("flac" "mp3" "wav" "m4a"))
-(defconst org-media-note--timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\)[ \t]?")
+(defconst org-media-note--hms-timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\)[ \t]?")
+(defconst org-media-note--hmsf-timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\.[0-9]+\\)[ \t]?")
 
 ;;;; Commands
 ;;;;; Utils
@@ -397,7 +404,7 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
     (save-excursion
       (org-narrow-to-subtree)
       (goto-char (point-min))
-      (while (re-search-forward org-media-note--timestamp-pattern
+      (while (re-search-forward org-media-note--hms-timestamp-pattern
                                 nil t)
         (let* ((beg (match-beginning 1))
                (end (match-end 1))
@@ -450,7 +457,7 @@ TIME-A and TIME-B indicate the start and end of a playback loop."
   (interactive)
   (let ((line (thing-at-point 'line t))
         timestamp)
-    (save-match-data (and (string-match org-media-note--timestamp-pattern
+    (save-match-data (and (string-match org-media-note--hms-timestamp-pattern
                                         line)
                           (setq timestamp (match-string 1 line))))
     (if (not timestamp)
