@@ -123,7 +123,7 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
   (let* ((sec-with-ms (split-string (format "%0.3f" secs) "\\."))
          (sec (string-to-number (car sec-with-ms)))
          (ms (nth 1 sec-with-ms)))
-    (format "%s.%s" (org-media-note--seconds-to-hms sec) ms)))
+    (format "%s.%s" (org-timer-secs-to-hms sec) ms)))
 
 (defun org-media-note--millisecs-to-hms (millisecs)
   "Convert MILLISECS to HMS."
