@@ -137,6 +137,17 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
   "Get current media timestamp according to `org-media-note-timestamp-pattern'."
   (org-media-note--seconds-to-timestamp (mpv-get-playback-position)))
 
+(defun org-media-note--timestamp-to-seconds (timestamp)
+  "Convert timestamp to seconds (string)."
+  (let* ((splitted-timestamp (split-string timestamp "\\."))
+         (hms (nth 0 splitted-timestamp))
+         fff)
+    (if (= (length splitted-timestamp) 2)
+      (progn
+        (setq fff (nth 1 splitted-timestamp))
+        (format "%s.%s" (org-timer-hms-to-secs hms) fff))
+    (int-to-string (org-timer-hms-to-secs hms)))))
+
 (defun org-media-note--current-org-ref-key ()
   "Return CUSTOM_ID property of current org entry."
   (org-entry-get (point) "Custom_ID"))
@@ -446,9 +457,9 @@ Supported formats:
          (file-path-or-url (nth 0 splitted))
          (timestamps (split-string (nth 1 splitted)
                                    "-"))
-         (time-a (int-to-string (org-timer-hms-to-secs (nth 0 timestamps))))
+         (time-a (org-media-note--timestamp-to-seconds (nth 0 timestamps)))
          (time-b (if (= (length timestamps) 2)
-                     (int-to-string (org-timer-hms-to-secs (nth 1 timestamps))))))
+                     (org-media-note--timestamp-to-seconds (nth 1 timestamps)))))
     (org-media-note--follow-link file-path-or-url time-a time-b)))
 
 (defun org-media-note--follow-link (file-path-or-url time-a time-b)
