@@ -119,8 +119,13 @@
     ("t S" org-media-note-toggle-screenshot-with-sub
      "Screenshot with subtitles" :toggle org-media-note-screenshot-with-sub)
     ("t t" org-media-note-toggle-timestamp-pattern
-     (format "")
-     "Screenshot with subtitles"))))
+     (format "Timestamp format: %s"
+             (cond
+              ((eq org-media-note-timestamp-pattern 'hms)
+               "hh:mm:ss")
+              ((eq org-media-note-timestamp-pattern 'hmsf)
+               "hh:mm:ss.fff")))))))
+
 
 (defun org-media-note--hydra-title ()
   "Return title string for `org-media-note-hydra'."
@@ -130,9 +135,8 @@
                   (all-the-icons-material "ondemand_video")
                 ""))
         speed
-        current-hms
-        total-hms
-        duration
+        current-timestamp
+        total-timestamp
         remaining-hms
         bib-entry
         title)
@@ -141,15 +145,14 @@
         (progn
           (setq speed (mpv-get-property "speed"))
           (setq volume (mpv-get-property "volume"))
-          (setq current-hms (org-media-note--get-current-hms))
-          (setq duration (mpv-get-property "duration"))
-          (setq total-hms (org-timer-secs-to-hms (round duration)))
-          (setq remaining-hms (org-timer-secs-to-hms (round (mpv-get-property "playtime-remaining"))))
+          (setq current-timestamp (org-media-note--get-current-timestamp))
+          (setq total-timestamp (org-media-note--get-duration-timestamp))
+          (setq remaining-hms (org-media-note--seconds-to-timestamp (mpv-get-property "playtime-remaining")))
           (s-concat icon
                     " org-media-note: "
-                    current-hms
+                    current-timestamp
                     " / "
-                    total-hms
+                    total-timestamp
                     "\t Volume: "
                     (number-to-string volume)
                     "\t Speed: "
@@ -227,7 +230,8 @@
    ((eq org-media-note-timestamp-pattern 'hms)
     (setq org-media-note-timestamp-pattern 'hmsf))
    ((eq org-media-note-timestamp-pattern 'hmsf)
-    (eq org-media-note-timestamp-pattern 'hms))))
+    (setq org-media-note-timestamp-pattern 'hms))))
+
 
 ;;;; Footer
 (provide 'org-media-note)

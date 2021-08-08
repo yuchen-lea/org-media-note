@@ -106,21 +106,36 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 ;;;; Commands
 ;;;;; Utils
 
+(defun org-media-note--seconds-to-timestamp (secs)
+  "Convert SECS (float or int) to timestamp according to `org-media-note-timestamp-pattern'."
+  (cond
+   ((eq org-media-note-timestamp-pattern 'hms)
+    (org-media-note--seconds-to-hms secs))
+   ((eq org-media-note-timestamp-pattern 'hmsf)
+    (org-media-note--seconds-to-hmsf secs))))
+
 (defun org-media-note--seconds-to-hms (secs)
-  "Convert SECS (float or int) to hms (string)."
+  "Convert SECS (float or int) to 'hh:mm:ss'."
   (org-timer-secs-to-hms (round secs)))
+
+(defun org-media-note--seconds-to-hmsf (secs)
+  "Convert SECS (float or int) to 'hh:mm:ss.fff'."
+  (let* ((sec-with-ms (split-string (format "%0.3f" secs) "\\."))
+         (sec (string-to-number (car sec-with-ms)))
+         (ms (nth 1 sec-with-ms)))
+    (format "%s.%s" (org-media-note--seconds-to-hms sec) ms)))
 
 (defun org-media-note--millisecs-to-hms (millisecs)
   "Convert MILLISECS to HMS."
   (org-media-note--seconds-to-hms (/ (string-to-number millisecs) 1000)))
 
-(defun org-media-note--get-duration-hms ()
-  "Get the current media duration in format H:MM:SS."
-  (org-media-note--seconds-to-hms (mpv-get-duration)))
+(defun org-media-note--get-duration-timestamp ()
+  "Get the current media duration timestamp according to `org-media-note-timestamp-pattern'."
+  (org-media-note--seconds-to-timestamp (mpv-get-duration)))
 
-(defun org-media-note--get-current-hms ()
-  "Get current media timestamp in format H:MM:SS."
-  (org-media-note--seconds-to-hms (mpv-get-playback-position)))
+(defun org-media-note--get-current-timestamp ()
+  "Get current media timestamp according to `org-media-note-timestamp-pattern'."
+  (org-media-note--seconds-to-timestamp (mpv-get-playback-position)))
 
 (defun org-media-note--current-org-ref-key ()
   "Return CUSTOM_ID property of current org entry."
