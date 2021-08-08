@@ -331,11 +331,12 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
   "Insert current mpv screenshot into Org-mode note."
   (interactive)
   (let* ((image-file-name
-          (org-media-note--format-picture-file-name
-           (concat (file-name-base (mpv-get-property "path"))
-                   "-"
-                   (org-media-note--get-current-hms)
-                   ".jpg"))) ;; TODO let user customize this
+          (concat
+           (org-media-note--format-picture-file-name
+            (concat (file-name-base (mpv-get-property "path"))
+                    "-"
+                    (org-media-note--get-current-timestamp)))
+           ".jpg")) ;; TODO let user customize this
          (image-target-path (cond
                              ((eq org-media-note-screenshot-save-method
                                   'attach)
@@ -362,7 +363,8 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
   "Format picture file NAME."
   (let (new-name)
     (setq new-name (replace-regexp-in-string " - " "-" name))
-    (setq new-name (replace-regexp-in-string ":" "_" name))
+    (setq new-name (replace-regexp-in-string ":" "_" new-name))
+    (setq new-name (replace-regexp-in-string "\\." "_" new-name))
     (replace-regexp-in-string " " "_" new-name)))
 
 (defun org-media-note--format-file-path (path)
