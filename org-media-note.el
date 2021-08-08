@@ -117,7 +117,10 @@
     ("t s" org-media-note-toggle-save-screenshot
      "Auto save screenshot" :toggle org-media-note-save-screenshot-p)
     ("t S" org-media-note-toggle-screenshot-with-sub
-     "Screenshot with subtitles" :toggle org-media-note-screenshot-with-sub))))
+     "Screenshot with subtitles" :toggle org-media-note-screenshot-with-sub)
+    ("t t" org-media-note-toggle-timestamp-pattern
+     (format "")
+     "Screenshot with subtitles"))))
 
 (defun org-media-note--hydra-title ()
   "Return title string for `org-media-note-hydra'."
@@ -216,6 +219,15 @@
   (if org-media-note-screenshot-with-sub
       (setq org-media-note-screenshot-with-sub nil)
     (setq org-media-note-screenshot-with-sub t)))
+
+(defun org-media-note-toggle-timestamp-pattern ()
+  "Toggle screenshot with sub."
+  (interactive)
+  (cond
+   ((eq org-media-note-timestamp-pattern 'hms)
+    (setq org-media-note-timestamp-pattern 'hmsf))
+   ((eq org-media-note-timestamp-pattern 'hmsf)
+    (eq org-media-note-timestamp-pattern 'hms))))
 
 ;;;; Footer
 (provide 'org-media-note)
