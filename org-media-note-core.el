@@ -108,11 +108,14 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 
 (defun org-media-note--seconds-to-timestamp (secs)
   "Convert SECS (float or int) to timestamp according to `org-media-note-timestamp-pattern'."
-  (cond
-   ((eq org-media-note-timestamp-pattern 'hms)
-    (org-media-note--seconds-to-hms secs))
-   ((eq org-media-note-timestamp-pattern 'hmsf)
-    (org-media-note--seconds-to-hmsf secs))))
+  (let ((secs (if (stringp secs)
+                     (string-to-number secs)
+                   secs)))
+    (cond
+     ((eq org-media-note-timestamp-pattern 'hms)
+      (org-media-note--seconds-to-hms secs))
+     ((eq org-media-note-timestamp-pattern 'hmsf)
+      (org-media-note--seconds-to-hmsf secs)))))
 
 (defun org-media-note--seconds-to-hms (secs)
   "Convert SECS (float or int) to 'hh:mm:ss'."
@@ -125,9 +128,12 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
          (ms (nth 1 sec-with-ms)))
     (format "%s.%s" (org-timer-secs-to-hms sec) ms)))
 
-(defun org-media-note--millisecs-to-hms (millisecs)
-  "Convert MILLISECS to HMS."
-  (org-media-note--seconds-to-hms (/ (string-to-number millisecs) 1000)))
+(defun org-media-note--millisecs-to-timestamp (millisecs)
+  "Convert MILLISECS to timestamp."
+  (let ((millisecs (if (stringp millisecs)
+                     (string-to-number millisecs)
+                   millisecs)))
+    (org-media-note--seconds-to-timestamp (/ millisecs 1000.0))))
 
 (defun org-media-note--get-duration-timestamp ()
   "Get the current media duration timestamp according to `org-media-note-timestamp-pattern'."
@@ -139,7 +145,7 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 
 (defun org-media-note--timestamp-to-seconds (timestamp)
   "Convert timestamp to seconds (string)."
-  (let* ((splitted-timestamp (split-string timestamp "\\."))
+  (let* ((splitted-timestamp (split-string timestamp "\\(\\.\\|,\\)"))
          (hms (nth 0 splitted-timestamp))
          fff)
     (if (= (length splitted-timestamp) 2)

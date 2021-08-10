@@ -33,7 +33,6 @@
                                ".pbf"))))
     (message pbf-file)
     (if (not (file-exists-p pbf-file))
-        ;; TODO need more test
         (setq pbf-file (read-file-name "Find pbf file:")))
     (insert (org-media-note--convert-from-pbf pbf-file
                                               media-link-type media-file))
@@ -61,10 +60,14 @@
                                           (match-end 1)))
              (note (buffer-substring (match-beginning 2)
                                      (match-end 2)))
-             (hms (org-media-note--millisecs-to-hms millisecs)))
-        (replace-match (format "- [[%s:%s#%s][%s]] %s" media-link-type
-                               media-file hms hms note)
-                       t)))
+             (beg (match-beginning 0))
+             (end (match-end 0))
+             (hms (org-media-note--millisecs-to-timestamp millisecs))
+             (new-text (format "- [[%s:%s#%s][%s]] %s" media-link-type
+                               media-file hms hms note)))
+        (goto-char beg)
+        (delete-region beg end)
+        (insert new-text)))
     (buffer-string)))
 
 ;;;; import from srt:
@@ -99,7 +102,7 @@
         (delete-file srt-file))))
 
 (defun org-media-note--convert-from-srt (srt-file timestamp-format media-link-type media-file)
-  "Return link for MEDIA-FILE of MEDIA-LINK-TYPE from PBF-FILE."
+  "Return link for MEDIA-FILE of MEDIA-LINK-TYPE from SRT-FILE."
   (with-temp-buffer
     (insert-file-contents srt-file)
     (goto-char (point-min))
