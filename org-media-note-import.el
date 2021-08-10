@@ -67,6 +67,73 @@
                        t)))
     (buffer-string)))
 
+;;;; import from srt:
+(defun org-media-note-insert-note-from-srt ()
+  "Insert note from SRT file."
+  (interactive)
+  (let ((key (org-media-note--current-org-ref-key))
+        (timestamp-format (ido-completing-read "Select timestamp format: " '("time1" "time1-time2")))
+        srt-file
+        media-link-type
+        media-file)
+    (if (org-media-note-ref-cite-p)
+        (progn
+          (setq source-media (org-media-note-get-media-file-by-key key))
+          (setq media-link-type (format "%scite"
+                                        (org-media-note--file-media-type source-media)))
+          (setq media-file key)
+          (setq srt-file (concat (file-name-sans-extension source-media)
+                                 ".srt")))
+      (progn
+        ;; TODO need more test
+        (setq media-file (read-file-name "Find media file:"))
+        (setq media-link-type (org-media-note--file-media-type media-file))
+        (setq srt-file (concat (file-name-sans-extension media-file)
+                               ".srt"))))
+    (message srt-file)
+    (if (not (file-exists-p srt-file))
+        (setq srt-file (read-file-name "Find srt file:")))
+    (insert (org-media-note--convert-from-srt srt-file timestamp-format
+                                              media-link-type media-file))
+    (if (y-or-n-p "Delete the SRT File? ")
+        (delete-file srt-file))))
+
+(defun org-media-note--convert-from-srt (srt-file timestamp-format media-link-type media-file)
+  "Return link for MEDIA-FILE of MEDIA-LINK-TYPE from PBF-FILE."
+  (with-temp-buffer
+    (insert-file-contents srt-file)
+    (goto-char (point-min))
+    (while (re-search-forward (concat "[[:digit:]]+\n" org-media-note--hmsf-timestamp-pattern "--> " org-media-note--hmsf-timestamp-pattern "\n\\(.+\\)")  nil t)
+      (let* ((time-a (buffer-substring (match-beginning 1)
+                                          (match-end 1)))
+             (time-b (buffer-substring (match-beginning 3)
+                                     (match-end 3)))
+             (note (buffer-substring (match-beginning 5)
+                                     (match-end 5)))
+             (beg (match-beginning 0))
+             (end (match-end 0))
+             timestamp
+             new-text)
+        (cond
+          ((eq org-media-note-timestamp-pattern 'hms)
+           (setq time-a (car (split-string time-a ",")))
+           (setq time-b (car (split-string time-b ",")))
+           )
+          ((eq org-media-note-timestamp-pattern 'hmsf)
+           (setq time-a (s-replace-regexp "," "." time-a))
+           (setq time-b (s-replace-regexp "," "." time-b))
+           ))
+        (cond
+         ((string= timestamp-format "time1")
+          (setq timestamp time-a))
+         ((string= timestamp-format "time1-time2")
+          (setq timestamp (format "%s-%s" time-a time-b))))
+        (setq new-text (format "- [[%s:%s#%s][%s]] %s" media-link-type media-file timestamp timestamp note))
+        (goto-char beg)
+        (delete-region beg end)
+        (insert new-text)))
+    (buffer-string)))
+
 ;;;; import from noted:
 (defun org-media-note-insert-note-from-noted ()
   "Insert note from noted txt."

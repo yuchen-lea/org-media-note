@@ -106,7 +106,9 @@
     ("I n" org-media-note-insert-note-from-noted
      "Import from Noted")
     ("I t" org-media-note-convert-from-org-timer
-     "Import from org-timer"))
+     "Import from org-timer")
+    ("I s" org-media-note-insert-note-from-srt
+     "Import from srt"))
    "Toggle"
    (("t m" org-media-note-mode "Auto insert media item"
      :toggle t)
