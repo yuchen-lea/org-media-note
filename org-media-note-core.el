@@ -90,6 +90,10 @@ File links are more general, while attachment links are more concise."
   :type 'symbol
   :options '(before after))
 
+(defcustom org-media-note-ref-key-field "Custom_ID"
+  "The property to save org-ref key."
+  :type 'string)
+
 (defcustom org-media-note-link-prefix ""
   "String concatenated to the beginning of links.
 e.g. setting this to \" \" will insert a space before the link.
@@ -155,8 +159,8 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
     (int-to-string (org-timer-hms-to-secs hms)))))
 
 (defun org-media-note--current-org-ref-key ()
-  "Return CUSTOM_ID property of current org entry."
-  (org-entry-get (point) "Custom_ID"))
+  "Return the org-ref key of current org entry."
+  (org-entry-get (point) org-media-note-ref-key-field))
 
 (defun org-media-note--current-media-type ()
   "Get current playing media type."
