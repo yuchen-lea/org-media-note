@@ -127,13 +127,14 @@
 
 (defun org-media-note--get-realpath-for-file (symlink)
   "Get realpath for SYMLINK."
-  (replace-regexp-in-string "\n"
-                            ""
-                            (shell-command-to-string (concat "realpath \""
-                                                             (replace-regexp-in-string "~"
-                                                                                       (file-truename "~")
-                                                                                       symlink)
-                                                             "\""))))
+  (if (executable-find "realpath")
+      (replace-regexp-in-string "\n" ""
+                                (shell-command-to-string (concat "realpath \""
+                                                                 (replace-regexp-in-string "~"
+                                                                                           (file-truename "~")
+                                                                                           symlink)
+                                                                 "\"")))
+    symlink))
 
 (defun org-media-note-get-url-by-key (key)
   "Get URL by KEY."
