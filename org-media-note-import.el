@@ -106,7 +106,7 @@
   (with-temp-buffer
     (insert-file-contents srt-file)
     (goto-char (point-min))
-    (while (re-search-forward (concat "[[:digit:]]+\n" org-media-note--hmsf-timestamp-pattern "--> " org-media-note--hmsf-timestamp-pattern "\n\\(.+\\)")  nil t)
+    (while (re-search-forward (concat "[[:digit:]]+\n" org-media-note--hmsf-timestamp-pattern "--> " org-media-note--hmsf-timestamp-pattern "\n\\(.+\\)\n")  nil t)
       (let* ((time-a (buffer-substring (match-beginning 1)
                                           (match-end 1)))
              (time-b (buffer-substring (match-beginning 3)
