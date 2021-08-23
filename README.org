@@ -89,6 +89,8 @@ Open online video, then operate the same as local files!
   :config
   (setq org-media-note-screenshot-image-dir "~/notes/imgs/"))
       #+END_SRC
+   3. If manually loading org-media-note without a package manager like
+      =package.el= or =straight=, you need to =(require 'org-media-note-org-ref)=.
 
 Now, you can access all functions in =org-media-note-hydra/body=
 
