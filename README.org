@@ -94,7 +94,7 @@ Open online video, then operate the same as local files!
 
 Now, you can access all functions in =org-media-note-hydra/body=
 
-ℹ Here, I use Hyper key =H= for keybinding. In this way, I can quickly access personal functions, and no major or minor modes will stamp on my keys. Look into this for more infomation: [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]. Or you can bind it to any other key you like. After all, it's Emacs ;)
+ℹ Here, I use Hyper key =H= for keybinding. In this way, I can quickly access personal functions, and no major or minor modes will stamp on my keys. Look into this for more information: [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]. Or you can bind it to any other key you like. After all, it's Emacs ;)
 * Functions
 All functions can be reached from =org-media-note-hydra/body= :
 
@@ -103,7 +103,7 @@ All functions can be reached from =org-media-note-hydra/body= :
 - Header：Display basic info, file path, volume, duration and so on
 - File：Functions about media file
   + =o l= Select a local file and play it in mpv.  (=org-media-note-mpv-smart-play=)
-    - When integrets with org-ref and call this function in an org-ref note, it will open the media file described in bib entry.
+    - When integrated with org-ref, calling this function in an org-ref note will open the media file described in bib entry.
       + Your media file will be auto opened if all of the following are true:
         - You're under an org-ref note, which means the =Custom_ID= stores the entry key.
         - Files can be found by =bibtex-completion-find-pdf=. You should keep the value of =bibtex-completion-pdf-field= and the field which store files consistent.
@@ -112,7 +112,7 @@ All functions can be reached from =org-media-note-hydra/body= :
     - Else, find the file by yourself.
   + =o o= Input a url of online video and play it in mpv.  (=org-media-note-mpv-play-online-video=)
   + =j= Cycle through subtitles
-  + =T= Toggle video window ontop of other windows
+  + =T= Toggle video window on top of other windows
   + =c= Increase speed by 0.1
   + =x= Decrease speed by 0.1
   + =z= Toggle speed between 1.0 and last customized speed (=org-media-note-mpv-toggle-speed=)
@@ -135,11 +135,11 @@ All functions can be reached from =org-media-note-hydra/body= :
       + If in an A-B Loop, which means Playback displays "Clear A-B loop (xxx - xxx)", *A-B Loop Link* is inserted. The default link description is =timestamp of A-timestamp of B=, you can set this by =org-media-note-ab-loop-link-format=.
       + If not in an A-B Loop, *Timestamp Link* is inserted. The default link description is =timestamp=, you can set this by =org-media-note-timestamp-link-format=.
     - prefer ref key?
-      + When prefers ref key, whiech means Toggle displays Use ref key instead of absolute path (*), =videocite= or =audiocite= link is inserted
+      + When prefers ref key, which means Toggle displays Use ref key instead of absolute path (*), =videocite= or =audiocite= link is inserted
       + else, =video= or =audio= link is inserted
     - 💡 When in a list like =- [[video:video.mp4#00:03:24][00:03:24]] description=, =<M-return>= will auto insert media link.
     - 💡 Video path format is consistent with =org-link-file-path-type=
-    - 💡 When set =org-media-note-cursor-start-position= to =before= , move curor to the start of link after insertion. This works for manual insertion only. Cursor is always at the end of link for those auto inserted by =<M-return>=.
+    - 💡 When set =org-media-note-cursor-start-position= to =before= , move cursor to the start of link after insertion. This works for manual insertion only. Cursor is always at the end of link for those auto inserted by =<M-return>=.
   + =a= Adjust current link position to current playing position. Then, apply this offset to all links under current heading.
   + =S= Insert current screenshot (=org-media-note-insert-screenshot=)
     - ℹ variables related:
@@ -148,7 +148,7 @@ All functions can be reached from =org-media-note-hydra/body= :
         - attach: save to corresponding org-attach-dir.
       + =org-media-note-screenshot-link-type-when-save-in-attach-dir= when save screenshots to attach dir, use file link or attachment link
       + Screenshot path format is consistent with =org-link-file-path-type= in file: link
-  + =s= Insert curretn subtitle text (=org-media-note-insert-sub-text=)
+  + =s= Insert current subtitle text (=org-media-note-insert-sub-text=)
   + =I p= Import from PotPlayer PBF file (=org-media-note-insert-note-from-pbf=)
   + =I n= Import from Noted TXT file (=org-media-note-insert-note-from-noted=)
   + =I t= Import from org-timer
@@ -159,7 +159,7 @@ All functions can be reached from =org-media-note-hydra/body= :
   + =t s= When on， =<M-return>= will auto insert both media link and current screenshot.
   + =t S= When on，save screenshot with subtitles
 
-ℹ Corresponding funtion is in the brackets. Those without brackts usually call mpv commands directly. More info refers =org-media-note-hydra=.
+ℹ Corresponding function is in the brackets. Those without brackets usually call mpv commands directly. More info refers =org-media-note-hydra=.
 
 * Dependencies
 - [[https://github.com/kljohann/mpv.el][mpv.el]] control media inside emacs
