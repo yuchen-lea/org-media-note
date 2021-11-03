@@ -222,6 +222,20 @@
     (setq org-media-note-timestamp-pattern 'hms))))
 
 
+(defun org-media-note-open-point-link()
+  "open ponit link"
+  (interactive)
+  (setq lp  (org-element-link-parser ))
+  (setq link (plist-get lp 'link))
+  (setq path (plist-get link :path))
+  (if (string=  (plist-get link :type) "file") (progn
+                                                 (mpv-start path)
+                                     ))
+  )
+
+
+
+
 ;;;;; Minor Mode
 
 ;;;###autoload
