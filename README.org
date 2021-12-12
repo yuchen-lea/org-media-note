@@ -149,9 +149,11 @@ All functions can be reached from =org-media-note-hydra/body= :
       + =org-media-note-screenshot-link-type-when-save-in-attach-dir= when save screenshots to attach dir, use file link or attachment link
       + Screenshot path format is consistent with =org-link-file-path-type= in file: link
   + =s= Insert current subtitle text (=org-media-note-insert-sub-text=)
+- Import: Import notes from other format
   + =I p= Import from PotPlayer PBF file (=org-media-note-insert-note-from-pbf=)
   + =I n= Import from Noted TXT file (=org-media-note-insert-note-from-noted=)
-  + =I t= Import from org-timer
+  + =I t= Import from org-timer (=org-media-note-convert-from-org-timer=)
+  + =I s= Import from srt (=org-media-note-insert-note-from-srt=)
 - Toggle：Customization
   + =t m= When in a list like =- [[video:video.mp4#00:03:24][00:03:24]] description=, =<M-return>= will auto insert media link if this toggles on.
   + =t c= When on，insert =videocite= or =audiocite= link instead of =video= or =audio= link if possible.

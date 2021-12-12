@@ -100,8 +100,9 @@
    (("i" org-media-note-insert-link "Insert timestamp")
     ("a" org-media-note-adjust-timestamp-offset "Adjust timestamp")
     ("S" org-media-note-insert-screenshot "Insert Screenshot")
-    ("s" org-media-note-insert-sub-text "Insert subtitle")
-    ("I p" org-media-note-insert-note-from-pbf
+    ("s" org-media-note-insert-sub-text "Insert subtitle"))
+   "Import"
+   (("I p" org-media-note-insert-note-from-pbf
      "Import from pbf")
     ("I n" org-media-note-insert-note-from-noted
      "Import from Noted")
