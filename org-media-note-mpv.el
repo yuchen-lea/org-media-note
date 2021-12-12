@@ -22,11 +22,15 @@
 
 (defun org-media-note-mpv-smart-play ()
   "Conditionally open media file in mpv.
-1. With a single attachment, file, or url: play it in mpv;
-2. With multiple attachments, open the attach dir to select;
-3. Else, answer y to find local file to open, n to input URL."
+1. When point at a file link, play it in mpv;
+2. When citation key found, play the corresponding local media or online media;
+3. With a single attachment, file, or url: play it in mpv;
+4. With multiple attachments, open the attach dir to select;
+5. Else, answer y to find local file to open, n to input URL."
   (interactive)
-  (let* ((attach-dir (if (org-attach-dir)
+  (let* ((element (org-element-context))
+         (type (org-element-type element))
+         (attach-dir (if (org-attach-dir)
                          (format "%s/"
                                  (org-attach-dir))))
          key media-file-by-key media-url-by-key)
@@ -35,6 +39,9 @@
       (setq media-file-by-key (org-media-note-get-media-file-by-key key))
       (setq media-url-by-key (org-media-note-get-url-by-key key)))
     (cond
+     ((and (eq type 'link)
+           (string= (org-element-property :type element) "file"))
+      (mpv-start (org-element-property :path element)))
      ((and (org-media-note-ref-cite-p)
            media-file-by-key)
       (mpv-play media-file-by-key))
