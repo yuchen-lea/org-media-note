@@ -100,6 +100,13 @@ e.g. setting this to \" \" will insert a space before the link.
 This is useful when `org-media-note-cursor-start-position' is set to`before`."
   :type 'string)
 
+(defcustom org-media-note-use-inheritance t
+  "Ref key inheritance for the outline."
+  :group 'org-media-note
+  :type '(choice
+	  (const :tag "Don't use inheritance" nil)
+	  (const :tag "Inherit parent node ref key" t)))
+
 ;;;; Variables
 
 (defconst org-media-note--video-types '("avi" "rmvb" "ogg" "ogv" "mp4" "mkv" "mov" "webm" "flv" "ts" "mpg"))
@@ -160,7 +167,7 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 
 (defun org-media-note--current-org-ref-key ()
   "Return the org-ref key of current org entry."
-  (org-entry-get (point) org-media-note-ref-key-field))
+  (org-entry-get (point) org-media-note-ref-key-field org-media-note-use-inheritance))
 
 (defun org-media-note--current-media-type ()
   "Get current playing media type."
