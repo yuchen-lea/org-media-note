@@ -372,6 +372,8 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
                                                 (org-attach-dir t)))
                              ((eq org-media-note-screenshot-save-method
                                   'directory)
+                              (if (not (f-exists? org-media-note-screenshot-image-dir))
+                                  (make-directory org-media-note-screenshot-image-dir))
                               (expand-file-name image-file-name org-media-note-screenshot-image-dir)))))
     (if org-media-note-screenshot-with-sub
         (mpv-run-command "screenshot-to-file" image-target-path)
