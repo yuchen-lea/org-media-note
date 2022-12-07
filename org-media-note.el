@@ -38,16 +38,14 @@
 
 ;; A quick menu for org-media-note
 (pretty-hydra-define org-media-note-hydra
-  (:color red
-   :title (org-media-note--hydra-title)
-   :hint nil)
+  (:color red :title (org-media-note--hydra-title) :hint nil)
   ("File"
    (("o" org-media-note-mpv-smart-play
      (if (org-media-note-ref-cite-p)
          (format "Open %s"
                  (org-media-note--current-org-ref-key))
        "Open file")
-     :width 20)
+     :width 15)
     ("j"
      (mpv-cycle-property "sub")
      "toggle subtitles")
@@ -75,7 +73,7 @@
              (format "Set B of A-B loop (%s - )"
                      (org-media-note--seconds-to-timestamp time-a))
            "Set A of A-B loop")))
-     :width 45)
+     :width 25)
     ("g" org-media-note-goto-timestamp "Jump to the timestamp")
     ("<left>" mpv-seek-backward "Back 5s")
     ("<right>" mpv-seek-forward "Forward 5s")
