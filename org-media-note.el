@@ -79,6 +79,8 @@
     ("g" org-media-note-goto-timestamp "Jump to the timestamp")
     ("<left>" mpv-seek-backward "Back 5s")
     ("<right>" mpv-seek-forward "Forward 5s")
+    ("<S-left>" mpv-seek-backward-1s "Back 1s")
+    ("<S-right>" mpv-seek-forward-1s "Forward s")
     ("C-<left>"
      (mpv-run-command "sub-seek" -1)
      "Previous subtitle")
@@ -129,6 +131,18 @@
               ((eq org-media-note-timestamp-pattern 'hmsf)
                "hh:mm:ss.fff")))))))
 
+
+;;;###autoload
+(defun mpv-seek-forward-1s ()
+  "Seek forward 1 second."
+  (interactive)
+  (mpv-seek-forward 1))
+
+;;;###autoload
+(defun mpv-seek-backward-1s ()
+  "Seek backward 1 second."
+  (interactive)
+  (mpv-seek-backward 1))
 
 (defun org-media-note--hydra-title ()
   "Return title string for `org-media-note-hydra'."
