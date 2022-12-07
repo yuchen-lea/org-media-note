@@ -5,7 +5,7 @@
 ;; Author: Yuchen Lea <yuchen.lea@gmail.com>
 ;; URL: https://github.com/yuchen-lea/org-media-note
 ;; Version: 1.7.0
-;; Package-Requires: ((emacs "27.1") (mpv "0.1.0") (pretty-hydra "0.2.2"))
+;; Package-Requires: ((emacs "27.1") (mpv "0.1.0") (pretty-hydra "0.2.2") (ffmpeg-utils "0.1"))
 
 ;;; Commentary:
 
@@ -100,7 +100,20 @@
    (("i" org-media-note-insert-link "Insert timestamp")
     ("a" org-media-note-adjust-timestamp-offset "Adjust timestamp")
     ("S" org-media-note-insert-screenshot "Insert Screenshot")
-    ("s" org-media-note-insert-sub-text "Insert subtitle"))
+    ("s" org-media-note-insert-sub-text "Insert subtitle")
+    ("C"
+     (mpv-run-command "ab-loop")
+     (let ((time-a (mpv-get-property "ab-loop-a"))
+           (time-b (mpv-get-property "ab-loop-b")))
+       (if (org-media-note--ab-loop-p)
+           (let ((timestamp-a (org-media-note--seconds-to-timestamp time-a))
+                 (timestamp-b (org-media-note--seconds-to-timestamp time-b)))
+             (org-media-note-insert-clip timestamp-a timestamp-b)
+             (format "Clip: A-B loop (%s - %s)" timestamp-a timestamp-b))
+         (if (numberp time-a)
+             (format "Clip: Set B of A-B loop (%s - )" (org-media-note--seconds-to-timestamp time-a))
+           "Clip: Set A of A-B loop")))
+     :width 25))
    "Import"
    (("I p" org-media-note-insert-note-from-pbf
      "Import from pbf")

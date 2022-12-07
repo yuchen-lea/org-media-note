@@ -5,6 +5,7 @@
 ;;; Code:
 ;;;; Requirements
 (require 'mpv)
+(require 'ffmpeg-utils)
 (require 'org)
 
 (declare-function org-timer-secs-to-hms "org-timer")
@@ -424,6 +425,45 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
     ;; TODO Avoid sleeping here?
     (sleep-for 0.1)
     (org-display-inline-images)))
+
+;;; cut media clip
+(defun org-media-note-insert-clip (timestamp-a timestamp-b)
+  "Clip between A-B loop then insert into Org-mode note."
+  (interactive)
+  (let* ((media-path (mpv-get-property "path"))
+         (media-clip-file-name
+          (concat
+           (org-media-note--format-picture-file-name
+            (concat (file-name-base media-path)
+                    " - clip - "
+                    ;; (org-media-note--get-current-timestamp)
+                    timestamp-a "--" timestamp-b))
+           "." (file-name-extension media-path)))
+         (media-clip-target-path
+          (cond
+           ((eq org-media-note-screenshot-save-method 'attach)
+            (expand-file-name media-clip-file-name (org-attach-dir t)))
+           ((eq org-media-note-screenshot-save-method 'directory)
+            (if (not (f-exists? org-media-note-screenshot-image-dir))
+                (make-directory org-media-note-screenshot-image-dir))
+            (expand-file-name media-clip-file-name org-media-note-screenshot-image-dir)))))
+    (when (not (file-exists-p media-clip-target-path))
+      (progn
+        ;; cut media clip with ffmpeg.
+        (ffmpeg-cut-clip media-path timestamp-a timestamp-b media-clip-target-path)
+        ;; org-attach
+        (if (and (eq org-media-note-screenshot-save-method 'attach)
+                 (eq org-media-note-screenshot-link-type-when-save-in-attach-dir 'attach))
+            (insert (format "[[attachment:%s]] " (file-relative-name media-clip-target-path (org-attach-dir))))
+          (insert (format "[[file:%s]] " (org-media-note--format-file-path media-clip-target-path))))
+        ;; (org-media-note--display-inline-images)
+        ;; display process indicator in mode-line and echo-area.
+        (setq mode-line-process
+              (propertize
+               (format " [org-media-note] clip between A-B loop: %s--%s." timestamp-a timestamp-b)
+               'font-lock-face 'mode-line-highlight))
+        (force-mode-line-update t)
+        (message "[org-media-note] clip between timestamp A-B loop: %s--%s." timestamp-a timestamp-b)))))
 
 ;;;;;; sub-text
 (defun org-media-note-insert-sub-text ()
