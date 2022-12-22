@@ -102,17 +102,15 @@
     ("S" org-media-note-insert-screenshot "Insert Screenshot")
     ("s" org-media-note-insert-sub-text "Insert subtitle")
     ("C"
-     (mpv-run-command "ab-loop")
-     (let ((time-a (mpv-get-property "ab-loop-a"))
-           (time-b (mpv-get-property "ab-loop-b")))
-       (if (org-media-note--ab-loop-p)
-           (let ((timestamp-a (org-media-note--seconds-to-timestamp time-a))
-                 (timestamp-b (org-media-note--seconds-to-timestamp time-b)))
-             (org-media-note-insert-clip timestamp-a timestamp-b)
-             (format "Clip: A-B loop (%s - %s)" timestamp-a timestamp-b))
-         (if (numberp time-a)
-             (format "Clip: Set B of A-B loop (%s - )" (org-media-note--seconds-to-timestamp time-a))
-           "Clip: Set A of A-B loop")))
+     (if (org-media-note--ab-loop-p)
+         (let* ((time-a (mpv-get-property "ab-loop-a"))
+                (time-b (mpv-get-property "ab-loop-b"))
+                (pos (mpv-get-playback-position))
+                (timestamp-a (org-media-note--seconds-to-timestamp time-a))
+                (timestamp-b (org-media-note--seconds-to-timestamp time-b)))
+           (org-media-note-insert-clip timestamp-a timestamp-b))
+       (user-error "[org-media-note] You need to finish setting A-B loop."))
+     "Insert clip of A-B loop"
      :width 25))
    "Import"
    (("I p" org-media-note-insert-note-from-pbf
