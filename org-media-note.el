@@ -97,7 +97,7 @@
      (mpv-cycle-property "mute")
      "(un)mute"))
    "Note"
-   (("i" org-media-note-insert-link "Insert timestamp")
+   (("i" org-media-note-insert-link "Insert timestamp/loop")
     ("a" org-media-note-adjust-timestamp-offset "Adjust timestamp")
     ("S" org-media-note-insert-screenshot "Insert Screenshot")
     ("s" org-media-note-insert-sub-text "Insert subtitle")
