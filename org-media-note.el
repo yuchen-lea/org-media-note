@@ -75,10 +75,10 @@
            "Set A of A-B loop")))
      :width 25)
     ("g" org-media-note-goto-timestamp "Jump to the timestamp")
-    ("<left>" mpv-seek-backward "Back 5s")
+    ("<left>" mpv-seek-backward "Backward 5s")
     ("<right>" mpv-seek-forward "Forward 5s")
-    ("<S-left>" mpv-seek-backward-1s "Back 1s")
-    ("<S-right>" mpv-seek-forward-1s "Forward s")
+    ("<S-left>" mpv-seek-backward-small "Backward 0.5s")
+    ("<S-right>" mpv-seek-forward-small "Forward 0.5s")
     ("C-<left>"
      (mpv-run-command "sub-seek" -1)
      "Previous subtitle")
@@ -144,16 +144,16 @@
 
 
 ;;;###autoload
-(defun mpv-seek-forward-1s ()
-  "Seek forward 1 second."
+(defun mpv-seek-forward-small ()
+  "Seek forward 0.5 second."
   (interactive)
-  (mpv-seek-forward 1))
+  (mpv-seek-forward 0.5))
 
 ;;;###autoload
-(defun mpv-seek-backward-1s ()
-  "Seek backward 1 second."
+(defun mpv-seek-backward-small ()
+  "Seek backward 0.5 second."
   (interactive)
-  (mpv-seek-backward 1))
+  (mpv-seek-backward 0.5))
 
 (defun org-media-note--hydra-title ()
   "Return title string for `org-media-note-hydra'."
