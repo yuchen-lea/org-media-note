@@ -388,7 +388,9 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
                                             (org-attach-dir))))
       (insert (format "[[file:%s]] "
                       (org-media-note--format-file-path image-target-path))))
-    (org-media-note--display-inline-images)))
+    ;; disable this code to speed up inserting screenshot.
+    ;; (org-media-note--display-inline-images)
+    ))
 
 (defun org-media-note--format-picture-file-name (name)
   "Format picture file NAME."
