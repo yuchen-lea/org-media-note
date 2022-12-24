@@ -486,7 +486,12 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
          current-link-position
          offset)
     (cl-multiple-value-bind (_ _ link _)
-        (org-link-edit--link-data)
+        ;; void function `org-link-edit--link-data' which is from file
+        ;; contrib/lisp/org-link-edit.el. But it's deleted from org-mode commit
+        ;; "2b00d6281".
+        (if (fboundp 'org-link-edit--link-data)
+            (org-link-edit--link-data)
+          (user-error "Function `org-link-edit--link-data' is not void."))
       (let* ((splitted (split-string link "#"))
              (timestamps (split-string (nth 1 splitted))))
         (setq current-link-position (org-timer-hms-to-secs (nth 0 timestamps)))
