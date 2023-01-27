@@ -52,10 +52,10 @@
     ("T"
      (mpv-cycle-property "ontop")
      "toggle ontop")
-    ("c"
+    ("]"
      (org-media-note-change-speed-by 0.1)
      "increase speed")
-    ("x"
+    ("["
      (org-media-note-change-speed-by -0.1)
      "decrease speed")
     ("z" org-media-note-mpv-toggle-speed "reset speed"))
@@ -101,7 +101,7 @@
     ("a" org-media-note-adjust-timestamp-offset "Adjust timestamp")
     ("S" org-media-note-insert-screenshot "Insert Screenshot")
     ("s" org-media-note-insert-sub-text "Insert subtitle")
-    ("C"
+    ("c"
      (if (org-media-note--ab-loop-p)
          (let* ((time-a (mpv-get-property "ab-loop-a"))
                 (time-b (mpv-get-property "ab-loop-b"))
