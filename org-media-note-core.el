@@ -452,7 +452,7 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
     (when (not (file-exists-p media-clip-target-path))
       (progn
         ;; cut media clip with ffmpeg.
-        (ffmpeg-cut-clip media-path timestamp-a timestamp-b media-clip-target-path)
+        (ffmpeg-utils-cut-clip media-path timestamp-a timestamp-b media-clip-target-path)
         ;; org-attach
         (if (and (eq org-media-note-screenshot-save-method 'attach)
                  (eq org-media-note-screenshot-link-type-when-save-in-attach-dir 'attach))
