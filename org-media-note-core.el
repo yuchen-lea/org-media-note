@@ -383,10 +383,10 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
                  'attach)
              (eq org-media-note-screenshot-link-type-when-save-in-attach-dir
                  'attach))
-        (insert (format "[[attachment:%s]] "
+        (insert (format "[[attachment:%s]]"
                         (file-relative-name image-target-path
                                             (org-attach-dir))))
-      (insert (format "[[file:%s]] "
+      (insert (format "[[file:%s]]"
                       (org-media-note--format-file-path image-target-path))))
     ;; disable this code to speed up inserting screenshot.
     ;; (org-media-note--display-inline-images)
@@ -456,8 +456,8 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
         ;; org-attach
         (if (and (eq org-media-note-screenshot-save-method 'attach)
                  (eq org-media-note-screenshot-link-type-when-save-in-attach-dir 'attach))
-            (insert (format "[[attachment:%s]] " (file-relative-name media-clip-target-path (org-attach-dir))))
-          (insert (format "[[file:%s]] " (org-media-note--format-file-path media-clip-target-path))))
+            (insert (format "[[attachment:%s]]" (file-relative-name media-clip-target-path (org-attach-dir))))
+          (insert (format "[[file:%s]]" (org-media-note--format-file-path media-clip-target-path))))
         ;; (org-media-note--display-inline-images)
         ;; display process indicator in mode-line and echo-area.
         (setq mode-line-process
