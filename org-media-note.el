@@ -112,7 +112,7 @@
        (user-error "[org-media-note] You need to finish setting A-B loop."))
      "Insert clip of A-B loop"
      :width 25)
-    ("n" org-return-and-maybe-indent "Insert Org newline"))
+    ("n" org-return-indent "Insert Org newline"))
    "Import"
    (("I p" org-media-note-insert-note-from-pbf
      "Import from pbf")
