@@ -156,8 +156,10 @@
 
 (defun org-media-note--hydra-title ()
   "Return title string for `org-media-note-hydra'."
-  (let ((file-path (mpv-get-property "path"))
-        (ref-key (org-media-note--current-org-ref-key))
+  (let ((file-path (when (mpv-get-property "path")
+                     (string-replace "%" "-" (mpv-get-property "path"))))
+        (ref-key (when (org-media-note--current-org-ref-key)
+                   (string-replace "%" "-" (org-media-note--current-org-ref-key))))
         (icon (if (featurep 'all-the-icons)
                   (all-the-icons-material "ondemand_video")
                 ""))
