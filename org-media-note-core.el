@@ -432,15 +432,18 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
 (defun org-media-note-insert-clip (timestamp-a timestamp-b)
   "Clip between A-B loop then insert into Org-mode note."
   (interactive)
-  (let* ((media-path (mpv-get-property "path"))
+  (let* ((media-working-directory (mpv-get-property "working-directory"))
+         (media-path-relative (mpv-get-property "path"))
+         (media-path-absolute (expand-file-name media-path-relative media-working-directory))
+         (media-filename (mpv-get-property "filename"))
          (media-clip-file-name
           (concat
            (org-media-note--format-picture-file-name
-            (concat (file-name-base media-path)
+            (concat (file-name-base media-filename)
                     " - clip - "
                     ;; (org-media-note--get-current-timestamp)
                     timestamp-a "--" timestamp-b))
-           "." (file-name-extension media-path)))
+           "." (file-name-extension media-filename)))
          (media-clip-target-path
           (cond
            ((eq org-media-note-screenshot-save-method 'attach)
@@ -452,7 +455,7 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
     (when (not (file-exists-p media-clip-target-path))
       (progn
         ;; cut media clip with ffmpeg.
-        (ffmpeg-utils-cut-clip media-path timestamp-a timestamp-b media-clip-target-path)
+        (ffmpeg-utils-cut-clip media-path-absolute timestamp-a timestamp-b media-clip-target-path)
         ;; org-attach
         (if (and (eq org-media-note-screenshot-save-method 'attach)
                  (eq org-media-note-screenshot-link-type-when-save-in-attach-dir 'attach))
