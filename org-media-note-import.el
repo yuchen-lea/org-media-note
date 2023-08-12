@@ -8,6 +8,27 @@
 
 
 ;;; Code:
+;;;; Customization
+
+(defcustom org-media-note-delete-pbf 'ask
+  "Controls the deletion of PBF files.
+   'always - Always delete the PBF file without asking.
+   'never  - Never delete the PBF file.
+   'ask    - Ask whether to delete the PBF file."
+  :type '(choice
+          (const :tag "Always" always)
+          (const :tag "Never" never)
+          (const :tag "Ask" ask)))
+
+(defcustom org-media-note-delete-srt 'never
+  "Controls the deletion of SRT files.
+   'always - Always delete the SRT file without asking.
+   'never  - Never delete the SRT file.
+   'ask    - Ask whether to delete the SRT file."
+  :type '(choice
+          (const :tag "Always" always)
+          (const :tag "Never" never)
+          (const :tag "Ask" ask)))
 
 ;;;; import from pbf (potplayer bookmark):
 (defun org-media-note-insert-note-from-pbf ()
@@ -36,8 +57,14 @@
         (setq pbf-file (read-file-name "Find pbf file:")))
     (insert (org-media-note--convert-from-pbf pbf-file
                                               media-link-type media-file))
-    (if (y-or-n-p "Delete the PBF File? ")
-        (delete-file pbf-file))))
+    (cond
+     ((eq org-media-note-delete-pbf 'always)
+      (delete-file pbf-file))
+     ((eq org-media-note-delete-pbf 'ask)
+      (if (y-or-n-p "Delete the PBF File? ")
+          (delete-file pbf-file)))
+     ;; For 'never, do nothing.
+     )))
 
 (defun org-media-note--convert-from-pbf (pbf-file media-link-type media-file)
   "Return link for MEDIA-FILE of MEDIA-LINK-TYPE from PBF-FILE."
@@ -98,8 +125,14 @@
         (setq srt-file (read-file-name "Find srt file:")))
     (insert (org-media-note--convert-from-srt srt-file timestamp-format
                                               media-link-type media-file))
-    (if (y-or-n-p "Delete the SRT File? ")
-        (delete-file srt-file))))
+    (cond
+     ((eq org-media-note-delete-srt 'always)
+      (delete-file srt-file))
+     ((eq org-media-note-delete-srt 'ask)
+      (if (y-or-n-p "Delete the SRT File? ")
+          (delete-file srt-file)))
+     ;; For 'never, do nothing.
+     )))
 
 (defun org-media-note--convert-from-srt (srt-file timestamp-format media-link-type media-file)
   "Return link for MEDIA-FILE of MEDIA-LINK-TYPE from SRT-FILE."
