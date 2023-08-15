@@ -100,7 +100,8 @@
    (("i" org-media-note-insert-link "Insert timestamp")
     ("a" org-media-note-adjust-timestamp-offset "Adjust timestamp")
     ("S" org-media-note-insert-screenshot "Insert Screenshot")
-    ("s" org-media-note-insert-sub-text "Insert subtitle"))
+    ("s" org-media-note-insert-sub-text "Insert subtitle")
+    ("H-m" org-media-note-merge-item "Merge items"))
    "Import"
    (("I p" org-media-note-insert-note-from-pbf
      "Import from pbf")
@@ -127,7 +128,10 @@
               ((eq org-media-note-timestamp-pattern 'hms)
                "hh:mm:ss")
               ((eq org-media-note-timestamp-pattern 'hmsf)
-               "hh:mm:ss.fff")))))))
+               "hh:mm:ss.fff"))))
+    ("t M" org-media-note-set-separator
+     (format "Separator when merge: %s"
+             org-media-note-separator-when-merge)))))
 
 
 (defun org-media-note--hydra-title ()
@@ -221,6 +225,12 @@
     (setq org-media-note-timestamp-pattern 'hmsf))
    ((eq org-media-note-timestamp-pattern 'hmsf)
     (setq org-media-note-timestamp-pattern 'hms))))
+
+(defun org-media-note-set-separator (new-separator)
+  "Set the value of org-media-note-media-note-separator to NEW-SEPARATOR."
+  (interactive "sEnter the new separator: ")
+  (setq org-media-note-separator-when-merge new-separator)
+  (message "org-media-note-media-note-separator set to: %s" org-media-note-separator-when-merge))
 
 ;;;;; Minor Mode
 

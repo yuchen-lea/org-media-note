@@ -62,6 +62,11 @@ File links are more general, while attachment links are more concise."
   :type 'boolean
   )
 
+(defcustom org-media-note-separator-when-merge ""
+  "Separator to use when calling  `org-media-note-merge-item'"
+  :type 'string)
+
+
 (defcustom org-media-note-timestamp-pattern 'hms
   ""
   :type '(choice
@@ -353,6 +358,24 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
      (t (error (concat "No playing media file now. Please open the media file"
                        "first if you want to insert media note,"
                        "\nor turn off "))))))
+
+(defun org-media-note-merge-item ()
+  "Join multiple lines of item into a single line."
+  (interactive)
+  (if (use-region-p)
+      (let* ((begin (region-beginning))
+             (end (region-end))
+             (text (buffer-substring-no-properties begin end))
+             (lines (split-string text "\n" t))
+             (reformatted-lines (mapcar
+                                 (lambda (line)
+                                   (if (string-match ".+\\(\\[\\[audiocite:.+\\]\\]\\) \\(.*\\)$" line)
+                                       (match-string 2 line)
+                                     line))
+                                 (cdr lines)))) ;; reformatted from the second line.
+        (delete-region begin end)
+        (insert (concat (car lines) org-media-note-separator-when-merge (mapconcat 'identity reformatted-lines org-media-note-separator-when-merge))))
+    (message "No region selected!")))
 
 ;;;;;; screenshot
 (defun org-media-note-insert-screenshot ()
