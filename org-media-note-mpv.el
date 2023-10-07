@@ -75,7 +75,10 @@
 (defun org-media-note--mpv-play-online-video (video-url)
   "Play remote VIDEO-URL."
   (if (org-media-note--online-video-p video-url)
-      (mpv-start video-url)
+      (if (or (executable-find "youtube-dl")
+              (executable-find "yt-dlp"))
+        (mpv-start video-url)
+      (error "Warning: mpv needs the youtube-dl or yt-dlp program to play online videos"))
     (error (format "'%s' is not a valid url!" video-url))))
 
 (defun org-media-note-change-speed-by (speed-step)
