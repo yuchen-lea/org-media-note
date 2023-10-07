@@ -118,6 +118,7 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 (defconst org-media-note--audio-types '("flac" "mp3" "wav" "m4a"))
 (defconst org-media-note--hms-timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\)[ \t]?")
 (defconst org-media-note--hmsf-timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\(\\.\\|,\\)[0-9]+\\)[ \t]?")
+(defconst org-media-note--link-pattern "\\[\\[\\(?:audiocite\\|videocite\\|audio\\|video\\):[^]]+\\]\\[[^]]+\\]\\]")
 
 ;;;; Commands
 ;;;;; Utils
@@ -369,7 +370,7 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
              (lines (split-string text "\n" t))
              (reformatted-lines (mapcar
                                  (lambda (line)
-                                   (if (string-match ".+\\(\\[\\[audiocite:.+\\]\\]\\) \\(.*\\)$" line)
+                                   (if (string-match (format ".+\\(%s\\) \\(.*\\)$" org-media-note--link-pattern) line)
                                        (match-string 2 line)
                                      line))
                                  (cdr lines)))) ;; reformatted from the second line.
