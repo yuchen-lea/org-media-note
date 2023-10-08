@@ -152,8 +152,8 @@
              new-text)
         (cond
           ((eq org-media-note-timestamp-pattern 'hms)
-           (setq time-a (car (split-string time-a ",")))
-           (setq time-b (car (split-string time-b ",")))
+           (setq time-a (car (split-string time-a "[,\\.]")))
+           (setq time-b (car (split-string time-b "[,\\.]")))
            )
           ((eq org-media-note-timestamp-pattern 'hmsf)
            (setq time-a (s-replace-regexp "," "." time-a))
