@@ -108,7 +108,9 @@
                 (pos (mpv-get-playback-position))
                 (timestamp-a (org-media-note--seconds-to-timestamp time-a))
                 (timestamp-b (org-media-note--seconds-to-timestamp time-b)))
-           (org-media-note-insert-clip timestamp-a timestamp-b))
+           (org-media-note-insert-clip timestamp-a timestamp-b)
+           ;; auto clear a-b loop after inserting clip.
+           (mpv-run-command "ab-loop"))
        (user-error "[org-media-note] You need to finish setting A-B loop."))
      "Insert clip of A-B loop"
      :width 25)
