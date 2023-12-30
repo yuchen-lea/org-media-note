@@ -256,9 +256,11 @@
   (if org-media-note-mode
       (progn
         (org-media-note--update-auto-insert-advice org-media-note-auto-insert-item)
+        (advice-add 'org-beginning-of-line :around #'org-media-note--beginning-of-line-advice)
         (when org-media-note-use-org-ref
           (org-media-note-setup-org-ref)))
     (org-media-note--update-auto-insert-advice nil)
+    (advice-remove 'org-beginning-of-line #'org-media-note--beginning-of-line-advice)))
 
 ;;;; Footer
 (provide 'org-media-note)

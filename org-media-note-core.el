@@ -123,6 +123,16 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 (defconst org-media-note--hms-timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\)[ \t]?")
 (defconst org-media-note--hmsf-timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\(\\.\\|,\\)[0-9]+\\)[ \t]?")
 (defconst org-media-note--link-pattern "\\[\\[\\(?:audiocite\\|videocite\\|audio\\|video\\):[^]]+\\]\\[[^]]+\\]\\]")
+(defconst org-media-note--list-full-item-re
+  (concat "^[ \t]*\\(\\(?:[-+*]\\|\\(?:[0-9]+\\|[A-Za-z]\\)[.)]\\)\\(?:[ \t]+\\|$\\)\\)"
+          "\\(?:\\[@\\(?:start:\\)?\\([0-9]+\\|[A-Za-z]\\)\\][ \t]*\\)?"
+          "\\(\\(?:\\[[ X-]\\]\\(?:[ \t]+\\|$\\)\\)?" "\\(?:" org-media-note--link-pattern "\\)\\(?:[ \t]*\\|$\\)\\)?"
+          "\\(?:\\(.*\\)[ \t]+::\\(?:[ \t]+\\|$\\)\\)?")
+  "Matches a list item and puts everything into groups:
+group 1: bullet
+group 2: counter
+group 3: checkbox + link
+group 4: description tag")
 
 ;;;; Commands
 ;;;;; Utils
@@ -310,6 +320,11 @@ occurrences of %-escaped PLACEHOLDER with replacement and return a new string.
                        (_ ""))
                      string))
            finally return string))
+
+(defun org-media-note--beginning-of-line-advice (orig-func &optional n)
+  "Advice to optimize line beginning detection in plain-lists for `org-beginning-of-line'."
+  (let ((org-list-full-item-re org-media-note--list-full-item-re))
+    (funcall orig-func n)))
 
 (defun org-media-note--insert-item-advice (orig-fn &rest args)
   "When item begins with media link, insert playback position.
