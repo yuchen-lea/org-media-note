@@ -112,8 +112,8 @@
     ("I s" org-media-note-insert-note-from-srt
      "Import from srt"))
    "Toggle"
-   (("t m" org-media-note-mode "Auto insert media item"
-     :toggle t)
+   (("t m" toggle-org-media-note-auto-insert-item "Auto insert media item"
+     :toggle org-media-note-auto-insert-item)
     ("t c" org-media-note-toggle-refcite "Use ref key instead of absolute path"
      :toggle org-media-note-use-refcite-first)
     ("t p" org-media-note-toggle-pause-after-insertion
@@ -188,6 +188,14 @@
 
 ;;;;; Toggle
 
+(defun toggle-org-media-note-auto-insert-item ()
+  "Toggle the automatic insertion of media items."
+  (interactive)
+  (setq org-media-note-auto-insert-item (not org-media-note-auto-insert-item))
+  (org-media-note--update-auto-insert-advice org-media-note-auto-insert-item)
+  (message "Auto insert media item: %s" (if org-media-note-auto-insert-item "enabled" "disabled")))
+
+
 (defun org-media-note-toggle-refcite ()
   "Toggle refcite for links."
   (interactive)
@@ -234,6 +242,12 @@
 
 ;;;;; Minor Mode
 
+(defun org-media-note--update-auto-insert-advice (add-advice)
+  "Update the advice for org-insert-item based on ADD-ADVICE."
+  (if add-advice
+      (advice-add 'org-insert-item :before-until #'org-media-note--insert-item-advice)
+    (advice-remove 'org-insert-item #'org-media-note--insert-item-advice)))
+
 ;;;###autoload
 (define-minor-mode org-media-note-mode
   "Minor mode for taking audio and video notes with `org-mode'."
@@ -241,10 +255,10 @@
   :global t
   (if org-media-note-mode
       (progn
-        (advice-add 'org-insert-item :before-until #'org-insert-item--media-note-item)
+        (org-media-note--update-auto-insert-advice org-media-note-auto-insert-item)
         (when org-media-note-use-org-ref
           (org-media-note-setup-org-ref)))
-    (advice-remove 'org-insert-item #'org-insert-item--media-note-item)))
+    (org-media-note--update-auto-insert-advice nil)
 
 ;;;; Footer
 (provide 'org-media-note)

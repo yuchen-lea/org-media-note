@@ -22,6 +22,10 @@
   "Whether to use org-ref together with org-media-note."
   :type 'boolean)
 
+(defcustom org-media-note-auto-insert-item t
+  "Control whether to automatically insert media items in org-media-note-mode."
+  :type 'boolean)
+
 (defcustom org-media-note-screenshot-save-method 'directory
   "The way images should be stored.
 1. directory: save to `org-media-note-screenshot-image-dir'
@@ -307,7 +311,7 @@ occurrences of %-escaped PLACEHOLDER with replacement and return a new string.
                      string))
            finally return string))
 
-(defun org-insert-item--media-note-item (orig-fn &rest args)
+(defun org-media-note--insert-item-advice (orig-fn &rest args)
   "When item begins with media link, insert playback position.
 Pass ARGS to ORIG-FN, `org-insert-item'."
   (interactive "P")
