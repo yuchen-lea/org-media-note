@@ -258,11 +258,14 @@
   "Convert `org-timer' to media link."
   (interactive)
   (let* ((key (org-media-note--current-org-ref-key))
-         (source-media (org-media-note-get-media-file-by-key key))
-         (media-file source-media)
+         (source-media (or (mpv-get-property "path") (user-error "org-media-note: no media file opened")))
+         (media-file-raw source-media)
+         ;; save some chars in links in homefolder, such as "/home/user" to "~"
+         (media-file (replace-regexp-in-string (expand-file-name "~") "~" media-file-raw))
          (media-link-type (org-media-note--file-media-type source-media)))
     (if (org-media-note-ref-cite-p)
         (progn
+          (setq source-media (org-media-note-get-media-file-by-key key))
           (setq media-file key)
           (setq media-link-type (format "%scite" media-link-type))))
     (save-excursion

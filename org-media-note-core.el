@@ -200,7 +200,10 @@ group 4: description tag")
   "Get media type of file at FILE-PATH."
   (let* ((file-ext (if file-path
                        (file-name-extension file-path))))
-    (org-media-note--get-media-type file-ext)))
+    (or
+     (org-media-note--get-media-type file-ext)
+     ;; if format is not known, video is better than nil
+     "video")))
 
 (defun org-media-note--get-media-type (file-ext)
   "Return media type based off of FILE-EXT."
