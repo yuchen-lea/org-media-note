@@ -7,6 +7,8 @@
 (require 'mpv)
 (require 'org)
 
+(declare-function org-element-context "org-element" (&optional element))
+(declare-function org-element-property "org-element-ast" (property node))
 (declare-function org-timer-secs-to-hms "org-timer")
 (declare-function org-timer-hms-to-secs "org-timer")
 (declare-function org-attach-dir "org-attach")
@@ -380,7 +382,7 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
      ;; In a list of another type, don't break anything: throw an error.
      (t (error (concat "No playing media file now. Please open the media file"
                        "first if you want to insert media note,"
-                       "\nor turn off "))))))
+                       "\nor maybe you want to turn off <Auto insert media item>."))))))
 
 (defun org-media-note-merge-item ()
   "Join multiple lines of item into a single line."
@@ -484,31 +486,33 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
 ;;;;; Adjust timestamp
 
 (defun org-media-note-adjust-timestamp-offset ()
-  "Adjust timestamp offset."
+  "Adjust all timestamps within the current heading.
+Aligns them to the current playing position in mpv."
   (interactive)
-  (let* ((current-playing-position (mpv-get-playback-position)) link
-         current-link-position
-         offset)
-    (cl-multiple-value-bind (_ _ link _)
-        (org-link-edit--link-data)
-      (let* ((splitted (split-string link "#"))
-             (timestamps (split-string (nth 1 splitted))))
-        (setq current-link-position (org-timer-hms-to-secs (nth 0 timestamps)))
-        (setq offset (- current-playing-position current-link-position))))
-    (save-excursion
-      (org-narrow-to-subtree)
-      (goto-char (point-min))
-      (while (re-search-forward org-media-note--hms-timestamp-pattern
-                                nil t)
-        (let* ((beg (match-beginning 1))
-               (end (match-end 1))
-               (hms (buffer-substring beg end))
-               (adjusted-hms (org-media-note--seconds-to-hms (+ (org-timer-hms-to-secs hms)
-                                                                offset))))
-          (goto-char beg)
-          (delete-region beg end)
-          (insert adjusted-hms)))
-      (widen))))
+  (let ((current-playing-position (mpv-get-playback-position))
+        (link (org-element-property :raw-link (org-element-context))))
+    (unless current-playing-position
+      (error "Please use this function while mpv is playing"))
+    (unless link
+      (error "Please place the cursor on a media-link"))
+    (let* ((splitted (split-string link "#"))
+           (timestamps (split-string (nth 1 splitted)))
+           (current-link-position (org-timer-hms-to-secs (nth 0 timestamps)))
+           (offset (- current-playing-position current-link-position)))
+      (save-excursion
+        (org-narrow-to-subtree)
+        (goto-char (point-min))
+        (while (re-search-forward org-media-note--hms-timestamp-pattern
+                                  nil t)
+          (let* ((beg (match-beginning 1))
+                 (end (match-end 1))
+                 (hms (buffer-substring beg end))
+                 (adjusted-hms (org-media-note--seconds-to-hms (+ (org-timer-hms-to-secs hms)
+                                                                  offset))))
+            (goto-char beg)
+            (delete-region beg end)
+            (insert adjusted-hms)))
+        (widen)))))
 
 ;;;;; Jump to the right position
 (defun org-media-note-media-link-follow (link)
