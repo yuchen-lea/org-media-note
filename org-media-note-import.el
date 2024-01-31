@@ -257,17 +257,19 @@
 (defun org-media-note-convert-from-org-timer ()
   "Convert `org-timer' to media link."
   (interactive)
-  (let* ((key (org-media-note--current-org-ref-key))
-         (source-media (or (mpv-get-property "path") (user-error "org-media-note: no media file opened")))
-         (media-file-raw source-media)
-         ;; save some chars in links in homefolder, such as "/home/user" to "~"
-         (media-file (replace-regexp-in-string (expand-file-name "~") "~" media-file-raw))
-         (media-link-type (org-media-note--file-media-type source-media)))
+  (let* (key source-media media-link-type media-file)
     (if (org-media-note-ref-cite-p)
         (progn
+          (setq key (org-media-note--current-org-ref-key))
           (setq source-media (org-media-note-get-media-file-by-key key))
           (setq media-file key)
-          (setq media-link-type (format "%scite" media-link-type))))
+          (setq media-link-type (format "%scite" (org-media-note--file-media-type source-media))))
+      (progn
+        (setq source-media (or
+                            (mpv-get-property "path")
+                            (read-file-name "Find media file:")))
+        (setq media-file (org-media-note--format-file-path source-media))
+        (setq media-link-type (org-media-note--file-media-type source-media))))
     (save-excursion
       (org-narrow-to-subtree)
       (goto-char (point-min))
