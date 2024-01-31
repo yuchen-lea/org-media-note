@@ -268,7 +268,7 @@
     (save-excursion
       (org-narrow-to-subtree)
       (goto-char (point-min))
-      (while (re-search-forward (concat org-media-note--hms-timestamp-pattern "::[ \t]+")
+      (while (re-search-forward (concat org-media-note--hms-timestamp-pattern "::")
                                 nil t)
         (let* ((hms (buffer-substring (match-beginning 1)
                                       (match-end 1))))
