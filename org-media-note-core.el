@@ -121,7 +121,7 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 ;;;; Variables
 
 (defconst org-media-note--video-types '("avi" "rmvb" "ogg" "ogv" "mp4" "mkv" "mov" "webm" "flv" "ts" "mpg"))
-(defconst org-media-note--audio-types '("flac" "mp3" "wav" "m4a"))
+(defconst org-media-note--audio-types '("flac" "mp3" "wav" "m4a" "aac" "opus"))
 (defconst org-media-note--hms-timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\)[ \t]?")
 (defconst org-media-note--hmsf-timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\(\\.\\|,\\)[0-9]+\\)[ \t]?")
 (defconst org-media-note--link-pattern "\\[\\[\\(?:audiocite\\|videocite\\|audio\\|video\\):[^]]+\\]\\[[^]]+\\]\\]")
