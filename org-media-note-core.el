@@ -443,6 +443,7 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
     (setq new-name (replace-regexp-in-string " - " "-" name))
     (setq new-name (replace-regexp-in-string ":" "_" new-name))
     (setq new-name (replace-regexp-in-string "\\." "_" new-name))
+    (setq new-name (replace-regexp-in-string "\\?" "-" new-name))
     (replace-regexp-in-string " " "_" new-name)))
 
 (defun org-media-note--format-file-path (path)
