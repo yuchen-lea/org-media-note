@@ -98,9 +98,10 @@
         (insert new-text)))
     (buffer-string)))
 
-;;;; import from srt:
-(defun org-media-note-insert-note-from-srt ()
-  "Insert note from SRT."
+;;;; import from subtitle: srt, vtt
+(defun org-media-note-insert-note-from-subtitle ()
+  "Insert note from subtitle.
+Currently supports SRT and VTT."
   (interactive)
   (cl-multiple-value-bind (_ key file-by-key url-by-key)
       (org-media-note--ref-context)
@@ -138,52 +139,81 @@
                                         (read-file-name "Find media file:")))
             (setq source-media file-without-cite)
             (setq media-link-type (org-media-note--file-media-type source-media))))
-        (insert (org-media-note--convert-from-srt (org-media-note--selected-subtitle-content (or file-by-key file-without-cite)
-                                                                                             ignore-mpv-subtitle)
-                                                  (org-media-note--select "Select timestamp format: "
-                                                                          '("time1" "time1-time2"))
-                                                  media-link-type
-                                                  source-media))))))
+        (insert (org-media-note--convert-from-subtitle (org-media-note--selected-subtitle-content (or file-by-key file-without-cite)
+                                                                                                  ignore-mpv-subtitle)
+                                                       (org-media-note--select "Select timestamp format: "
+                                                                               '("time1" "time1-time2"))
+                                                       media-link-type
+                                                       source-media))))))
 
-(defun org-media-note--convert-from-srt (srt-content timestamp-format media-link-type media-file)
-  "Return note of MEDIA-FILE from SRT-CONTENT.
-in format of TIMESTAMP-FORMAT and MEDIA-LINK-TYPE."
+(defun org-media-note--convert-from-subtitle (subtitle-content timestamp-format media-link-type media-file)
+  "Return note of MEDIA-FILE from SUBTITLE-CONTENT.
+In format of TIMESTAMP-FORMAT and MEDIA-LINK-TYPE.
+Currently supports SRT and VTT."
   (with-temp-buffer
-    (insert srt-content)
-    (goto-char (point-min))
-    (while (re-search-forward (concat "[[:digit:]]+\n" org-media-note--hmsf-timestamp-pattern
-                                      "--> " org-media-note--hmsf-timestamp-pattern
-                                      "\n\\(.+\\)\n")
-                              nil
-                              t)
-      (let* ((time-a (buffer-substring (match-beginning 1)
-                                       (match-end 1)))
-             (time-b (buffer-substring (match-beginning 3)
-                                       (match-end 3)))
-             (note (buffer-substring (match-beginning 5)
-                                     (match-end 5)))
-             (beg (match-beginning 0))
-             (end (match-end 0))
-             timestamp
-             new-text)
-        (cond
-         ((eq org-media-note-timestamp-pattern 'hms)
-          (setq time-a (car (split-string time-a "[,\\.]")))
-          (setq time-b (car (split-string time-b "[,\\.]"))))
-         ((eq org-media-note-timestamp-pattern 'hmsf)
-          (setq time-a (s-replace-regexp "," "." time-a))
-          (setq time-b (s-replace-regexp "," "." time-b))))
-        (cond
-         ((string= timestamp-format "time1")
-          (setq timestamp time-a))
-         ((string= timestamp-format "time1-time2")
-          (setq timestamp (format "%s-%s" time-a time-b))))
-        (setq new-text (format "- [[%s:%s#%s][%s]] %s" media-link-type
-                               media-file timestamp timestamp note))
-        (goto-char beg)
-        (delete-region beg end)
-        (insert new-text)))
-    (buffer-string)))
+    (insert subtitle-content)
+    ;; Local function to search for timestamp pattern
+    (cl-flet ((search-timestamp ()
+                (re-search-forward (concat "\\(?:[[:digit:]]+\\)?\n?" org-media-note--hmsf-timestamp-pattern
+                                           " --> " org-media-note--hmsf-timestamp-pattern
+                                           "\\(?:.*\n\\)?\\(.*\\(?:\n.+\\)*\\)")
+                                   nil
+                                   t)))
+      (goto-char (point-min))
+      ;; Delete any content before the first timestamp
+      (when (search-timestamp)
+        (delete-region (point-min)
+                       (match-beginning 0)))
+      ;; Reset to the beginning of the buffer to start processing
+      (goto-char (point-min))
+      ;; Process each subtitle block
+      (while (search-timestamp)
+        (let* ((time-a (buffer-substring (match-beginning 1)
+                                         (match-end 1)))
+               (time-b (buffer-substring (match-beginning 3)
+                                         (match-end 3)))
+               (note-block (buffer-substring (match-beginning 5)
+                                             (match-end 5)))
+               (beg (match-beginning 0))
+               (end (match-end 0))
+               (note-lines (split-string note-block "\n"))
+               timestamp
+               new-text
+               formatted-note)
+          ;; Adjust time format
+          (cond
+           ((eq org-media-note-timestamp-pattern 'hms)
+            (setq time-a (car (split-string time-a "[,\\.]")))
+            (setq time-b (car (split-string time-b "[,\\.]"))))
+           ((eq org-media-note-timestamp-pattern 'hmsf)
+            (setq time-a (s-replace-regexp "," "." time-a))
+            (setq time-b (s-replace-regexp "," "." time-b))))
+          ;; Set timestamp based on format
+          (cond
+           ((string= timestamp-format "time1")
+            (setq timestamp time-a))
+           ((string= timestamp-format "time1-time2")
+            (setq timestamp (format "%s-%s" time-a time-b))))
+          ;; Format notes with indentation for lines after the first
+          (setq formatted-note (mapconcat (lambda (line)
+                                            (if (eq line (car note-lines))
+                                                line
+                                              (concat "  " line)))
+                                          note-lines
+                                          "\n"))
+          ;; Create new text
+          (setq new-text (format "- [[%s:%s#%s][%s]] %s" media-link-type
+                                 media-file timestamp timestamp formatted-note))
+          ;; Replace old text with new text
+          (goto-char beg)
+          (delete-region beg end)
+          (insert new-text)
+          (insert "\n")))
+      ;; Return the buffer content, ensuring no empty lines
+      (goto-char (point-min))
+      (while (re-search-forward "^[\s-]*\n" nil t)
+        (replace-match ""))
+      (buffer-string))))
 
 (defun org-media-note--is-subtitle-track (item)
   "Check if ITEM is asubtitle track.

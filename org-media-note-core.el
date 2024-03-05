@@ -7,6 +7,8 @@
 (require 'mpv)
 (require 'org)
 
+(require 'cl-lib)
+
 (declare-function org-element-context "org-element" (&optional element))
 (declare-function org-element-property "org-element-ast" (property node &optional dflt force-undefer))
 (declare-function org-element-type "org-element-ast" (node &optional anonymous))
