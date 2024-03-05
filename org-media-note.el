@@ -4,8 +4,9 @@
 
 ;; Author: Yuchen Lea <yuchen.lea@gmail.com>
 ;; URL: https://github.com/yuchen-lea/org-media-note
-;; Version: 1.7.0
-;; Package-Requires: ((emacs "27.1") (mpv "0.1.0") (pretty-hydra "0.2.2"))
+;; Version: 1.8.0
+;; Keywords: note-taking, multimedia
+;; Package-Requires: ((emacs "27.1") (mpv "0.2.0") (pretty-hydra "0.2.2"))
 
 ;;; Commentary:
 

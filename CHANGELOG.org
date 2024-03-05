@@ -1,3 +1,8 @@
+- [2023-12-30] Version =1.8.0=
+  + Import from srt subtitle
+  + Smart play: support play at point
+  + Support merge org-media-note item
+  + =C-a= goto char after media link in item list
 - [2021-03-26] Version =1.7.0=
   + Import from org-timer
   + Adjust timestamp offset
