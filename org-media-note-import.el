@@ -203,8 +203,11 @@ The source of the subtitle counld be:
 - If neither of the above available, prompts the user to select."
   (let ((subtitle-prompt "Select an SRT file: ")
         (track-list (mpv-get-property "track-list"))
-        (file-from-context-base-name (if (not (org-media-note--online-video-p file-from-context))
-                                         (file-name-base file-from-context)))
+        (file-from-context-base-name (if (org-media-note--online-video-p file-from-context)
+                                         (replace-regexp-in-string "[\]\[\/:：【】\\]"
+                                                                   " "
+                                                                   (mpv-get-property "media-title"))
+                                       (file-name-base file-from-context)))
         (file-from-context-dir (if (not (org-media-note--online-video-p file-from-context))
                                    (file-name-directory file-from-context)))
         srt-local-file
