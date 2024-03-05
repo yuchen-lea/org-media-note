@@ -25,17 +25,17 @@
   :prefix "org-media-note-")
 
 (defcustom org-media-note-use-org-ref nil
-  "Whether to use org-ref together with org-media-note."
+  "Whether to use `org-ref' together with org-media-note."
   :type 'boolean)
 
 (defcustom org-media-note-auto-insert-item t
-  "Control whether to automatically insert media items in org-media-note-mode."
+  "Control whether to automatically insert media items in `org-media-note-mode'."
   :type 'boolean)
 
 (defcustom org-media-note-screenshot-save-method 'directory
   "The way images should be stored.
 1. directory: save to `org-media-note-screenshot-image-dir'
-2. attach: save to corresponding org-attach-dir."
+2. attach: save to corresponding `org-attach-dir'."
   :type '(choice
           (const :tag "Directory" directory)
           (const :tag "Attachment" attach)))
@@ -132,7 +132,7 @@ Allows the following substitutions:
   :options '(before after))
 
 (defcustom org-media-note-ref-key-field "Custom_ID"
-  "The property to save org-ref key."
+  "The property to save `org-ref' key."
   :type 'string)
 
 (defcustom org-media-note-link-prefix ""
@@ -231,7 +231,7 @@ according to `org-media-note-timestamp-pattern'."
       (int-to-string (org-timer-hms-to-secs hms)))))
 
 (defun org-media-note--current-org-ref-key ()
-  "Return the org-ref key of current org entry."
+  "Return the `org-ref' key of current org entry."
   (org-entry-get (point) org-media-note-ref-key-field org-media-note-use-inheritance))
 
 (defun org-media-note--current-media-type ()
@@ -281,7 +281,7 @@ Return realpath instead of symlink."
 (defun org-media-note--ref-context ()
   "Return a list with info about the reference in org-media-note.
 This list includes the following elements:
-- use org-ref mode or not.
+- use `org-ref' mode or not.
 - current reference key, if available.
 - associated media file for the current ref key, if any.
 - associated media URL for the current ref key, if any."
@@ -464,7 +464,8 @@ occurrences of %-escaped PLACEHOLDER with replacement and return a new string.
            finally return string))
 
 (defun org-media-note--beginning-of-line-advice (orig-func &optional n)
-  "Advice to optimize line beginning detection in plain-lists for `org-beginning-of-line'."
+  "Advice to optimize line beginning detection in plain-lists.
+- ORIG-FUNC: `org-beginning-of-line'."
   (let ((org-list-full-item-re org-media-note--list-full-item-re))
     (funcall orig-func n)))
 
