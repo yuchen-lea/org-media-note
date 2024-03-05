@@ -8,9 +8,9 @@
 (require 'org)
 
 (declare-function org-element-context "org-element" (&optional element))
-(declare-function org-element-property "org-element-ast" (property node))
-(declare-function org-timer-secs-to-hms "org-timer")
-(declare-function org-timer-hms-to-secs "org-timer")
+(declare-function org-element-property "org-element-ast" (property node &optional dflt force-undefer))
+(declare-function org-timer-secs-to-hms "org-timer" (s))
+(declare-function org-timer-hms-to-secs "org-timer" (hms))
 (declare-function org-attach-dir "org-attach")
 
 ;;;; Customization
@@ -69,18 +69,22 @@ File links are more general, while attachment links are more concise."
   )
 
 (defcustom org-media-note-separator-when-merge ""
-  "Separator to use when calling  `org-media-note-merge-item'"
+  "Separator to use when calling  `org-media-note-merge-item'."
   :type 'string)
 
 
 (defcustom org-media-note-timestamp-pattern 'hms
-  ""
+  "Format pattern for timestamps in org-media-note.
+Allows the following substitutions:
+- `hms`: Hours, minutes, and seconds (hh:mm:ss).
+- `hmsf`: Hours, minutes, seconds, and milliseconds (hh:mm:ss.fff)."
   :type '(choice
           (const :tag "hh:mm:ss" hms)
           (const :tag "hh:mm:ss.fff" hmsf)))
 
 (defcustom org-media-note-timestamp-link-format "%timestamp"
-  "Timestamp Link text.  Allows the following substitutions:
+  "Timestamp Link text.
+Allows the following substitutions:
 - %filename :: name of the media file
 - %timestamp :: current media timestamp (hms)
 - %duration :: length of the media file (hms)
@@ -88,7 +92,8 @@ File links are more general, while attachment links are more concise."
   :type 'string)
 
 (defcustom org-media-note-ab-loop-link-format "%ab-loop-a-%ab-loop-b"
-  "AB-loop Link text.  Allows the following substitutions:
+  "AB-loop Link text.
+Allows the following substitutions:
 - %filename :: name of the media file
 - %ab-loop-a :: timestamp of point a of ab loop (hms)
 - %ab-loop-b :: timestamp of point b of ab loop (hms)
@@ -140,10 +145,11 @@ group 4: description tag")
 ;;;;; Utils
 
 (defun org-media-note--seconds-to-timestamp (secs)
-  "Convert SECS (float or int) to timestamp according to `org-media-note-timestamp-pattern'."
+  "Convert SECS (float or int) to timestamp.
+according to `org-media-note-timestamp-pattern'."
   (let ((secs (if (stringp secs)
-                     (string-to-number secs)
-                   secs)))
+                  (string-to-number secs)
+                secs)))
     (cond
      ((eq org-media-note-timestamp-pattern 'hms)
       (org-media-note--seconds-to-hms secs))
@@ -151,11 +157,11 @@ group 4: description tag")
       (org-media-note--seconds-to-hmsf secs)))))
 
 (defun org-media-note--seconds-to-hms (secs)
-  "Convert SECS (float or int) to 'hh:mm:ss'."
+  "Convert SECS (float or int) to hh:mm:ss."
   (org-timer-secs-to-hms (round secs)))
 
 (defun org-media-note--seconds-to-hmsf (secs)
-  "Convert SECS (float or int) to 'hh:mm:ss.fff'."
+  "Convert SECS (float or int) to hh:mm:ss.fff."
   (let* ((sec-with-ms (split-string (format "%0.3f" secs) "\\."))
          (sec (string-to-number (car sec-with-ms)))
          (ms (nth 1 sec-with-ms)))
@@ -164,8 +170,8 @@ group 4: description tag")
 (defun org-media-note--millisecs-to-timestamp (millisecs)
   "Convert MILLISECS to timestamp."
   (let ((millisecs (if (stringp millisecs)
-                     (string-to-number millisecs)
-                   millisecs)))
+                       (string-to-number millisecs)
+                     millisecs)))
     (org-media-note--seconds-to-timestamp (/ millisecs 1000.0))))
 
 (defun org-media-note--get-duration-timestamp ()
@@ -177,15 +183,17 @@ group 4: description tag")
   (org-media-note--seconds-to-timestamp (mpv-get-playback-position)))
 
 (defun org-media-note--timestamp-to-seconds (timestamp)
-  "Convert timestamp to seconds (string)."
+  "Convert TIMESTAMP to seconds (string)."
   (let* ((splitted-timestamp (split-string timestamp "\\(\\.\\|,\\)"))
          (hms (nth 0 splitted-timestamp))
          fff)
     (if (= (length splitted-timestamp) 2)
-      (progn
-        (setq fff (nth 1 splitted-timestamp))
-        (format "%s.%s" (org-timer-hms-to-secs hms) fff))
-    (int-to-string (org-timer-hms-to-secs hms)))))
+        (progn
+          (setq fff (nth 1 splitted-timestamp))
+          (format "%s.%s"
+                  (org-timer-hms-to-secs hms)
+                  fff))
+      (int-to-string (org-timer-hms-to-secs hms)))))
 
 (defun org-media-note--current-org-ref-key ()
   "Return the org-ref key of current org entry."
@@ -220,7 +228,7 @@ group 4: description tag")
        org-media-note-use-refcite-first))
 
 (defun org-media-note--online-video-p (path)
-  "Return t if PATH is an HTTP URL."
+  "Return t if PATH is an online video link."
   (string-match "^http" path))
 
 ;;;;; Add note
@@ -531,7 +539,7 @@ Supported formats:
                      (org-media-note--timestamp-to-seconds (nth 1 timestamps)))))
     (org-media-note--follow-link file-path-or-url time-a time-b)))
 
-(defun org-media-note--follow-link (file-path-or-url time-a time-b)
+(defun org-media-note--follow-link (file-path-or-url time-a &optional time-b)
   "Open FILE-PATH-OR-URL in mpv.
 TIME-A and TIME-B indicate the start and end of a playback loop."
   (let ((path (if (org-media-note--online-video-p file-path-or-url)

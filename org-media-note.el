@@ -34,6 +34,8 @@
 (require 'org-media-note-mpv)
 (require 'org-media-note-import)
 
+(declare-function org-media-note-setup-org-ref "org-media-note-org-ref")
+
 ;;;; Commands
 ;;;;; Hydra
 
@@ -113,16 +115,16 @@
     ("I s" org-media-note-insert-note-from-srt
      "Import from srt"))
    "Toggle"
-   (("t m" toggle-org-media-note-auto-insert-item "Auto insert media item"
-     :toggle org-media-note-auto-insert-item)
-    ("t c" org-media-note-toggle-refcite "Use ref key instead of absolute path"
-     :toggle org-media-note-use-refcite-first)
-    ("t p" org-media-note-toggle-pause-after-insertion
-     "Pause media after insert link" :toggle org-media-note-pause-after-insert-link)
+   (("t m" toggle-org-media-note-auto-insert-item
+     "Auto insert media item" :toggle org-media-note-auto-insert-item)
     ("t s" org-media-note-toggle-save-screenshot
-     "Auto save screenshot" :toggle org-media-note-save-screenshot-p)
+     "Auto insert screenshot" :toggle org-media-note-save-screenshot-p)
     ("t S" org-media-note-toggle-screenshot-with-sub
      "Screenshot with subtitles" :toggle org-media-note-screenshot-with-sub)
+    ("t c" org-media-note-toggle-refcite
+     "Use ref key instead of path" :toggle org-media-note-use-refcite-first)
+    ("t p" org-media-note-toggle-pause-after-insertion
+     "Pause media after insert link" :toggle org-media-note-pause-after-insert-link)
     ("t t" org-media-note-toggle-timestamp-pattern
      (format "Timestamp format: %s"
              (cond
