@@ -87,7 +87,13 @@
      "Previous subtitle")
     ("C-<right>"
      (mpv-run-command "sub-seek" 1)
-     "Next subtitle"))
+     "Next subtitle")
+    ("<prior>"
+     (mpv-run-command "add" "chapter" -1)
+     "Previous Chapter")
+    ("<next>"
+     (mpv-run-command "add" "chapter" 1)
+     "Next Chapter"))
    "Volume"
    (("+"
      (org-media-note-change-volume-by 5)
