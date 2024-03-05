@@ -21,6 +21,7 @@
           (const :tag "Ask" ask)))
 
 (defcustom org-media-note-delete-srt 'never
+  ;; TODO WIP, how to delete srt file when web streaming
   "Controls the deletion of SRT files.
    'always - Always delete the SRT file without asking.
    'never  - Never delete the SRT file.
@@ -99,51 +100,66 @@
 
 ;;;; import from srt:
 (defun org-media-note-insert-note-from-srt ()
-  "Insert note from SRT file."
+  "Insert note from SRT."
   (interactive)
-  (let ((key (org-media-note--current-org-ref-key))
-        (timestamp-format (ido-completing-read "Select timestamp format: " '("time1" "time1-time2")))
-        srt-file
-        media-link-type
-        media-file)
-    (if (org-media-note-ref-cite-p)
-        (progn
-          (setq source-media (org-media-note-get-media-file-by-key key))
-          (setq media-link-type (format "%scite"
-                                        (org-media-note--file-media-type source-media)))
-          (setq media-file key)
-          (setq srt-file (concat (file-name-sans-extension source-media)
-                                 ".srt")))
-      (progn
-        ;; TODO need more test
-        (setq media-file (read-file-name "Find media file:"))
-        (setq media-link-type (org-media-note--file-media-type media-file))
-        (setq srt-file (concat (file-name-sans-extension media-file)
-                               ".srt"))))
-    (message srt-file)
-    (if (not (file-exists-p srt-file))
-        (setq srt-file (read-file-name "Find srt file:")))
-    (insert (org-media-note--convert-from-srt srt-file timestamp-format
-                                              media-link-type media-file))
-    (cond
-     ((eq org-media-note-delete-srt 'always)
-      (delete-file srt-file))
-     ((eq org-media-note-delete-srt 'ask)
-      (if (y-or-n-p "Delete the SRT File? ")
-          (delete-file srt-file)))
-     ;; For 'never, do nothing.
-     )))
+  (cl-multiple-value-bind (_ key file-by-key url-by-key)
+      (org-media-note--ref-context)
+    (cl-multiple-value-bind (_ media-files-in-attach-dir)
+        (org-media-note--attach-context)
+      (let* ((file-or-url-from-key (or file-by-key url-by-key))
+             (file-from-attach (and (= 1 (length media-files-in-attach-dir))
+                                    (car media-files-in-attach-dir)))
+             (file-or-url-from-mpv (mpv-get-property "path"))
+             (file-without-cite (or file-or-url-from-mpv file-from-attach))
+             source-media
+             media-link-type
+             ignore-mpv-subtitle)
+        (cond
+         ((and file-or-url-from-mpv
+               file-or-url-from-key
+               (not (string= file-or-url-from-mpv file-or-url-from-key)))
+          (if (equal file-or-url-from-mpv (org-media-note--select "The currently playing file does not match the file associated with the key. Choose which subtitle to insert: "
+                                                                  (list file-or-url-from-mpv file-or-url-from-key)))
+              (setq file-or-url-from-key nil)
+            (setq ignore-mpv-subtitle t)))
+         ((and file-or-url-from-mpv
+               file-from-attach
+               (not (string= file-or-url-from-mpv file-from-attach)))
+          (if (equal file-or-url-from-mpv (org-media-note--select "The currently playing file does not match the file associated with the attachment. Choose which subtitle to insert: "
+                                                                  (list file-or-url-from-mpv file-from-attach)))
+              nil
+            (setq file-without-cite file-from-attach ignore-mpv-subtitle
+                  t))))
+        (cond
+         (file-or-url-from-key (setq source-media key)
+                               (setq media-link-type (format "%scite"
+                                                             (org-media-note--file-media-type source-media))))
+         (t (setq file-without-cite (or file-without-cite
+                                        (read-file-name "Find media file:")))
+            (setq source-media file-without-cite)
+            (setq media-link-type (org-media-note--file-media-type source-media))))
+        (insert (org-media-note--convert-from-srt (org-media-note--selected-subtitle-content (or file-by-key file-without-cite)
+                                                                                             ignore-mpv-subtitle)
+                                                  (org-media-note--select "Select timestamp format: "
+                                                                          '("time1" "time1-time2"))
+                                                  media-link-type
+                                                  source-media))))))
 
-(defun org-media-note--convert-from-srt (srt-file timestamp-format media-link-type media-file)
-  "Return link for MEDIA-FILE of MEDIA-LINK-TYPE from SRT-FILE."
+(defun org-media-note--convert-from-srt (srt-content timestamp-format media-link-type media-file)
+  "Return note of MEDIA-FILE from SRT-CONTENT.
+in format of TIMESTAMP-FORMAT and MEDIA-LINK-TYPE."
   (with-temp-buffer
-    (insert-file-contents srt-file)
+    (insert srt-content)
     (goto-char (point-min))
-    (while (re-search-forward (concat "[[:digit:]]+\n" org-media-note--hmsf-timestamp-pattern "--> " org-media-note--hmsf-timestamp-pattern "\n\\(.+\\)\n")  nil t)
+    (while (re-search-forward (concat "[[:digit:]]+\n" org-media-note--hmsf-timestamp-pattern
+                                      "--> " org-media-note--hmsf-timestamp-pattern
+                                      "\n\\(.+\\)\n")
+                              nil
+                              t)
       (let* ((time-a (buffer-substring (match-beginning 1)
-                                          (match-end 1)))
+                                       (match-end 1)))
              (time-b (buffer-substring (match-beginning 3)
-                                     (match-end 3)))
+                                       (match-end 3)))
              (note (buffer-substring (match-beginning 5)
                                      (match-end 5)))
              (beg (match-beginning 0))
@@ -151,24 +167,93 @@
              timestamp
              new-text)
         (cond
-          ((eq org-media-note-timestamp-pattern 'hms)
-           (setq time-a (car (split-string time-a "[,\\.]")))
-           (setq time-b (car (split-string time-b "[,\\.]")))
-           )
-          ((eq org-media-note-timestamp-pattern 'hmsf)
-           (setq time-a (s-replace-regexp "," "." time-a))
-           (setq time-b (s-replace-regexp "," "." time-b))
-           ))
+         ((eq org-media-note-timestamp-pattern 'hms)
+          (setq time-a (car (split-string time-a "[,\\.]")))
+          (setq time-b (car (split-string time-b "[,\\.]"))))
+         ((eq org-media-note-timestamp-pattern 'hmsf)
+          (setq time-a (s-replace-regexp "," "." time-a))
+          (setq time-b (s-replace-regexp "," "." time-b))))
         (cond
          ((string= timestamp-format "time1")
           (setq timestamp time-a))
          ((string= timestamp-format "time1-time2")
           (setq timestamp (format "%s-%s" time-a time-b))))
-        (setq new-text (format "- [[%s:%s#%s][%s]] %s" media-link-type media-file timestamp timestamp note))
+        (setq new-text (format "- [[%s:%s#%s][%s]] %s" media-link-type
+                               media-file timestamp timestamp note))
         (goto-char beg)
         (delete-region beg end)
         (insert new-text)))
     (buffer-string)))
+
+(defun org-media-note--is-subtitle-track (item)
+  "Check if ITEM is asubtitle track.
+ITEM is a cons cell from mpv track-list.
+Supports only SRT format currently."
+  (and (equal (cdr (assoc 'type item)) "sub")
+       ;; TODO Currently only supports srt
+       (or (string-suffix-p ".srt"
+                            (cdr (assoc 'title item)))
+           (equal (cdr (assoc 'title item)) "srt"))))
+
+(defun org-media-note--selected-subtitle-content (file-from-context ignore-mpv-subtitle)
+  "Get the content of the selected subtitle.
+The source of the subtitle counld be:
+- Attempts to match a subtitle file based on FILE-FROM-CONTEXT.
+- Subtitle in the MPV player, if available and not IGNORE-MPV-SUBTITLE.
+- If neither of the above available, prompts the user to select."
+  (let ((subtitle-prompt "Select an SRT file: ")
+        (track-list (mpv-get-property "track-list"))
+        (file-from-context-base-name (if (not (org-media-note--online-video-p file-from-context))
+                                         (file-name-base file-from-context)))
+        (file-from-context-dir (if (not (org-media-note--online-video-p file-from-context))
+                                   (file-name-directory file-from-context)))
+        srt-local-file
+        srt-online-content)
+    (if (or ignore-mpv-subtitle
+            (not track-list))
+        ;; No subtitle track is playing in MPV
+        (if file-from-context
+            (setq srt-local-file (or (car (directory-files file-from-context-dir
+                                                           t
+                                                           (concat (regexp-quote file-from-context-base-name)
+                                                                   "\\.srt$")))
+                                     (read-file-name subtitle-prompt file-from-context-dir
+                                                     nil nil file-from-context-base-name)))
+          (setq srt-local-file (read-file-name subtitle-prompt)))
+      ;; subtitle track playing in MPV
+      (let* ((srt-tracks (seq-filter #'org-media-note--is-subtitle-track
+                                     track-list))
+             (manual-select-srt "Select srt File")
+             (choices (append (mapcar (lambda (item)
+                                        (let ((name (or (cdr (assoc 'lang item))
+                                                        (cdr (assoc 'title item)))))
+                                          name))
+                                      srt-tracks)
+                              (list manual-select-srt)))
+             (selected-lang (org-media-note--select subtitle-prompt choices))
+             selected-track)
+        (if (equal selected-lang manual-select-srt)
+            (setq srt-local-file (if file-from-context
+                                     (read-file-name subtitle-prompt file-from-context-dir
+                                                     nil nil file-from-context-base-name)
+                                   (read-file-name subtitle-prompt)))
+          (progn
+            (setq selected-track (seq-find (lambda (item)
+                                             (equal (or (cdr (assoc 'lang item))
+                                                        (cdr (assoc 'title item))) selected-lang))
+                                           srt-tracks))
+            (when selected-track
+              (let ((external-filename (cdr (assoc 'external-filename selected-track))))
+                (if (file-exists-p external-filename)
+                    (setq srt-local-file external-filename)
+                  (setq srt-online-content external-filename))))))))
+    (if srt-online-content
+        (let* ((srt-lines (split-string srt-online-content "\n"))
+               (processed-srt-lines (cons "1" (cdr srt-lines))))
+          (mapconcat 'identity processed-srt-lines "\n"))
+      (with-temp-buffer
+        (insert-file-contents srt-local-file)
+        (buffer-string)))))
 
 ;;;; import from noted:
 (defun org-media-note-insert-note-from-noted ()
