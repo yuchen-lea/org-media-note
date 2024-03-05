@@ -46,10 +46,17 @@
    :hint nil)
   ("File"
    (("o" org-media-note-play-smart
-     (if (org-media-note-ref-cite-p)
-         (format "Open %s"
-                 (org-media-note--current-org-ref-key))
-       "Open file")
+     (cl-multiple-value-bind (link _ _)
+         (org-media-note--link-context)
+       (cl-multiple-value-bind (ref-mode key _ _)
+           (org-media-note--ref-context)
+         (cl-multiple-value-bind (_ media-files-in-attach-dir)
+             (org-media-note--attach-context)
+           (cond
+            (link "Open link")
+            (ref-mode (format "Open %s" key))
+            ((> (length media-files-in-attach-dir) 0) "Open attach")
+            (t "Open media")))))
      :width 20)
     ("j"
      (mpv-cycle-property "sub")
@@ -134,60 +141,47 @@
     ("t t" org-media-note-toggle-timestamp-pattern
      (format "Timestamp format: %s"
              (cond
-              ((eq org-media-note-timestamp-pattern 'hms)
-               "hh:mm:ss")
-              ((eq org-media-note-timestamp-pattern 'hmsf)
-               "hh:mm:ss.fff"))))
+              ((eq org-media-note-timestamp-pattern 'hms) "hh:mm:ss")
+              ((eq org-media-note-timestamp-pattern 'hmsf) "hh:mm:ss.fff"))))
     ("t M" org-media-note-set-separator
-     (format "Separator when merge: %s"
-             org-media-note-separator-when-merge)))))
+     (format "Separator when merge: %s" org-media-note-separator-when-merge)))))
 
 
 (defun org-media-note--hydra-title ()
   "Return title string for `org-media-note-hydra'."
-  (let ((file-path (mpv-get-property "path"))
-        (ref-key (org-media-note--current-org-ref-key))
-        (icon (if (featurep 'all-the-icons)
-                  (all-the-icons-material "ondemand_video")
-                ""))
-        speed
-        current-timestamp
-        total-timestamp
-        remaining-hms
-        bib-entry
-        title)
-    (if file-path
-        ;; Title when mpv is playing media
-        (progn
-          (setq speed (mpv-get-property "speed"))
-          (setq volume (mpv-get-property "volume"))
-          (setq current-timestamp (org-media-note--get-current-timestamp))
-          (setq total-timestamp (org-media-note--get-duration-timestamp))
-          (setq remaining-hms (org-media-note--seconds-to-timestamp (mpv-get-property "playtime-remaining")))
-          (s-concat icon
-                    " org-media-note: "
-                    current-timestamp
-                    " / "
-                    total-timestamp
-                    "\t Volume: "
-                    (number-to-string volume)
-                    "\t Speed: "
-                    (number-to-string speed)
-                    "\t Remaining: "
-                    remaining-hms
-                    "\n\t❯ "
-                    (if (org-media-note-ref-cite-p)
-                        (progn
-                          (setq bib-entry (bibtex-completion-get-entry ref-key))
-                          (setq title (bibtex-completion-get-value "title" bib-entry))
-                          (format "%s (%s)" title ref-key))
-                      (if (org-media-note--online-video-p file-path)
+  (cl-multiple-value-bind (file-path title current-timestamp)
+      (org-media-note--current-media-info)
+    (let ((icon (if (featurep 'all-the-icons)
+                    (all-the-icons-material "ondemand_video")
+                  "")))
+      (if file-path
+          ;; Title when mpv is playing media
+          (let ((speed (mpv-get-property "speed"))
+                (volume (mpv-get-property "volume"))
+                (total-timestamp (org-media-note--get-duration-timestamp))
+                (remaining-hms (org-media-note--seconds-to-timestamp (mpv-get-property "playtime-remaining"))))
+            (s-concat icon
+                      " org-media-note: "
+                      current-timestamp
+                      " / "
+                      total-timestamp
+                      "\t Volume: "
+                      (number-to-string volume)
+                      "\t Speed: "
+                      (number-to-string speed)
+                      "\t Remaining: "
+                      remaining-hms
+                      "\n\t❯ "
+                      (if (org-media-note-ref-cite-p)
                           (format "%s (%s)"
-                                  (mpv-get-property "media-title")
-                                  file-path)
-                        file-path))))
-      ;; Title when no media is playing
-      (concat icon " org-media-note"))))
+                                  title
+                                  (org-media-note--current-org-ref-key))
+                        (if title
+                            (format "%s (%s)" title file-path)
+                          file-path))))
+        ;; Title when no media is playing
+        (concat icon " org-media-note")))))
+
 ;;;;; Customize Org link
 (org-link-set-parameters "video"
                          :follow 'org-media-note-media-link-follow)

@@ -264,7 +264,7 @@ according to `org-media-note-timestamp-pattern'."
 
 (defun org-media-note--online-video-p (path)
   "Return t if PATH is an online video link."
-  (string-match "^http" path))
+  (and path (string-match "^http" path)))
 
 (defun org-media-note--media-files-in-dir (dir)
   "Get supported media file list in DIR.
@@ -286,7 +286,7 @@ This list includes the following elements:
 - associated media file for the current ref key, if any.
 - associated media URL for the current ref key, if any."
   (let ((key (org-media-note--current-org-ref-key)))
-    (if org-media-note-use-org-ref
+    (if (org-media-note-ref-cite-p)
         (list t
               key
               (org-media-note-get-media-file-by-key key)
@@ -302,32 +302,36 @@ This list includes the following elements:
   (let ((element (org-element-context)))
     (if (eq (org-element-type element) 'link)
         (let* ((link-type (org-element-property :type element))
-               (link-path (org-element-property :path element))
-               (path-with-type (format "%s:%s" link-type link-path))
-               (file-path-or-url (cond
-                                  ((string= link-type "file")
-                                   (expand-file-name link-path))
-                                  ((string= link-type "attachment")
-                                   (expand-file-name link-path
-                                                     (org-attach-dir)))
-                                  ((member link-type '("audio" "video"))
-                                   (expand-file-name (nth 0
-                                                          (split-string link-path "#"))))
-                                  ((member link-type '("audiocite" "videocite"))
-                                   (let ((key (nth 0
-                                                   (split-string link-path "#"))))
-                                     (or (org-media-note-get-media-file-by-key key)
-                                         (org-media-note-get-url-by-key key))))
-                                  ((org-media-note--online-video-p path-with-type) path-with-type)
-                                  (t nil)))
-               (start-time (if (member link-type '("audio" "video" "audiocite" "videocite"))
-                               (let* ((timestamps (nth 1
-                                                       (split-string link-path "#")))
-                                      (time-a (nth 0
-                                                   (split-string timestamps "-"))))
-                                 (org-media-note--timestamp-to-seconds time-a))
-                             0)))
-          (list link-type file-path-or-url start-time))
+               (supported-link (member link-type '("file" "http" "https" "attachment" "audio"
+                                                   "video" "audiocite" "videocite"))))
+          (if supported-link
+              (let* ((link-path (org-element-property :path element))
+                     (path-with-type (format "%s:%s" link-type link-path))
+                     (file-path-or-url (cond
+                                        ((string= link-type "file")
+                                         (expand-file-name link-path))
+                                        ((string= link-type "attachment")
+                                         (expand-file-name link-path
+                                                           (org-attach-dir)))
+                                        ((member link-type '("audio" "video"))
+                                         (expand-file-name (nth 0
+                                                                (split-string link-path "#"))))
+                                        ((member link-type '("audiocite" "videocite"))
+                                         (let ((key (nth 0
+                                                         (split-string link-path "#"))))
+                                           (or (org-media-note-get-media-file-by-key key)
+                                               (org-media-note-get-url-by-key key))))
+                                        ((org-media-note--online-video-p path-with-type) path-with-type)
+                                        (t nil)))
+                     (start-time (if (member link-type '("audio" "video" "audiocite" "videocite"))
+                                     (let* ((timestamps (nth 1
+                                                             (split-string link-path "#")))
+                                            (time-a (nth 0
+                                                         (split-string timestamps "-"))))
+                                       (org-media-note--timestamp-to-seconds time-a))
+                                   0)))
+                (list link-type file-path-or-url start-time))
+            (list nil nil 0)))
       (list nil nil 0))))
 
 (defun org-media-note--attach-context ()
