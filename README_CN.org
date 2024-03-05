@@ -14,6 +14,7 @@
 - 支持本地媒体和在线媒体
 - 插入时间戳时，可设定是否自动插入当前的视频截图
 - 可以从已有文件导入笔记，目前支持的格式：
+  + SRT 字幕文件
   + PotPlayer 生成的 PBF 文件
   + 由 [[https://www.notedapp.io/][Noted]] 导出的 TXT 文件
   + [[https://orgmode.org/manual/Timers.html][Timers]]
@@ -81,7 +82,7 @@
 
 - Header：展示当前播放的基本信息，文件路径、音量、播放进度、播放速度等
 - File：关于视频文件的操作
-  + =o= 根据情况智能播放  (=org-media-note-mpv-smart-play=)
+  + =o= 根据情况智能播放  (=org-media-note-play-smart=)
     1. 如果当前光标位于文件链接，播放该文件
     2. 如果在org-ref的笔记条目中执行该命令，则自动打开当前条目对应的媒体文件
        + 需要满足以下所有条件：
@@ -103,6 +104,8 @@
   + =<right>= 前进5s
   + =C-<left>= 跳转到前一字幕
   + =C-<right>= 跳转到后一字幕
+  + =<prior>= (即=<PgUp>=) 跳转到前一章节
+  + =<next>= (即=<PgDown>=) 跳转到后一章节
 - Volume：关于音量的操作
   + =+= 音量加5
   + =-= 音量减5
@@ -128,6 +131,7 @@
       + =org-media-note-screenshot-link-type-when-save-in-attach-dir= 当保存到对应 org-attach-dir时，使用file链接或attachment链接
       + 图片的路径格式与 =org-link-file-path-type= 一致
   + =s= 插入当前的字幕文本 (=org-media-note-insert-sub-text=)
+  + =H-m= 合并所选项为一条，只保留第一条的时间戳。适合导入字幕之后的处理 (=org-media-note-merge-item=)
 - Import: 导入
   + =I p= 从已有的PotPlayer PBF文件导入笔记，会尝试搜寻当前条目对应的媒体文件的同名PBF (=org-media-note-insert-note-from-pbf=)
   + =I n= 从已有的Noted TXT文件导入笔记 (=org-media-note-insert-note-from-noted=)
@@ -135,11 +139,12 @@
   + =I s= 从 srt 字幕文件导入，会尝试搜寻同名srt (=org-media-note-insert-note-from-srt=)
 - Toggle：笔记功能的设置
   + =t m= 启用后，在形如 =- [[video:video.mp4#00:03:24][00:03:24]] description= 的列表中， =<M-return>= 新建列表项会自动插入对应时间戳链接。
+  + =t s= 启用后， =<M-return>= 新建列表项时除了自动插入对应链接，也会自动插入当前视频截图
   + =t c= 启用时，会优先使用 =videocite= 或 =audiocite= 链接，而非 =video= 或 =audio= 链接
   + =t p= 启用后，会在插入链接后，自动暂停媒体
-  + =t s= 启用后， =<M-return>= 新建列表项时除了自动插入对应链接，也会自动插入当前视频截图
   + =t S= 启用后，保存的截图包含字幕，否则不包含字幕
   + =t t= 切换时间戳的格式：=hh:mm:ss= / =hh:mm:ss.fff=
+  + =t M= 设置执行合并所选项时的连接符
 
 ℹ 末尾括号为调用的函数，没有标注的功能多为直接调用mpv命令，可查阅 =org-media-note-hydra= 了解更多。
 * 依赖
