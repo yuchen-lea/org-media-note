@@ -9,9 +9,13 @@
 
 (declare-function org-element-context "org-element" (&optional element))
 (declare-function org-element-property "org-element-ast" (property node &optional dflt force-undefer))
+(declare-function org-element-type "org-element-ast" (node &optional anonymous))
 (declare-function org-timer-secs-to-hms "org-timer" (s))
 (declare-function org-timer-hms-to-secs "org-timer" (hms))
 (declare-function org-attach-dir "org-attach")
+
+(declare-function org-media-note-get-media-file-by-key "org-media-note-org-ref" (key))
+(declare-function org-media-note-get-url-by-key "org-media-note-org-ref" (key))
 
 ;;;; Customization
 
@@ -35,6 +39,16 @@
   :type '(choice
           (const :tag "Directory" directory)
           (const :tag "Attachment" attach)))
+
+(defcustom org-media-note-select-function
+  (cond
+   ((fboundp 'ido-completing-read) 'ido-completing-read)
+   (t 'completing-read))
+  "Function to use for selection in org-media-note."
+  :type '(choice
+          (const :tag "ido-completing-read" ido-completing-read)
+          (const :tag "completing-read" completing-read))
+  )
 
 (defcustom org-media-note-screenshot-link-type-when-save-in-attach-dir 'file
   "Link type to use with the `attach` `org-media-note-screenshot-save-method'.
@@ -144,6 +158,14 @@ group 4: description tag")
 ;;;; Commands
 ;;;;; Utils
 
+(defun org-media-note--select (prompt choices)
+  "PROMPT the user to select from CHOICES using `org-media-note-select-function'."
+  (pcase org-media-note-select-function
+    ('ido-completing-read
+     (ido-completing-read (format "%s: " prompt) choices))
+    (_
+     (completing-read (format "%s: " prompt) choices))))
+
 (defun org-media-note--seconds-to-timestamp (secs)
   "Convert SECS (float or int) to timestamp.
 according to `org-media-note-timestamp-pattern'."
@@ -241,6 +263,71 @@ Return realpath instead of symlink."
            (rx (eval (cons 'or
                            (append org-media-note--video-types org-media-note--audio-types)))
                eos))))
+
+(defun org-media-note--ref-context ()
+  "Return a list with info about the reference in org-media-note.
+This list includes the following elements:
+- use org-ref mode or not.
+- current reference key, if available.
+- associated media file for the current ref key, if any.
+- associated media URL for the current ref key, if any."
+  (let ((key (org-media-note--current-org-ref-key)))
+    (if org-media-note-use-org-ref
+        (list t
+              key
+              (org-media-note-get-media-file-by-key key)
+              (org-media-note-get-url-by-key key))
+      (list nil nil nil nil))))
+
+(defun org-media-note--link-context ()
+  "Return a list with info about the link at point.
+This list includes the following elements:
+- link type.
+- file absolute path or URL path.
+- start time if available."
+  (let ((element (org-element-context)))
+    (if (eq (org-element-type element) 'link)
+        (let* ((link-type (org-element-property :type element))
+               (link-path (org-element-property :path element))
+               (path-with-type (format "%s:%s" link-type link-path))
+               (file-path-or-url (cond
+                                  ((string= link-type "file")
+                                   (expand-file-name link-path))
+                                  ((string= link-type "attachment")
+                                   (expand-file-name link-path
+                                                     (org-attach-dir)))
+                                  ((member link-type '("audio" "video"))
+                                   (expand-file-name (nth 0
+                                                          (split-string link-path "#"))))
+                                  ((member link-type '("audiocite" "videocite"))
+                                   (let ((key (nth 0
+                                                   (split-string link-path "#"))))
+                                     (or (org-media-note-get-media-file-by-key key)
+                                         (org-media-note-get-url-by-key key))))
+                                  ((org-media-note--online-video-p path-with-type) path-with-type)
+                                  (t nil)))
+               (start-time (if (member link-type '("audio" "video" "audiocite" "videocite"))
+                               (let* ((timestamps (nth 1
+                                                       (split-string link-path "#")))
+                                      (time-a (nth 0
+                                                   (split-string timestamps "-"))))
+                                 (org-media-note--timestamp-to-seconds time-a))
+                             0)))
+          (list link-type file-path-or-url start-time))
+      (list nil nil 0))))
+
+(defun org-media-note--attach-context ()
+  "Return a list with info about the attachments.
+This list includes the following elements:
+- current attach-dir
+-  media files in attach-dir."
+  (let ((attach-dir (org-attach-dir)))
+    (if attach-dir
+        (let ((media-files (org-media-note--media-files-in-dir attach-dir)))
+          (list (format "%s/" attach-dir) ;; to open correct dir in `read-file-name'
+                media-files))
+      (list nil nil))))
+
 ;;;;; Add note
 ;;;;;; media note item
 
@@ -553,8 +640,12 @@ Supported formats:
   "Open FILE-PATH-OR-URL in mpv.
 TIME-A and TIME-B indicate the start and end of a playback loop."
   (let ((path (if (org-media-note--online-video-p file-path-or-url)
-                  file-path-or-url
-                (expand-file-name file-path-or-url))))
+                  (if (executable-find "yt-dlp")
+                      file-path-or-url
+                    (error "Warning: mpv needs the yt-dlp to play online videos"))
+                (expand-file-name file-path-or-url)))
+        (time-a (if (numberp time-a) (number-to-string time-a) time-a))
+        (time-b (if (numberp time-b) (number-to-string time-b) time-b)))
     (if (not (string= path
                       (mpv-get-property "path")))
         ;; file-path is not playing
