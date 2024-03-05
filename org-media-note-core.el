@@ -588,12 +588,19 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
 - TITLE: for online media and cite media only.
 - TIMESTAMP: e.g. '3:43:12'.
 - EXTENSION: default `org-media-note-screenshot-extension'."
-  (let* ((formatted-name (concat (or title (file-name-base media-path)) "-" timestamp))
-         (replacements '((" - " "-") ("[\]\[\/：:*?\"<>|+=,\\ ]" "_") ("_+" "_")))
-         (final-name (reduce (lambda (name pair)
-                               (replace-regexp-in-string (nth 0 pair) (nth 1 pair) name))
-                             replacements
-                             :initial-value formatted-name)))
+  (let* ((formatted-name (concat (or title
+                                     (file-name-base media-path))
+                                 "-"
+                                 timestamp))
+         (replacements '((" - " "-")
+                         ("[\]\[\/：:*?\"<>|+=,\\ ]" "_")
+                         ("_+" "_")))
+         (final-name (cl-reduce (lambda (name pair)
+                                  (replace-regexp-in-string (nth 0 pair)
+                                                            (nth 1 pair)
+                                                            name))
+                                replacements
+                                :initial-value formatted-name)))
     (concat final-name extension)))
 
 (defun org-media-note--format-file-path (path)
