@@ -44,7 +44,7 @@
    :title (org-media-note--hydra-title)
    :hint nil)
   ("File"
-   (("o" org-media-note-mpv-smart-play
+   (("o" org-media-note-play-smart
      (if (org-media-note-ref-cite-p)
          (format "Open %s"
                  (org-media-note--current-org-ref-key))

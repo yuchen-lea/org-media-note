@@ -6,9 +6,6 @@
 
 (require 'org-media-note-core)
 
-(declare-function org-media-note-get-media-file-by-key "org-media-note-org-ref")
-(declare-function org-media-note-get-url-by-key "org-media-note-org-ref")
-
 ;;;; Customization
 ;;;; Variables
 
@@ -20,58 +17,47 @@
 
 ;;;; Commands
 
-(defun org-media-note-mpv-smart-play ()
-  "Conditionally open media file in mpv.
-1. When point at a file link, play it in mpv;
-2. When citation key found, play the corresponding local media or online media;
-3. With a single attachment, file, or url: play it in mpv;
-4. With multiple attachments, open the attach dir to select;
-5. Else, answer y to find local file to open, n to input URL."
+(defun org-media-note-play-smart ()
+  "Conditionally open media file in mpv based on the current context.
+1. Point at a file/http/media link: play it in mpv;
+2. When a citation key and corresponding local media is found: play it in mpv;
+3. Exactly one media file in attach-dir: play it in mpv;
+2. When a citation key and corresponding online media is found: play it in mpv;
+4. Multiple media files in attach-dir: open the attach-dir to select;
+5. Else, prompt the user to:
+   5a. either find a local file to play
+   5b. or to provide a URL for online media."
   (interactive)
-  (let* ((element (org-element-context))
-         (type (org-element-type element))
-         (attach-dir (if (org-attach-dir)
-                         (format "%s/"
-                                 (org-attach-dir))))
-         key media-file-by-key media-url-by-key)
-    (when org-media-note-use-org-ref
-      (setq key (org-media-note--current-org-ref-key))
-      (setq media-file-by-key (org-media-note-get-media-file-by-key key))
-      (setq media-url-by-key (org-media-note-get-url-by-key key)))
-    (cond
-     ((and (eq type 'link)
-           (string= (org-element-property :type element) "file"))
-      (mpv-start (org-element-property :path element)))
-     ((and (org-media-note-ref-cite-p)
-           media-file-by-key)
-      (mpv-play media-file-by-key))
-     ((and (org-media-note-ref-cite-p)
-           media-url-by-key)
-      (org-media-note--mpv-play-online-video media-url-by-key))
-     (attach-dir (let* ((media-files-in-attach-dir (org-media-note--media-files-in-dir attach-dir))
-                        (number-of-media-files (length media-files-in-attach-dir)))
-                   (if (= 1 number-of-media-files)
-                       (mpv-play (car media-files-in-attach-dir))
-                     (mpv-play (read-file-name "File to play: " attach-dir)))))
-     (t (if (y-or-n-p "Local media (`n` to enter remote URL)? ")
-            (mpv-play (read-file-name "File to play: "))
-          (org-media-note-play-online-video))))))
+  (cl-multiple-value-bind (_ file-or-url-by-link start-time)
+      (org-media-note--link-context)
+    (cl-multiple-value-bind (_ _ file-by-key url-by-key)
+        (org-media-note--ref-context)
+      (cl-multiple-value-bind (attach-dir media-files-in-attach-dir)
+          (org-media-note--attach-context)
+        (let* ((number-of-media-files (length media-files-in-attach-dir))
+               (file-or-url (or file-or-url-by-link
+                                file-by-key
+                                (and (= 1 number-of-media-files)
+                                     (car media-files-in-attach-dir))
+                                url-by-key)))
+          (cond
+           (file-or-url (org-media-note--follow-link file-or-url start-time))
+           ((and attach-dir
+                 (> number-of-media-files 1))
+            (mpv-play (read-file-name "File to play: " attach-dir)))
+           (t (if (string= "local"
+                           (org-media-note--select "Play media from: "
+                                                   (list "local" "online")
+                                                   ))
+                  (mpv-play (read-file-name "File to play: "))
+                (org-media-note-play-online-video)))))))))
 
 
 (defun org-media-note-play-online-video ()
   "Open online media file in mpv."
   (interactive)
   (let ((video-url (read-string "Url to play: ")))
-    (org-media-note--mpv-play-online-video video-url)))
-
-(defun org-media-note--mpv-play-online-video (video-url)
-  "Play remote VIDEO-URL."
-  (if (org-media-note--online-video-p video-url)
-      (if (or (executable-find "youtube-dl")
-              (executable-find "yt-dlp"))
-        (mpv-start video-url)
-      (error "Warning: mpv needs the youtube-dl or yt-dlp program to play online videos"))
-    (error (format "'%s' is not a valid url!" video-url))))
+    (org-media-note--follow-link video-url 0)))
 
 (defun org-media-note-change-speed-by (speed-step)
   "Modify playing media's speed by SPEED-STEP."
