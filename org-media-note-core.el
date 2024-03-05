@@ -589,7 +589,7 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
 - TIMESTAMP: e.g. '3:43:12'.
 - EXTENSION: default `org-media-note-screenshot-extension'."
   (let* ((formatted-name (concat (or title (file-name-base media-path)) "-" timestamp))
-         (replacements '((" - " "-") ("[/:*?\"<>|+=,\\ ]" "_") ))
+         (replacements '((" - " "-") ("[\]\[\/：:*?\"<>|+=,\\ ]" "_") ("_+" "_")))
          (final-name (reduce (lambda (name pair)
                                (replace-regexp-in-string (nth 0 pair) (nth 1 pair) name))
                              replacements
