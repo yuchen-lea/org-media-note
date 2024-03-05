@@ -121,20 +121,11 @@
                                                  elt))
                                   files)))
     (cond
-     (video-files (org-media-note--get-realpath-for-file (nth 0 video-files)))
-     (audio-files (org-media-note--get-realpath-for-file (nth 0 audio-files)))
+     ;; TODO when multiple media files?
+     (video-files (file-truename (nth 0 video-files)))
+     (audio-files (file-truename (nth 0 audio-files)))
      (t nil))))
 
-(defun org-media-note--get-realpath-for-file (symlink)
-  "Get realpath for SYMLINK."
-  (if (executable-find "realpath")
-      (replace-regexp-in-string "\n" ""
-                                (shell-command-to-string (concat "realpath \""
-                                                                 (replace-regexp-in-string "~"
-                                                                                           (file-truename "~")
-                                                                                           symlink)
-                                                                 "\"")))
-    symlink))
 
 (defun org-media-note-get-url-by-key (key)
   "Get URL by KEY."

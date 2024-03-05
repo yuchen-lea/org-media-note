@@ -231,6 +231,16 @@ according to `org-media-note-timestamp-pattern'."
   "Return t if PATH is an online video link."
   (string-match "^http" path))
 
+(defun org-media-note--media-files-in-dir (dir)
+  "Get supported media file list in DIR.
+Return realpath instead of symlink."
+  (mapcar #'file-truename
+          (directory-files
+           dir
+           'full
+           (rx (eval (cons 'or
+                           (append org-media-note--video-types org-media-note--audio-types)))
+               eos))))
 ;;;;; Add note
 ;;;;;; media note item
 

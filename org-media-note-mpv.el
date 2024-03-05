@@ -57,14 +57,6 @@
             (mpv-play (read-file-name "File to play: "))
           (org-media-note-play-online-video))))))
 
-(defun org-media-note--media-files-in-dir (dir)
-  "Get supported media file list in DIR."
-  (directory-files
-   dir
-   'full
-   (rx (eval (cons 'or
-                   (append org-media-note--video-types org-media-note--audio-types)))
-       eos)))
 
 (defun org-media-note-play-online-video ()
   "Open online media file in mpv."
