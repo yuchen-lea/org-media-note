@@ -44,7 +44,7 @@
 [[../demo/org-media-note-follow.gif?raw=true]]
 
 打开在线视频后，与本地文件的操作相同！
-[[../demo/org-media-note-online-video.gif?raw=true]]
+[[../demo/org-media-note-online-video-zh.gif?raw=true]]
 
 * 快速指南
 
@@ -189,4 +189,4 @@
 只要你能在 mpv 中正常的加载字幕，那么，org-media-note 就可以像处理本地媒体一样，控制播放、插入时间戳和截图，甚至是导入字幕！
 
 下图演示了播放bilibili视频，弹幕导航，切换字幕，导入字幕等功能：
-[[../demo/org-media-note-online-video.gif?raw=true]]
+[[../demo/org-media-note-online-video-zh.gif?raw=true]]

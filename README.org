@@ -46,7 +46,7 @@ Jump to the right position by clicking link
 [[../demo/org-media-note-follow.gif?raw=true]]
 
 Open online video, then operate the same as local files!
-[[../demo/org-media-note-online-video.gif?raw=true]]
+[[../demo/org-media-note-online-video-en.gif?raw=true]]
 
 * QuickStart
 ℹ Currently, you have to install this package from github.
@@ -194,4 +194,4 @@ Using org-media-note for online video notes relies on mpv's streaming feature, s
 As long as you can normally load subtitles in mpv, org-media-note can control playback, insert timestamps and screenshots, and even import subtitles just like with local media!
 
 The following image demonstrates playing a Bilibili video, danmaku navigation, switching subtitles, importing subtitles, and other functions:
-[[../demo/org-media-note-online-video.gif?raw=true]]
+[[../demo/org-media-note-online-video-en.gif?raw=true]]
