@@ -47,36 +47,52 @@
 [[../demo/org-media-note-online-video.gif?raw=true]]
 
 * 快速指南
-1. 安装
-   - doom 用户配置以下代码安装：
-     #+BEGIN_SRC emacs-lisp :tangle "packages.el"
-(package! org-media-note :recipe (:host github :repo "yuchen-lea/org-media-note"))
-     #+END_SRC
-2. 配置
-   - doom 用户
+
+- doom 用户
+  1. 安装
+      #+BEGIN_SRC emacs-lisp :tangle "packages.el"
+ (package! org-media-note :recipe (:host github :repo "yuchen-lea/org-media-note"))
+      #+END_SRC
+  2. 配置
      + 不需要配合 org-ref
        #+BEGIN_SRC emacs-lisp
-(use-package! org-media-note
-  :hook (org-mode .  org-media-note-mode)
-  :bind (
+   (use-package! org-media-note
+   :hook (org-mode .  org-media-note-mode)
+   :bind (
          ("H-v" . org-media-note-hydra/body))  ;; 主功能入口
-  :config
-  (setq org-media-note-screenshot-image-dir "~/Notes/imgs/")  ;; 用于存储视频截图的目录
-  )
+   :config
+   (setq org-media-note-screenshot-image-dir "~/Notes/imgs/")  ;; 用于存储视频截图的目录
+   )
        #+END_SRC
      + 需要配合 org-ref
        #+BEGIN_SRC emacs-lisp
-(use-package! org-media-note
-  :init (setq org-media-note-use-org-ref t)
+   (use-package! org-media-note
+   :init (setq org-media-note-use-org-ref t)
+   :hook (org-mode .  org-media-note-mode)
+   :bind (
+       ("H-v" . org-media-note-hydra/body))  ;; 主功能入口
+   :config
+   (setq org-media-note-screenshot-image-dir "~/Notes/imgs/")  ;; 用于存储视频截图的目录
+   (setq org-media-note-use-refcite-first t)  ;; 插入链接时，优先使用refcite链接
+   )
+   #+END_SRC
+- 非 doom 用户：可以选择
+  + 手动下载org-media-note，将其包含在=load-path=中，然后参考上述配置
+  + 使用quelpa-use-package（感谢[[https://github.com/japhir][japhir]]提供此代码片段）
+      #+BEGIN_SRC emacs-lisp
+(use-package quelpa-use-package)  ;; to allow installation of github packages
+(use-package org-media-note
+  :quelpa (org-media-note :fetcher github :repo "yuchen-lea/org-media-note")
   :hook (org-mode .  org-media-note-mode)
-  :bind (
-         ("H-v" . org-media-note-hydra/body))  ;; 主功能入口
+  :bind (("H-v" . org-media-note-hydra/body))  ;; Main entrance
   :config
-  (setq org-media-note-screenshot-image-dir "~/Notes/imgs/")  ;; 用于存储视频截图的目录
-  (setq org-media-note-use-refcite-first t)  ;; 插入链接时，优先使用refcite链接
-  )
-       #+END_SRC
-   - ℹ 这里，我用 Hyper key =H= 进行绑定，好处在于快速触达功能，且不会与已有快捷键冲突。更多参见 [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]。当然，你也可以设置成任何适合你的快捷键，毕竟这是Emacs ：）
+  (setq org-media-note-screenshot-image-dir "~/notes/imgs/"))
+      #+END_SRC
+  + 如果不使用像=package.el=或=straight=这样的包管理器，而是手动加载org-media-note，，需要使用 =(require 'org-media-note-org-ref)=。
+
+现在，你可以从 =org-media-note-hydra/body= 访问所有功能。
+
+ℹ 这里，我用 Hyper key =H= 进行绑定，好处在于快速触达，且不会与已有快捷键冲突。更多参见 [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]。当然，你也可以设置成任何适合你的快捷键，毕竟这是Emacs ;)
 * 功能详解
 
 所有功能都可由 =org-media-note-hydra/body= 触达：

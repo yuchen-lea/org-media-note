@@ -54,7 +54,6 @@ Open online video, then operate the same as local files!
 - for doom users：
   1. Install
      #+BEGIN_SRC emacs-lisp :tangle "packages.el"
-(package! pretty-hydra)  ;; dependency
 (package! org-media-note :recipe (:host github :repo "yuchen-lea/org-media-note"))
      #+END_SRC
   2. Config
@@ -85,7 +84,6 @@ Open online video, then operate the same as local files!
    2. Or use quelpa-use-package (thanks [[https://github.com/japhir][japhir]] for kindly providing this snippet)
       #+BEGIN_SRC emacs-lisp
 (use-package quelpa-use-package)  ;; to allow installation of github packages
-(use-package pretty-hydra)
 (use-package org-media-note
   :quelpa (org-media-note :fetcher github :repo "yuchen-lea/org-media-note")
   :hook (org-mode .  org-media-note-mode)
