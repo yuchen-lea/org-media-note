@@ -37,10 +37,24 @@
 (defcustom org-media-note-screenshot-save-method 'directory
   "The way images should be stored.
 1. directory: save to `org-media-note-screenshot-image-dir'
-2. attach: save to corresponding `org-attach-dir'."
+2. attach: save to corresponding `org-attach-dir'.
+3. custom function: save to dir returned by function,
+accept two arguments: media-path, media-title."
+  :type '(choice (const :tag "Directory" directory)
+          (const :tag "Attachment" attach)
+          (function :tag "Custom function")))
+
+(defcustom org-media-note-screenshot-link-type-when-save-in-attach-dir 'file
+  "Link type to use with the `attach` `org-media-note-screenshot-save-method'.
+File links are more general, while attachment links are more concise."
   :type '(choice
-          (const :tag "Directory" directory)
-          (const :tag "Attachment" attach)))
+          (const :tag "file:" file)
+          (const :tag "attachment:" attach)))
+
+(defcustom org-media-note-screenshot-image-dir org-directory
+  "Default dir to save screenshots.
+Only valid when `org-media-note-screenshot-save-method' is set to directory."
+  :type 'string)
 
 (defcustom org-media-note-screenshot-extension ".jpg"
   "File extension for screenshots taken with org-media-note.
@@ -61,18 +75,6 @@ Should be consistent with `screenshot-format' in MPV."
           (const :tag "ido-completing-read" ido-completing-read)
           (const :tag "completing-read" completing-read))
   )
-
-(defcustom org-media-note-screenshot-link-type-when-save-in-attach-dir 'file
-  "Link type to use with the `attach` `org-media-note-screenshot-save-method'.
-File links are more general, while attachment links are more concise."
-  :type '(choice
-          (const :tag "file:" file)
-          (const :tag "attachment:" attach)))
-
-(defcustom org-media-note-screenshot-image-dir org-directory
-  "Default dir to save screenshots.
-Only valid when `org-media-note-screenshot-save-method' is set to directory."
-  :type 'string)
 
 (defcustom org-media-note-save-screenshot-p nil
   "Whether to auto save screenshot when insert media link."
@@ -550,13 +552,10 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
 (defun org-media-note-insert-screenshot ()
   "Insert current mpv screenshot into Org-mode note."
   (interactive)
-  (cl-multiple-value-bind (media-path title current-timestamp)
+  (cl-multiple-value-bind (media-path media-title current-timestamp)
       (org-media-note--current-media-info)
     (let* ((image-file-name (funcall org-media-note--screenshot-name-format-function
-                                     media-path
-                                     title
-                                     current-timestamp
-                                     org-media-note-screenshot-extension))
+                                     media-path media-title current-timestamp org-media-note-screenshot-extension))
            (image-target-path (cond
                                ((eq org-media-note-screenshot-save-method
                                     'attach)
@@ -566,7 +565,11 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
                                     'directory)
                                 (if (not (f-exists? org-media-note-screenshot-image-dir))
                                     (make-directory org-media-note-screenshot-image-dir))
-                                (expand-file-name image-file-name org-media-note-screenshot-image-dir)))))
+                                (expand-file-name image-file-name org-media-note-screenshot-image-dir))
+                               ((fboundp org-media-note-screenshot-save-method)
+                                (expand-file-name image-file-name
+                                                  (funcall org-media-note-screenshot-save-method
+                                                           media-path media-title))))))
       (if org-media-note-screenshot-with-sub
           (mpv-run-command "screenshot-to-file" image-target-path)
         (mpv-run-command "screenshot-to-file" image-target-path
