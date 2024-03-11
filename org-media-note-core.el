@@ -318,8 +318,11 @@ This list includes the following elements:
                                          (expand-file-name link-path
                                                            (org-attach-dir)))
                                         ((member link-type '("audio" "video"))
-                                         (expand-file-name (nth 0
+                                         (let ((media-path (nth 0
                                                                 (split-string link-path "#"))))
+                                           (if (org-media-note--online-video-p media-path)
+                                               media-path
+                                             (expand-file-name media-path))))
                                         ((member link-type '("audiocite" "videocite"))
                                          (let ((key (nth 0
                                                          (split-string link-path "#"))))
