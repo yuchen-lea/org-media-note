@@ -146,17 +146,22 @@ Currently supports SRT and VTT."
                                                        media-link-type
                                                        source-media))))))
 
-(defun org-media-note--convert-from-subtitle (subtitle-content timestamp-format media-link-type media-file)
+(defun org-media-note--convert-from-subtitle (subtitle-content timestamp-format media-link-type media-file &optional is-ass)
   "Return note of MEDIA-FILE from SUBTITLE-CONTENT.
 In format of TIMESTAMP-FORMAT and MEDIA-LINK-TYPE.
-Currently supports SRT and VTT."
+Currently supports SRT, VTT, and ASS."
   (with-temp-buffer
     (insert subtitle-content)
+    (setq is-ass (string-match-p "\\[V4\\+ Styles\\]" subtitle-content))
     ;; Local function to search for timestamp pattern
     (cl-flet ((search-timestamp ()
-                (re-search-forward (concat "\\(?:[[:digit:]]+\\)?\n?" org-media-note--hmsf-timestamp-pattern
-                                           " --> " org-media-note--hmsf-timestamp-pattern
-                                           "\\(?:.*\n\\)?\\(.*\\(?:\n.+\\)*\\)")
+                (re-search-forward (if is-ass
+                                       (concat "Dialogue: [[:digit:]]+\\," org-media-note--hmsf-timestamp-pattern
+                                               "\\," org-media-note--hmsf-timestamp-pattern
+                                               "\\,.*?,.*?,.*?,.*?,.*?,.*?," "\\(.*\\)")
+                                     (concat "\\(?:[[:digit:]]+\\)?\n?" org-media-note--hmsf-timestamp-pattern
+                                             " --> " org-media-note--hmsf-timestamp-pattern
+                                             "\\(?:.*\n\\)?\\(.*\\(?:\n.+\\)*\\)"))
                                    nil
                                    t)))
       (goto-char (point-min))
@@ -168,12 +173,9 @@ Currently supports SRT and VTT."
       (goto-char (point-min))
       ;; Process each subtitle block
       (while (search-timestamp)
-        (let* ((time-a (buffer-substring (match-beginning 1)
-                                         (match-end 1)))
-               (time-b (buffer-substring (match-beginning 3)
-                                         (match-end 3)))
-               (note-block (buffer-substring (match-beginning 5)
-                                             (match-end 5)))
+        (let* ((time-a (match-string 1))
+               (time-b (match-string 3))
+               (note-block (match-string 5))
                (beg (match-beginning 0))
                (end (match-end 0))
                (note-lines (split-string note-block "\n"))
@@ -196,9 +198,12 @@ Currently supports SRT and VTT."
             (setq timestamp (format "%s-%s" time-a time-b))))
           ;; Format notes with indentation for lines after the first
           (setq formatted-note (mapconcat (lambda (line)
-                                            (if (eq line (car note-lines))
-                                                line
-                                              (concat "  " line)))
+                                            (let ((new-line (if is-ass
+                                                                (replace-regexp-in-string "{.*?}" "" line)
+                                                              line)))
+                                              (if (eq line (car note-lines))
+                                                  new-line
+                                                (concat "  " new-line))))
                                           note-lines
                                           "\n"))
           ;; Create new text
