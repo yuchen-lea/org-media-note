@@ -173,47 +173,46 @@ Currently supports SRT, VTT, and ASS."
       (goto-char (point-min))
       ;; Process each subtitle block
       (while (search-timestamp)
-        (let* ((time-a (match-string 1))
-               (time-b (match-string 3))
-               (note-block (match-string 5))
-               (beg (match-beginning 0))
-               (end (match-end 0))
-               (note-lines (split-string note-block "\n"))
-               timestamp
-               new-text
-               formatted-note)
-          ;; Adjust time format
-          (cond
-           ((eq org-media-note-timestamp-pattern 'hms)
-            (setq time-a (car (split-string time-a "[,\\.]")))
-            (setq time-b (car (split-string time-b "[,\\.]"))))
-           ((eq org-media-note-timestamp-pattern 'hmsf)
-            (setq time-a (s-replace-regexp "," "." time-a))
-            (setq time-b (s-replace-regexp "," "." time-b))))
-          ;; Set timestamp based on format
-          (cond
-           ((string= timestamp-format "time1")
-            (setq timestamp time-a))
-           ((string= timestamp-format "time1-time2")
-            (setq timestamp (format "%s-%s" time-a time-b))))
-          ;; Format notes with indentation for lines after the first
-          (setq formatted-note (mapconcat (lambda (line)
-                                            (let ((new-line (if is-ass
-                                                                (replace-regexp-in-string "{.*?}" "" line)
-                                                              line)))
-                                              (if (eq line (car note-lines))
-                                                  new-line
-                                                (concat "  " new-line))))
-                                          note-lines
-                                          "\n"))
-          ;; Create new text
-          (setq new-text (format "- [[%s:%s#%s][%s]] %s" media-link-type
-                                 media-file timestamp timestamp formatted-note))
-          ;; Replace old text with new text
-          (goto-char beg)
-          (delete-region beg end)
-          (insert new-text)
-          (insert "\n")))
+        (let ((time-a (match-string 1))
+              (time-b (match-string 3))
+              (note-block (match-string 5))
+              (beg (match-beginning 0))
+              (end (match-end 0)))
+          ;; Check if note-block contains vtt time-synchronized text formatting
+          (if (string-match-p (concat org-media-note--hmsf-timestamp-pattern
+                                      "><c>")
+                              note-block)
+              (delete-region beg end) ; Delete the region to avoid dupliccate
+            ;; Else, process the block as usual
+            ;; Adjust time format
+            (cond
+             ((eq org-media-note-timestamp-pattern 'hms)
+              (setq time-a (car (split-string time-a "[,\\.]")))
+              (setq time-b (car (split-string time-b "[,\\.]"))))
+             ((eq org-media-note-timestamp-pattern 'hmsf)
+              (setq time-a (s-replace-regexp "," "." time-a))
+              (setq time-b (s-replace-regexp "," "." time-b))))
+            (let* ((timestamp (cond
+                               ((string= timestamp-format "time1") time-a)
+                               ((string= timestamp-format "time1-time2")
+                                (format "%s-%s" time-a time-b))))
+                   (note-lines (split-string note-block "\n"))
+                   (formatted-note (mapconcat (lambda (line)
+                                                (let ((new-line (if is-ass
+                                                                    (replace-regexp-in-string "{.*?}" "" line)
+                                                                  line)))
+                                                  (if (eq line (car note-lines))
+                                                      new-line
+                                                    (concat "  " new-line))))
+                                              note-lines
+                                              "\n"))
+                   (new-text (format "- [[%s:%s#%s][%s]] %s" media-link-type
+                                     media-file timestamp timestamp formatted-note)))
+              ;; Replace old text with new text
+              (goto-char beg)
+              (delete-region beg end)
+              (insert new-text)
+              (insert "\n")))))
       ;; Return the buffer content, ensuring no empty lines
       (goto-char (point-min))
       (while (re-search-forward "^[\s-]*\n" nil t)
