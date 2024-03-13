@@ -151,6 +151,16 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 	  (const :tag "Don't use inheritance" nil)
 	  (const :tag "Inherit parent node ref key" t)))
 
+(defcustom org-media-note-online-mpv-options-alist
+  '(("youtube\\.com" .
+     "--ytdl-raw-options=write-subs=,write-auto-subs=,sub-langs=\"en,zh-Hans\",no-simulate=,skip-download=")
+    ("bilibili\\.com" .
+     "--ytdl-raw-options=use-postprocessor=danmaku:when=before_dl,write-subs=,sub-langs=all,all-subs=,no-simulate=,skip-download=,cookies-from-browser=chrome"))
+  "Alist of website regex patterns and their corresponding mpv options."
+  :group 'org-media-note
+  :type '(alist :key-type (regexp :tag "Website Regex")
+          :value-type (string :tag "MPV Option")))
+
 ;;;; Variables
 
 (defconst org-media-note--video-types '("avi" "rmvb" "ogg" "ogv" "mp4" "mkv" "mov" "webm" "flv" "ts" "mpg"))
@@ -698,25 +708,46 @@ Supported formats:
 (defun org-media-note--follow-link (file-path-or-url time-a &optional time-b)
   "Open FILE-PATH-OR-URL in mpv.
 TIME-A and TIME-B indicate the start and end of a playback loop."
-  (let ((path (if (org-media-note--online-video-p file-path-or-url)
-                  (if (executable-find "yt-dlp")
-                      file-path-or-url
-                    (error "Warning: mpv needs the yt-dlp to play online videos"))
-                (expand-file-name file-path-or-url)))
-        (time-a (if (numberp time-a) (number-to-string time-a) time-a))
-        (time-b (if (numberp time-b) (number-to-string time-b) time-b)))
+  (let* ((online-video-p (if (org-media-note--online-video-p file-path-or-url)
+                             (if (executable-find "yt-dlp")
+                                 t
+                               (error (concat "Warning: mpv needs the yt-dlp to play online videos."
+                                              "yt-dlp-danmaku is also needed if you want bilibili danmaku.")))
+                           nil))
+         (path (if online-video-p
+                   file-path-or-url
+                 (expand-file-name file-path-or-url)))
+         (time-a (if (numberp time-a)
+                     (number-to-string time-a)
+                   time-a))
+         (time-b (if (numberp time-b)
+                     (number-to-string time-b)
+                   time-b))
+         (website-options (seq-find (lambda (pair)
+                                      (string-match-p (car pair)
+                                                      file-path-or-url))
+                                    org-media-note-online-mpv-options-alist))
+         (extra-mpv-options (if website-options
+                                (cdr website-options)
+                              "")))
     (if (not (string= path
                       (mpv-get-property "path")))
         ;; file-path is not playing
-        (if time-b
+        (progn
+          (message (format "open %s..." path))
+          (if time-b
+              (mpv-start path
+                         (concat "--start=+" time-a)
+                         (concat "--ab-loop-a=" time-a)
+                         (concat "--ab-loop-b=" time-b)
+                         extra-mpv-options)
             (mpv-start path
                        (concat "--start=+" time-a)
-                       (concat "--ab-loop-a=" time-a)
-                       (concat "--ab-loop-b=" time-b))
-          (mpv-start path
-                     (concat "--start=+" time-a)))
+                       extra-mpv-options)))
       ;; file-path is playing
-      (org-media-note--seek-position-in-current-media-file time-a time-b))))
+      (org-media-note--seek-position-in-current-media-file
+       time-a time-b))))
+
 
 (defun org-media-note-goto-timestamp ()
   "Seek media to position in timestamp at point."
