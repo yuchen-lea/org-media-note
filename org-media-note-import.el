@@ -221,14 +221,17 @@ Currently supports SRT, VTT, and ASS."
       (buffer-string))))
 
 (defun org-media-note--is-subtitle-track (item)
-  "Check if ITEM is asubtitle track.
+  "Check if ITEM is a subtitle track.
 ITEM is a cons cell from mpv track-list.
-Supports only SRT format currently."
-  (and (equal (cdr (assoc 'type item)) "sub")
-       ;; TODO Currently only supports srt
-       (or (string-suffix-p ".srt"
-                            (cdr (assoc 'title item)))
-           (equal (cdr (assoc 'title item)) "srt"))))
+Supports SRT, ASS format currently."
+  (let ((type (cdr (assoc 'type item)))
+        (codec (cdr (assoc 'codec item)))
+        (title (cdr (assoc 'title item))))
+    (and (equal type "sub")
+         (or (member codec '("srt" "ass" "subrip"))
+             (member title '("srt" "ass"))
+             (string-suffix-p ".srt" title)
+             (string-suffix-p ".ass" title)))))
 
 (defun org-media-note--selected-subtitle-content (file-from-context ignore-mpv-subtitle)
   "Get the content of the selected subtitle.
@@ -236,7 +239,7 @@ The source of the subtitle counld be:
 - Attempts to match a subtitle file based on FILE-FROM-CONTEXT.
 - Subtitle in the MPV player, if available and not IGNORE-MPV-SUBTITLE.
 - If neither of the above available, prompts the user to select."
-  (let ((subtitle-prompt "Select an SRT file: ")
+  (let ((subtitle-prompt "Select a subtitle: ")
         (track-list (mpv-get-property "track-list"))
         (file-from-context-base-name (if (org-media-note--online-video-p file-from-context)
                                          (replace-regexp-in-string "[\]\[\/:：【】\\]"
@@ -261,7 +264,7 @@ The source of the subtitle counld be:
       ;; subtitle track playing in MPV
       (let* ((srt-tracks (seq-filter #'org-media-note--is-subtitle-track
                                      track-list))
-             (manual-select-srt "Select srt File")
+             (manual-select-srt "Select Sub File")
              (choices (append (mapcar (lambda (item)
                                         (let ((name (or (cdr (assoc 'lang item))
                                                         (cdr (assoc 'title item)))))
