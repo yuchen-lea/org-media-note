@@ -173,20 +173,22 @@
 如果要配合 org-ref 笔记使用，当然需要安装 [[https://github.com/jkitchin/org-ref][org-ref]]。
 ** 在线视频播放
 
-使用 org-media-note 来进行在线视频的笔记依赖于 mpv 的流媒体播放功能，主要在mpv设置，而非在 org-media-note 设置。
+使用 org-media-note 来进行在线视频的笔记依赖于 mpv 的流媒体播放功能，需要额外的外部依赖：
+- [[https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation][yt-dlp/yt-dlp: A youtube-dl fork with additional features and fixes]]: 用于下载网站视频。它比mpv 默认使用的 youtube-dl 更流畅也更强大。如果想播放在线视频但是没有安装 yt-dlp，org-media-note 会报错提示。
+- [[https://github.com/UlyssesZh/yt-dlp-danmaku/][UlyssesZh/yt-dlp-danmaku: yt-dlp plugin for converting Bilibili danmaku into ASS format]]：如果需要加载bilibili的弹幕。
 
-- [[https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation][yt-dlp/yt-dlp: A youtube-dl fork with additional features and fixes]]: 用于下载网站视频。它比mpv 默认使用的 youtube-dl 更流畅也更强大。如果想播放在线视频但是没有安装 yt-dlp，org-media-note 会报错提示。需要在 =mpv.conf= 中指定使用 yt-dlp 来下载：
+可以有两处进行设置
+
+1. =mpv.conf= 文件：配置通用流媒体设置。例如指定使用 yt-dlp 来下载：
     #+begin_src ini
     script-opts=ytdl_hook-ytdl_path=yt-dlp
     #+end_src
 
-- 视频字幕、弹幕、章节等信息的加载取决于 yt-dlp 对于网站的支持。一些常见的网站情况：
-  + Youtube：自动支持字幕和章节。
-  + Bilibili：
-    - 弹幕：需要额外下载和配置 [[https://github.com/UlyssesZh/yt-dlp-danmaku/][UlyssesZh/yt-dlp-danmaku: yt-dlp plugin for converting Bilibili danmaku into ASS format]]
-    - 字幕：需要加载cookies，获取登录信息，参见 [[https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp][FAQ · yt-dlp/yt-dlp Wiki]]
+2. =org-media-note-online-mpv-options-alist= 变量：配置网站的单独设置，例如bilibili需要下载所有字幕和弹幕，而youtube自动生成的字幕只需要下载指定的语言。
+    - 默认配置，youtube会下载中英字幕，bilibili会加载所有字幕和弹幕。bilibili的字幕功能需要加载cookies，获取登录信息，请根据实际情况修改，参见 [[https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp][FAQ · yt-dlp/yt-dlp Wiki]]
 
 只要你能在 mpv 中正常的加载字幕，那么，org-media-note 就可以像处理本地媒体一样，控制播放、插入时间戳和截图，甚至是导入字幕！
+
 
 下图演示了播放bilibili视频，弹幕导航，切换字幕，导入字幕等功能：
 [[../demo/org-media-note-online-video-zh.gif?raw=true]]

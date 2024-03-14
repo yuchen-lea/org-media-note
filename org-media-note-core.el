@@ -153,9 +153,12 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 
 (defcustom org-media-note-online-mpv-options-alist
   '(("youtube\\.com"
+     ;; best audio and best video that is 4K or lower, not using the av01 codec.
      "--ytdl-format=bestvideo[height<=?2160][vcodec!=?av01]+bestaudio/best"
+     ;; download both automatically generated and manually created subtitles.
      "--ytdl-raw-options=write-subs=,write-auto-subs=,sub-langs=\"en,zh-Hans\",no-simulate=,skip-download=")
     ("bilibili\\.com"
+     ;; download subtitles and danmaku
      "--ytdl-raw-options=use-postprocessor=danmaku:when=before_dl,write-subs=,sub-langs=all,all-subs=,no-simulate=,skip-download=,cookies-from-browser=chrome"))
   "Alist of website regex patterns and their corresponding mpv options."
   :type '(alist

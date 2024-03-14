@@ -177,19 +177,20 @@ All functions can be reached from =org-media-note-hydra/body= :
  [[https://github.com/jkitchin/org-ref][org-ref]] is not required, but it's worth to have a try if you use bib to manage your media file!
 ** Online Video
 
-Using org-media-note for online video notes relies on mpv's streaming feature, settings are mainly in mpv, not in org-media-note.
+Using org-media-note for online video notes relies on mpv's streaming feature and requires additional external dependencies:
+- [[https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation][yt-dlp/yt-dlp: A youtube-dl fork with additional features and fixes]]: Used for downloading website videos. It is smoother and more powerful than youtube-dl, which is the default used by mpv. If you want to play online videos but haven't installed yt-dlp, org-media-note will raise an error.
+- [[https://github.com/UlyssesZh/yt-dlp-danmaku/][UlyssesZh/yt-dlp-danmaku: yt-dlp plugin for converting Bilibili danmaku into ASS format]]: If you need to load Bilibili danmaku.
 
-- [[https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation][yt-dlp/yt-dlp: A youtube-dl fork with additional features and fixes]]: Used for downloading website videos. It is smoother and more powerful than youtube-dl, which is the default used by mpv. If you want to play online videos but haven't installed yt-dlp, org-media-note will raise an error. You need to specify using yt-dlp for downloading in =mpv.conf=:
+Settings can be done in two places:
+
+1. =mpv.conf= file: Configure general streaming settings. For example, specify using yt-dlp to download:
     #+begin_src ini
     script-opts=ytdl_hook-ytdl_path=yt-dlp
     #+end_src
 
-- Loading video subtitles, danmaku, chapters, etc., depends on yt-dlp's support for the website. Some common website situations:
+2. =org-media-note-online-mpv-options-alist= variable: Configure individual settings for websites, for example, Bilibili needs to download all subtitles and danmaku, while YouTube's auto-generated subtitles only need to download specific languages.
 
-  - Youtube: Automatically supports subtitles and chapters.
-  - Bilibili:
-    - danmaku: Requires additional downloading and configuring [[https://github.com/UlyssesZh/yt-dlp-danmaku/][UlyssesZh/yt-dlp-danmaku: yt-dlp plugin for converting Bilibili danmaku into ASS format]]
-    - subtitles: Requires loading cookies to obtain login information, see [[https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp][FAQ · yt-dlp/yt-dlp Wiki]]
+   - The default configuration will download Chinese and English subtitles for YouTube and load all subtitles together with danmaku for Bilibili. The subtitle feature for Bilibili requires loading cookies to obtain login information, please modify according to actual conditions, see [[https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp][FAQ · yt-dlp/yt-dlp Wiki]].
 
 As long as you can normally load subtitles in mpv, org-media-note can control playback, insert timestamps and screenshots, and even import subtitles just like with local media!
 
