@@ -17,6 +17,7 @@
   + 是否在插入时间戳后自动暂停
 - 可以从已有文件导入笔记，目前支持的格式：
   + 字幕文件：SRT、VTT、ASS
+  + 当前播放文件的章节列表
   + PotPlayer 生成的 PBF 文件
   + 由 [[https://www.notedapp.io/][Noted]] 导出的 TXT 文件
   + [[https://orgmode.org/manual/Timers.html][Timers]]

@@ -31,6 +31,53 @@
           (const :tag "Never" never)
           (const :tag "Ask" ask)))
 
+;;;; utils
+(defun org-media-note--import-context (&optional throw-error-on-mismatch)
+  "Resolve the source media file or URL and determine media type."
+  (cl-multiple-value-bind (_ key file-by-key url-by-key)
+      (org-media-note--ref-context)
+    (cl-multiple-value-bind (_ media-files-in-attach-dir)
+        (org-media-note--attach-context)
+      (let* ((file-or-url-from-key (or file-by-key url-by-key))
+             (file-from-attach (and (= 1 (length media-files-in-attach-dir))
+                                    (car media-files-in-attach-dir)))
+             (file-or-url-from-mpv (mpv-get-property "path"))
+             (file-without-cite (or file-or-url-from-mpv file-from-attach))
+             ignore-mpv-subtitle)
+        (cond
+         ((and file-or-url-from-mpv
+               file-or-url-from-key
+               (not (string= file-or-url-from-mpv file-or-url-from-key)))
+          (if throw-error-on-mismatch
+              (error "The currently playing file does not match the file associated with the key.")
+            (if (equal file-or-url-from-mpv (org-media-note--select "The currently playing file does not match the file associated with the key. Choose which subtitle to insert: "
+                                                                    (list file-or-url-from-mpv file-or-url-from-key)))
+                (setq file-or-url-from-key nil)
+              (setq ignore-mpv-subtitle t)))
+          )
+         ((and file-or-url-from-mpv
+               file-from-attach
+               (not (string= file-or-url-from-mpv file-from-attach)))
+          (if throw-error-on-mismatch
+              (error "The currently playing file does not match the file associated with the attachment.")
+            (if (equal file-or-url-from-mpv (org-media-note--select "The currently playing file does not match the file associated with the attachment. Choose which subtitle to insert: "
+                                                                    (list file-or-url-from-mpv file-from-attach)))
+                nil
+              (setq file-without-cite file-from-attach
+                    ignore-mpv-subtitle t))
+            )
+          ))
+        (let* ((source-media (if file-or-url-from-key key file-without-cite))
+               (source-media-path (or file-by-key
+                                      file-without-cite
+                                      (read-file-name "Find media file:")))
+               (media-type (org-media-note--file-media-type source-media-path))
+               (media-link-type (if file-or-url-from-key
+                                    (format "%scite" media-type)
+                                  media-type)))
+          (list source-media source-media-path
+                media-link-type ignore-mpv-subtitle))))))
+
 ;;;; import from pbf (potplayer bookmark):
 (defun org-media-note-insert-note-from-pbf ()
   "Insert note from PBF file."
@@ -98,53 +145,20 @@
         (insert new-text)))
     (buffer-string)))
 
-;;;; import from subtitle: srt, vtt
+;;;; import from subtitle: srt, vtt, ass
 (defun org-media-note-insert-note-from-subtitle ()
   "Insert note from subtitle.
 Currently supports SRT and VTT."
   (interactive)
-  (cl-multiple-value-bind (_ key file-by-key url-by-key)
-      (org-media-note--ref-context)
-    (cl-multiple-value-bind (_ media-files-in-attach-dir)
-        (org-media-note--attach-context)
-      (let* ((file-or-url-from-key (or file-by-key url-by-key))
-             (file-from-attach (and (= 1 (length media-files-in-attach-dir))
-                                    (car media-files-in-attach-dir)))
-             (file-or-url-from-mpv (mpv-get-property "path"))
-             (file-without-cite (or file-or-url-from-mpv file-from-attach))
-             source-media
-             media-link-type
-             ignore-mpv-subtitle)
-        (cond
-         ((and file-or-url-from-mpv
-               file-or-url-from-key
-               (not (string= file-or-url-from-mpv file-or-url-from-key)))
-          (if (equal file-or-url-from-mpv (org-media-note--select "The currently playing file does not match the file associated with the key. Choose which subtitle to insert: "
-                                                                  (list file-or-url-from-mpv file-or-url-from-key)))
-              (setq file-or-url-from-key nil)
-            (setq ignore-mpv-subtitle t)))
-         ((and file-or-url-from-mpv
-               file-from-attach
-               (not (string= file-or-url-from-mpv file-from-attach)))
-          (if (equal file-or-url-from-mpv (org-media-note--select "The currently playing file does not match the file associated with the attachment. Choose which subtitle to insert: "
-                                                                  (list file-or-url-from-mpv file-from-attach)))
-              nil
-            (setq file-without-cite file-from-attach ignore-mpv-subtitle
-                  t))))
-        (cond
-         (file-or-url-from-key (setq source-media key)
-                               (setq media-link-type (format "%scite"
-                                                             (org-media-note--file-media-type source-media))))
-         (t (setq file-without-cite (or file-without-cite
-                                        (read-file-name "Find media file:")))
-            (setq source-media file-without-cite)
-            (setq media-link-type (org-media-note--file-media-type source-media))))
-        (insert (org-media-note--convert-from-subtitle (org-media-note--selected-subtitle-content (or file-by-key file-without-cite)
-                                                                                                  ignore-mpv-subtitle)
-                                                       (org-media-note--select "Select timestamp format: "
-                                                                               '("time1" "time1-time2"))
-                                                       media-link-type
-                                                       source-media))))))
+  (cl-multiple-value-bind (source-media source-media-path
+                                        media-link-type ignore-mpv-subtitle)
+      (org-media-note--import-context)
+    (insert (org-media-note--convert-from-subtitle (org-media-note--selected-subtitle-content
+                                                    source-media-path ignore-mpv-subtitle)
+                                                   (org-media-note--select "Select timestamp format: "
+                                                                           '("time1" "time1-time2"))
+                                                   media-link-type
+                                                   source-media))))
 
 (defun org-media-note--convert-from-subtitle (subtitle-content timestamp-format media-link-type media-file &optional is-ass)
   "Return note of MEDIA-FILE from SUBTITLE-CONTENT.
@@ -406,6 +420,24 @@ The source of the subtitle counld be:
                                  media-file hms hms)
                          'fixedcase)))
       (widen))))
+
+
+;;;; import chapter list:
+(defun org-media-note-insert-note-from-chapter-list ()
+  "Insert note from chapter list."
+  (interactive)
+  (cl-multiple-value-bind (source-media _ media-link-type _)
+      (org-media-note--import-context t)
+    (let* ((chapter-list (mpv-get-property "chapter-list"))
+           (chapter-note (cl-map 'list
+                                 (lambda (chapter)
+                                   (let* ((title (cdr (assoc 'title chapter)))
+                                          (time (cdr (assoc 'time chapter)))
+                                          (timestamp (org-media-note--seconds-to-timestamp time)))
+                                     (format "- [[%s:%s#%s][%s]] %s" media-link-type
+                                             source-media timestamp timestamp title)))
+                                 chapter-list)))
+      (insert (mapconcat 'identity chapter-note "\n")))))
 
 ;;;; Footer
 (provide 'org-media-note-import)

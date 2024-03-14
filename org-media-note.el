@@ -126,7 +126,9 @@
     ("I t" org-media-note-convert-from-org-timer
      "Import from org-timer")
     ("I s" org-media-note-insert-note-from-subtitle
-     "Import from subtitle"))
+     "Import from subtitle")
+    ("I c" org-media-note-insert-note-from-chapter-list
+     "Import from chapters"))
    "Toggle"
    (("t m" toggle-org-media-note-auto-insert-item
      "Auto insert media item" :toggle org-media-note-auto-insert-item)
