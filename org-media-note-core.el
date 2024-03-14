@@ -152,14 +152,15 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 	  (const :tag "Inherit parent node ref key" t)))
 
 (defcustom org-media-note-online-mpv-options-alist
-  '(("youtube\\.com" .
+  '(("youtube\\.com"
+     "--ytdl-format=bestvideo[height<=?2160][vcodec!=?av01]+bestaudio/best"
      "--ytdl-raw-options=write-subs=,write-auto-subs=,sub-langs=\"en,zh-Hans\",no-simulate=,skip-download=")
-    ("bilibili\\.com" .
+    ("bilibili\\.com"
      "--ytdl-raw-options=use-postprocessor=danmaku:when=before_dl,write-subs=,sub-langs=all,all-subs=,no-simulate=,skip-download=,cookies-from-browser=chrome"))
   "Alist of website regex patterns and their corresponding mpv options."
-  :group 'org-media-note
-  :type '(alist :key-type (regexp :tag "Website Regex")
-          :value-type (string :tag "MPV Option")))
+  :type '(alist
+          :key-type (regexp :tag "Website Regex")
+          :value-type (repeat (string :tag "MPV Option"))))
 
 ;;;; Variables
 
@@ -729,21 +730,19 @@ TIME-A and TIME-B indicate the start and end of a playback loop."
                                     org-media-note-online-mpv-options-alist))
          (extra-mpv-options (if website-options
                                 (cdr website-options)
-                              "")))
+                              (list ""))))
     (if (not (string= path
                       (mpv-get-property "path")))
         ;; file-path is not playing
         (progn
           (message (format "open %s..." path))
-          (if time-b
-              (mpv-start path
-                         (concat "--start=+" time-a)
-                         (concat "--ab-loop-a=" time-a)
-                         (concat "--ab-loop-b=" time-b)
-                         extra-mpv-options)
-            (mpv-start path
-                       (concat "--start=+" time-a)
-                       extra-mpv-options)))
+          (apply 'mpv-start path
+                 (append (list (concat "--start=+" time-a))
+                         (when time-b
+                           (list (concat "--ab-loop-a=" time-a)
+                                 (concat "--ab-loop-b=" time-b)))
+                         extra-mpv-options))
+          )
       ;; file-path is playing
       (org-media-note--seek-position-in-current-media-file
        time-a time-b))))
