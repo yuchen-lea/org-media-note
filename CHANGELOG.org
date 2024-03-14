@@ -1,9 +1,13 @@
+- [2024-03-14] Version =1.10.0=
+  + support ass subtitle
+  + =org-media-note-online-mpv-options-alist= to support mpv config per website
+  + allow custom function for screenshot dir
 - [2024-03-06] Version =1.9.0=
   + ui improvement
     - better hint and selection smart play
     - select srt from minibuffer
   + better support for online video:
-    - support srt from mpv
+    - support import from mpv subtitle
     - support vtt subtitle, which is default format of youtube
     - better screenshot naming rule for online video, and you can customize the rule also!
 - [2023-12-30] Version =1.8.0=
