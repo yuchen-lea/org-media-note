@@ -57,7 +57,8 @@
             (ref-mode (format "Open %s" key))
             ((> (length media-files-in-attach-dir) 0) "Open attach")
             (t "Open media")))))
-     :width 20)
+     :width 20
+     :exit t)
     ("j"
      (mpv-cycle-property "sub")
      "toggle subtitles")
