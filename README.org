@@ -189,7 +189,7 @@ Settings can be done in two places:
     script-opts=ytdl_hook-ytdl_path=yt-dlp
     #+end_src
 
-2. =org-media-note-online-mpv-options-alist= variable: Configure individual settings for websites, for example, Bilibili needs to download all subtitles and danmaku, while YouTube's auto-generated subtitles only need to download specific languages.
+2. =org-media-note-mpv-online-website-options-alist= variable: Configure individual settings for websites, for example, Bilibili needs to download all subtitles and danmaku, while YouTube's auto-generated subtitles only need to download specific languages.
 
    - The default configuration will download Chinese and English subtitles for YouTube and load all subtitles together with danmaku for Bilibili. The subtitle feature for Bilibili requires loading cookies to obtain login information, please modify according to actual conditions, see [[https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp][FAQ · yt-dlp/yt-dlp Wiki]].
 

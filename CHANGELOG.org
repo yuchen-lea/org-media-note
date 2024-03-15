@@ -1,6 +1,6 @@
 - [2024-03-14] Version =1.10.0=
   + support ass subtitle
-  + =org-media-note-online-mpv-options-alist= to support mpv config per website
+  + =org-media-note-mpv-online-website-options-alist= to support mpv config per website
   + allow custom function for screenshot dir
 - [2024-03-06] Version =1.9.0=
   + ui improvement

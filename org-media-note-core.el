@@ -151,7 +151,7 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 	  (const :tag "Don't use inheritance" nil)
 	  (const :tag "Inherit parent node ref key" t)))
 
-(defcustom org-media-note-online-mpv-options-alist
+(defcustom org-media-note-mpv-online-website-options-alist
   '(("youtube\\.com"
      ;; best audio and best video that is 4K or lower, not using the av01 codec.
      "--ytdl-format=bestvideo[height<=?2160][vcodec!=?av01]+bestaudio/best"
@@ -730,7 +730,7 @@ TIME-A and TIME-B indicate the start and end of a playback loop."
          (website-options (seq-find (lambda (pair)
                                       (string-match-p (car pair)
                                                       file-path-or-url))
-                                    org-media-note-online-mpv-options-alist))
+                                    org-media-note-mpv-online-website-options-alist))
          (extra-mpv-options (if website-options
                                 (cdr website-options)
                               (list ""))))
