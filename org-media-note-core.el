@@ -151,6 +151,18 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 	  (const :tag "Don't use inheritance" nil)
 	  (const :tag "Inherit parent node ref key" t)))
 
+;;;;; mpv Customization
+(defcustom org-media-note-mpv-webstream-download-path
+  (expand-file-name "yt-dlp" temporary-file-directory)
+  "Path where mpv webstream files are to be stored.
+Set this to nil if you prefer to save files in current directory."
+  :type 'string)
+
+(defcustom org-media-note-mpv-general-options
+  '("script-opts=ytdl_hook-ytdl_path=yt-dlp")
+  "General MPV options."
+  :type '(list string))
+
 (defcustom org-media-note-mpv-online-website-options-alist
   '(("youtube\\.com"
      ;; best audio and best video that is 4K or lower, not using the av01 codec.
@@ -727,13 +739,7 @@ TIME-A and TIME-B indicate the start and end of a playback loop."
          (time-b (if (numberp time-b)
                      (number-to-string time-b)
                    time-b))
-         (website-options (seq-find (lambda (pair)
-                                      (string-match-p (car pair)
-                                                      file-path-or-url))
-                                    org-media-note-mpv-online-website-options-alist))
-         (extra-mpv-options (if website-options
-                                (cdr website-options)
-                              (list ""))))
+         (extra-mpv-options (org-media-note--mpv-options file-path-or-url)))
     (if (not (string= path
                       (mpv-get-property "path")))
         ;; file-path is not playing
@@ -750,6 +756,51 @@ TIME-A and TIME-B indicate the start and end of a playback loop."
       (org-media-note--seek-position-in-current-media-file
        time-a time-b))))
 
+
+(defun org-media-note--mpv-options (media-path)
+  "Get mpv options for `MEDIA-PATH'.
+Combine the following options:
+1. `org-media-note-mpv-general-options',
+2. `org-media-note-mpv-online-website-options-alist',
+3. If `org-media-note-mpv-webstream-download-path' non-nil, set as paths for yt-dlp."
+  (let* ((online-video-p (org-media-note--online-video-p media-path))
+         (website-options (when online-video-p
+                            (cdr (seq-find (lambda (pair)
+                                             (string-match-p (car pair)
+                                                             media-path))
+                                           org-media-note-mpv-online-website-options-alist))))
+         (download-path-option (when (and online-video-p org-media-note-mpv-webstream-download-path)
+                                 (list (format "--ytdl-raw-options=paths=%s" org-media-note-mpv-webstream-download-path))))
+         (raw-options (append org-media-note-mpv-general-options
+                              website-options download-path-option))
+         ;; for those key-value pair options, better to consolidate them to avoid strange behavior.
+         (option-keys '("--ytdl-raw-options=" "--vd-lavc-o=" "--ad-lavc-o="
+                        "--demuxer-lavf-o="))
+         key-value-options-alist
+         other-options)
+    ;; Separate recognized options for consolidation
+    (dolist (option raw-options)
+      (if-let ((key (seq-find (lambda (key)
+                                (string-prefix-p key option))
+                              option-keys)))
+          (let* ((pair (assoc key key-value-options-alist))
+                 (values (cdr pair))
+                 (option-values (string-replace key "" option))
+                 (new-value (string-replace ",,"
+                                            ","
+                                            (concat (when values (concat values ",")) option-values)
+                                            )))
+            (if pair
+                (setcdr pair new-value)
+              (add-to-list 'key-value-options-alist
+                           (cons key new-value))))
+        (push option other-options)))
+    ;; Combine all options together
+    (append other-options
+            (mapcar (lambda (option)
+                      (concat (car option)
+                              (cdr option)))
+                    key-value-options-alist))))
 
 (defun org-media-note-goto-timestamp ()
   "Seek media to position in timestamp at point."

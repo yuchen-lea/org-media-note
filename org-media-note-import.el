@@ -20,16 +20,6 @@
           (const :tag "Never" never)
           (const :tag "Ask" ask)))
 
-(defcustom org-media-note-delete-srt 'never
-  ;; TODO WIP, how to delete srt file when web streaming
-  "Controls the deletion of SRT files.
-   'always - Always delete the SRT file without asking.
-   'never  - Never delete the SRT file.
-   'ask    - Ask whether to delete the SRT file."
-  :type '(choice
-          (const :tag "Always" always)
-          (const :tag "Never" never)
-          (const :tag "Ask" ask)))
 
 ;;;; utils
 (defun org-media-note--import-context (&optional throw-error-on-mismatch)
@@ -266,14 +256,12 @@ The source of the subtitle counld be:
     (if (or ignore-mpv-subtitle
             (not track-list))
         ;; No subtitle track is playing in MPV
-        (if file-from-context
-            (setq srt-local-file (or (car (directory-files file-from-context-dir
-                                                           t
-                                                           (concat (regexp-quote file-from-context-base-name)
-                                                                   "\\.srt$")))
-                                     (read-file-name subtitle-prompt file-from-context-dir
-                                                     nil nil file-from-context-base-name)))
-          (setq srt-local-file (read-file-name subtitle-prompt)))
+        (setq srt-local-file (or (car (directory-files file-from-context-dir
+                                                       t
+                                                       (concat (regexp-quote file-from-context-base-name)
+                                                               "\\.srt$")))
+                                 (read-file-name subtitle-prompt file-from-context-dir
+                                                 nil nil file-from-context-base-name)))
       ;; subtitle track playing in MPV
       (let* ((srt-tracks (seq-filter #'org-media-note--is-subtitle-track
                                      track-list))
@@ -287,10 +275,9 @@ The source of the subtitle counld be:
              (selected-lang (org-media-note--select subtitle-prompt choices))
              selected-track)
         (if (equal selected-lang manual-select-srt)
-            (setq srt-local-file (if file-from-context
-                                     (read-file-name subtitle-prompt file-from-context-dir
-                                                     nil nil file-from-context-base-name)
-                                   (read-file-name subtitle-prompt)))
+            (setq srt-local-file (read-file-name subtitle-prompt
+                                                 (or file-from-context-dir org-media-note-mpv-webstream-download-path)
+                                                 nil nil file-from-context-base-name))
           (progn
             (setq selected-track (seq-find (lambda (item)
                                              (equal (or (cdr (assoc 'lang item))
