@@ -178,15 +178,16 @@
 - [[https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation][yt-dlp/yt-dlp: A youtube-dl fork with additional features and fixes]]: 用于下载网站视频。它比mpv 默认使用的 youtube-dl 更流畅也更强大。如果想播放在线视频但是没有安装 yt-dlp，org-media-note 会报错提示。
 - [[https://github.com/UlyssesZh/yt-dlp-danmaku/][UlyssesZh/yt-dlp-danmaku: yt-dlp plugin for converting Bilibili danmaku into ASS format]]：如果需要加载bilibili的弹幕。
 
-可以有两处进行设置
+可以在以下几处进行设置，优先级由低到高：
 
-1. =mpv.conf= 文件：配置通用流媒体设置。例如指定使用 yt-dlp 来下载：
+1. =mpv.conf= 文件：mpv 的通用设置
+2. =org-media-note-mpv-general-options=变量：配置org-media-note中的通用设置。默认值指定使用 yt-dlp 来下载：
     #+begin_src ini
     script-opts=ytdl_hook-ytdl_path=yt-dlp
     #+end_src
-
-2. =org-media-note-mpv-online-website-options-alist= 变量：配置网站的单独设置，例如bilibili需要下载所有字幕和弹幕，而youtube自动生成的字幕只需要下载指定的语言。
-    - 默认配置，youtube会下载中英字幕，bilibili会加载所有字幕和弹幕。bilibili的字幕功能需要加载cookies，获取登录信息，请根据实际情况修改，参见 [[https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp][FAQ · yt-dlp/yt-dlp Wiki]]
+3. =org-media-note-mpv-online-website-options-alist= 变量：配置网站的单独设置，例如bilibili需要下载所有字幕和弹幕，而youtube自动生成的字幕只需要下载指定的语言。
+   - 默认配置，youtube会下载中英字幕，bilibili会加载所有字幕和弹幕。bilibili的字幕功能需要加载cookies，获取登录信息，请根据实际情况修改，参见 [[https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp][FAQ · yt-dlp/yt-dlp Wiki]]
+4. =org-media-note-mpv-webstream-download-path= 变量：配置在线视频字幕等文件的下载目录。默认为临时文件夹。如果设置为nil，会下载到当前目录。
 
 只要你能在 mpv 中正常的加载字幕，那么，org-media-note 就可以像处理本地媒体一样，控制播放、插入时间戳和截图，甚至是导入字幕！
 
