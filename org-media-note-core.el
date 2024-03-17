@@ -151,6 +151,11 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 	  (const :tag "Don't use inheritance" nil)
 	  (const :tag "Inherit parent node ref key" t)))
 
+(defcustom org-media-note-desc-fn #'org-media-note--default-desc-fn
+  "Function to generate link descriptions.
+ based on path, timestamp, desc and seconds."
+  :type 'function)
+
 ;;;;; mpv Customization
 (defcustom org-media-note-mpv-webstream-download-path
   (expand-file-name "yt-dlp" temporary-file-directory)

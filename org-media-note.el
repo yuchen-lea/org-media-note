@@ -186,11 +186,37 @@
         (concat icon " org-media-note")))))
 
 ;;;;; Customize Org link
-(org-link-set-parameters "video"
-                         :follow 'org-media-note-media-link-follow)
+(defun org-media-note--default-desc-fn (base timestamp seconds desc)
+  "Default function to generate link description.
+`BASE': base URL, local path or citekey.
+`TIMESTAMP': original timestamp string.
+`SECONDS': timestamp converted into total seconds.
+`DESC': link description."
+  timestamp)
 
-(org-link-set-parameters "audio"
-                         :follow 'org-media-note-media-link-follow)
+(defun org-media-note-export-link (path desc format)
+  "Process the link based on the export format."
+  (cond
+   ((eq format 'html)
+    (let* ((splitted (split-string path "#"))
+           (url (nth 0 splitted))
+           (timestamp (nth 1 splitted))
+           (seconds (org-media-note--timestamp-to-seconds timestamp))
+           (param-symbol (if (string-match "youtube\\.com" url)
+                             "&"
+                           "?")) ;; youtube, bilibili tested
+           (new-url (format "%s%st=%s" url param-symbol seconds)))
+      (format "<a href=\"%s\">%s</a>"
+              new-url
+              (funcall org-media-note-desc-fn
+                       url timestamp
+                       seconds desc))))
+   (t (format "[[%s][%s]]" path desc))))
+
+(dolist (link '("video" "audio"))
+  (org-link-set-parameters link
+                           :follow 'org-media-note-media-link-follow
+                           :export 'org-media-note-export-link))
 
 ;;;;; Toggle
 
