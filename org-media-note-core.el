@@ -61,9 +61,9 @@ Only valid when `org-media-note-screenshot-save-method' is set to directory."
 Should be consistent with `screenshot-format' in MPV."
   :type 'string)
 
-(defcustom org-media-note--screenshot-name-format-function
-  'org-media-note--screenshot-name-format-function-default
-  "Function to format screenshot names in org-media-note."
+(defcustom org-media-note-capture-name-function
+  'org-media-note--capture-name-function-default
+  "Function to format screenshot or clip names in org-media-note."
   :type 'function)
 
 (defcustom org-media-note-select-function
@@ -311,6 +311,82 @@ Return realpath instead of symlink."
            (rx (eval (cons 'or
                            (append org-media-note--video-types org-media-note--audio-types)))
                eos))))
+
+(defun org-media-note--capture-name-function-default (media-path title time-a time-b extension)
+  "Default function to format screenshot or clip file name.
+- MEDIA-PATH: file path or url.
+- TITLE: for online media and cite media only.
+- TIME-A, TIME-B: e.g. '3:43:12'.
+- EXTENSION: default `org-media-note-screenshot-extension'."
+  (let* ((base-name (or title (file-name-base media-path)))
+         (time-part (if time-b
+                        (concat time-a "--" time-b)
+                      time-a))
+         (formatted-name (concat base-name
+                                 "-"
+                                 time-part))
+         (replacements '((" - " "-")
+                         ("[\]\[\/：:*?\"<>|+=,\\ ]" "_")
+                         ("_+" "_")))
+         (final-name (cl-reduce (lambda (name pair)
+                                  (replace-regexp-in-string (nth 0 pair)
+                                                            (nth 1 pair)
+                                                            name))
+                                replacements
+                                :initial-value formatted-name)))
+    (concat final-name extension)))
+
+(defun org-media-note--output-file-path (file-name media-path media-title)
+  "Get the output path based on the current configuration.
+FILE-NAME is the name of the file to save.
+MEDIA-PATH is the path to the current media file, used for some save methods.
+MEDIA-TITLE is the title of the current media, used for some save methods."
+  (cond
+   ((eq org-media-note-screenshot-save-method
+        'attach)
+    (expand-file-name file-name
+                      (org-attach-dir t)))
+   ((eq org-media-note-screenshot-save-method
+        'directory)
+    (let ((dir org-media-note-screenshot-image-dir))
+      (unless (file-exists-p dir)
+        (make-directory dir t))
+      (expand-file-name file-name dir)))
+   ((fboundp org-media-note-screenshot-save-method)
+    (expand-file-name file-name
+                      (funcall org-media-note-screenshot-save-method
+                               media-path media-title)))
+   (t (error "Invalid org-media-note-screenshot-save-method"))))
+
+(defun org-media-note--format-file-path (path)
+  "Convert PATH into the format defined by `org-link-file-path-type'."
+  (cond
+   ((eq org-link-file-path-type 'absolute)
+    (abbreviate-file-name (expand-file-name path)))
+   ((eq org-link-file-path-type 'noabbrev)
+    (expand-file-name path))
+   ((eq org-link-file-path-type 'relative)
+    (file-relative-name path))
+   ((eq org-link-file-path-type 'adaptive)
+    (save-match-data (if (string-match (concat "^"
+                                               (regexp-quote (expand-file-name (file-name-as-directory default-directory))))
+                                       (expand-file-name path))
+                         ;; We are linking a file with relative path name.
+                         (substring (expand-file-name path)
+                                    (match-end 0))
+                       (abbreviate-file-name (expand-file-name path)))))
+   ((functionp org-link-file-path-type)
+    (funcall org-link-file-path-type
+             (expand-file-name path)))))
+
+(defun org-media-note--insert-file-link (file-path)
+  "Insert a link to FILE-PATH using the appropriate method."
+  (if (and (eq org-media-note-screenshot-save-method 'attach)
+           (eq org-media-note-screenshot-link-type-when-save-in-attach-dir 'attach))
+      (insert (format "[[attachment:%s]]\n"
+                      (file-relative-name file-path (org-attach-dir))))
+    (insert (format "[[file:%s]]\n"
+                    (org-media-note--format-file-path file-path)))))
 
 ;;;;;; Context
 (defun org-media-note--ref-context ()
@@ -588,78 +664,15 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
   (interactive)
   (cl-multiple-value-bind (media-path media-title current-timestamp)
       (org-media-note--current-media-info)
-    (let* ((image-file-name (funcall org-media-note--screenshot-name-format-function
-                                     media-path media-title current-timestamp org-media-note-screenshot-extension))
-           (image-target-path (cond
-                               ((eq org-media-note-screenshot-save-method
-                                    'attach)
-                                (expand-file-name image-file-name
-                                                  (org-attach-dir t)))
-                               ((eq org-media-note-screenshot-save-method
-                                    'directory)
-                                (if (not (f-exists? org-media-note-screenshot-image-dir))
-                                    (make-directory org-media-note-screenshot-image-dir))
-                                (expand-file-name image-file-name org-media-note-screenshot-image-dir))
-                               ((fboundp org-media-note-screenshot-save-method)
-                                (expand-file-name image-file-name
-                                                  (funcall org-media-note-screenshot-save-method
-                                                           media-path media-title))))))
+    (let* ((image-file-name (funcall org-media-note-capture-name-function
+                                     media-path media-title current-timestamp nil org-media-note-screenshot-extension))
+           (image-target-path (org-media-note--output-file-path image-file-name media-path media-title)))
       (if org-media-note-screenshot-with-sub
           (mpv-run-command "screenshot-to-file" image-target-path)
         (mpv-run-command "screenshot-to-file" image-target-path
                          "video"))
-      (if (and (eq org-media-note-screenshot-save-method
-                   'attach)
-               (eq org-media-note-screenshot-link-type-when-save-in-attach-dir
-                   'attach))
-          (insert (format "[[attachment:%s]] "
-                          (file-relative-name image-target-path
-                                              (org-attach-dir))))
-        (insert (format "[[file:%s]] "
-                        (org-media-note--format-file-path image-target-path))))
+      (org-media-note--insert-file-link image-target-path)
       (org-media-note--display-inline-images))))
-
-(defun org-media-note--screenshot-name-format-function-default (media-path title timestamp extension)
-  "Default function to format picture file name.
-- MEDIA-PATH: file path or url.
-- TITLE: for online media and cite media only.
-- TIMESTAMP: e.g. '3:43:12'.
-- EXTENSION: default `org-media-note-screenshot-extension'."
-  (let* ((formatted-name (concat (or title
-                                     (file-name-base media-path))
-                                 "-"
-                                 timestamp))
-         (replacements '((" - " "-")
-                         ("[\]\[\/：:*?\"<>|+=,\\ ]" "_")
-                         ("_+" "_")))
-         (final-name (cl-reduce (lambda (name pair)
-                                  (replace-regexp-in-string (nth 0 pair)
-                                                            (nth 1 pair)
-                                                            name))
-                                replacements
-                                :initial-value formatted-name)))
-    (concat final-name extension)))
-
-(defun org-media-note--format-file-path (path)
-  "Convert PATH into the format defined by `org-link-file-path-type'."
-  (cond
-   ((eq org-link-file-path-type 'absolute)
-    (abbreviate-file-name (expand-file-name path)))
-   ((eq org-link-file-path-type 'noabbrev)
-    (expand-file-name path))
-   ((eq org-link-file-path-type 'relative)
-    (file-relative-name path))
-   ((eq org-link-file-path-type 'adaptive)
-    (save-match-data (if (string-match (concat "^"
-                                               (regexp-quote (expand-file-name (file-name-as-directory default-directory))))
-                                       (expand-file-name path))
-                         ;; We are linking a file with relative path name.
-                         (substring (expand-file-name path)
-                                    (match-end 0))
-                       (abbreviate-file-name (expand-file-name path)))))
-   ((functionp org-link-file-path-type)
-    (funcall org-link-file-path-type
-             (expand-file-name path)))))
 
 (defun org-media-note--display-inline-images ()
   "Redisplay inline images."
