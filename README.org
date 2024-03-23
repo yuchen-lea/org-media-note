@@ -179,7 +179,7 @@ All functions can be reached from =org-media-note-hydra/body= :
 ** Online Video
 
 Using org-media-note for online video notes relies on mpv's streaming feature and requires additional external dependencies:
-- [[https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation][yt-dlp/yt-dlp: A youtube-dl fork with additional features and fixes]]: Used for downloading website videos. It is smoother and more powerful than youtube-dl, which is the default used by mpv. If you want to play online videos but haven't installed yt-dlp, org-media-note will raise an error.
+- [[https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation][yt-dlp/yt-dlp: A youtube-dl fork with additional features and fixes]]: Used for downloading website videos. [[https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md][List of supported websites]]. It is smoother and more powerful than youtube-dl, which is the default used by mpv. If you want to play online videos but haven't installed yt-dlp, org-media-note will raise an error.
 - [[https://github.com/UlyssesZh/yt-dlp-danmaku/][UlyssesZh/yt-dlp-danmaku: yt-dlp plugin for converting Bilibili danmaku into ASS format]]: If you need to load Bilibili danmaku.
 
 Settings can be applied in several places, with priority from low to high:

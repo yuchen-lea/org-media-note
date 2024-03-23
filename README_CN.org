@@ -175,7 +175,7 @@
 ** 在线视频播放
 
 使用 org-media-note 来进行在线视频的笔记依赖于 mpv 的流媒体播放功能，需要额外的外部依赖：
-- [[https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation][yt-dlp/yt-dlp: A youtube-dl fork with additional features and fixes]]: 用于下载网站视频。它比mpv 默认使用的 youtube-dl 更流畅也更强大。如果想播放在线视频但是没有安装 yt-dlp，org-media-note 会报错提示。
+- [[https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation][yt-dlp/yt-dlp: A youtube-dl fork with additional features and fixes]]: 用于下载网站视频，支持的网站参见[[https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md][此处]]。它比mpv 默认使用的 youtube-dl 更流畅也更强大。如果想播放在线视频但是没有安装 yt-dlp，org-media-note 会报错提示。
 - [[https://github.com/UlyssesZh/yt-dlp-danmaku/][UlyssesZh/yt-dlp-danmaku: yt-dlp plugin for converting Bilibili danmaku into ASS format]]：如果需要加载bilibili的弹幕。
 
 可以在以下几处进行设置，优先级由低到高：
