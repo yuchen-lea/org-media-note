@@ -245,7 +245,7 @@ The source of the subtitle counld be:
   (let ((subtitle-prompt "Select a subtitle: ")
         (track-list (mpv-get-property "track-list"))
         (file-from-context-base-name (if (org-media-note--online-video-p file-from-context)
-                                         (replace-regexp-in-string "[\]\[\/:：【】\\]"
+                                         (replace-regexp-in-string "[\]\[\/:：【】\|\\]"
                                                                    " "
                                                                    (mpv-get-property "media-title"))
                                        (file-name-base file-from-context)))
