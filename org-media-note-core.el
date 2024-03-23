@@ -26,13 +26,94 @@
   :group 'org
   :prefix "org-media-note-")
 
+(defcustom org-media-note-auto-insert-item t
+  "Control whether to automatically insert media items in `org-media-note-mode'."
+  :type 'boolean)
+
+(defcustom org-media-note-pause-after-insert-link nil
+  "When non-nil, pause the media after inserting timestamp link."
+  :type 'boolean)
+
+(defcustom org-media-note-cursor-start-position 'after
+  "Determine where to position point after inserting a link."
+  :type 'symbol
+  :options '(before after))
+
+(defcustom org-media-note-separator-when-merge ""
+  "Separator to use when calling  `org-media-note-merge-item'."
+  :type 'string)
+
+(defcustom org-media-note-select-function
+  (cond
+   ((fboundp 'ido-completing-read) 'ido-completing-read)
+   (t 'completing-read))
+  "Function to use for selection in org-media-note."
+  :type '(choice
+          (const :tag "ido-completing-read" ido-completing-read)
+          (const :tag "completing-read" completing-read)))
+
+;;;;; link format customization
+
+(defcustom org-media-note-timestamp-pattern 'hms
+  "Format pattern for timestamps in org-media-note.
+Allows the following substitutions:
+- `hms`: Hours, minutes, and seconds (hh:mm:ss).
+- `hmsf`: Hours, minutes, seconds, and milliseconds (hh:mm:ss.fff)."
+  :type '(choice
+          (const :tag "hh:mm:ss" hms)
+          (const :tag "hh:mm:ss.fff" hmsf)))
+
+(defcustom org-media-note-timestamp-link-format "%timestamp"
+  "Timestamp Link text.
+Allows the following substitutions:
+- %filename :: name of the media file
+- %timestamp :: current media timestamp (hms)
+- %duration :: length of the media file (hms)
+- %file-path :: path of the media file"
+  :type 'string)
+
+(defcustom org-media-note-ab-loop-link-format "%ab-loop-a-%ab-loop-b"
+  "AB-loop Link text.
+Allows the following substitutions:
+- %filename :: name of the media file
+- %ab-loop-a :: timestamp of point a of ab loop (hms)
+- %ab-loop-b :: timestamp of point b of ab loop (hms)
+- %duration :: length of the media file (hms)
+- %file-path :: path of the media file"
+  :type 'string)
+
+(defcustom org-media-note-link-prefix ""
+  "String concatenated to the beginning of links.
+e.g. setting this to \" \" will insert a space before the link.
+This is useful when `org-media-note-cursor-start-position' is set to`before`."
+  :type 'string)
+
+(defcustom org-media-note-desc-fn #'org-media-note--default-desc-fn
+  "Function to generate link descriptions.
+Based on path, timestamp, desc and seconds."
+  :type 'function)
+
+;;;;; org-ref customization
+
 (defcustom org-media-note-use-org-ref nil
   "Whether to use `org-ref' together with org-media-note."
   :type 'boolean)
 
-(defcustom org-media-note-auto-insert-item t
-  "Control whether to automatically insert media items in `org-media-note-mode'."
+(defcustom org-media-note-use-refcite-first nil
+  "When non-nil, use refcite instead of file path when taking notes if possible."
   :type 'boolean)
+
+(defcustom org-media-note-ref-key-field "Custom_ID"
+  "The property to save `org-ref' key."
+  :type 'string)
+
+(defcustom org-media-note-use-inheritance t
+  "Ref key inheritance for the outline."
+  :type '(choice
+          (const :tag "Don't use inheritance" nil)
+          (const :tag "Inherit parent node ref key" t)))
+
+;;;;; screenshot customization
 
 (defcustom org-media-note-screenshot-save-method 'directory
   "The way images should be stored.
@@ -66,16 +147,6 @@ Should be consistent with `screenshot-format' in MPV."
   "Function to format screenshot or clip names in org-media-note."
   :type 'function)
 
-(defcustom org-media-note-select-function
-  (cond
-   ((fboundp 'ido-completing-read) 'ido-completing-read)
-   (t 'completing-read))
-  "Function to use for selection in org-media-note."
-  :type '(choice
-          (const :tag "ido-completing-read" ido-completing-read)
-          (const :tag "completing-read" completing-read))
-  )
-
 (defcustom org-media-note-save-screenshot-p nil
   "Whether to auto save screenshot when insert media link."
   :type 'boolean)
@@ -84,79 +155,12 @@ Should be consistent with `screenshot-format' in MPV."
   "When saving screenshots, whether to save subtitles."
   :type 'boolean)
 
-(defcustom org-media-note-use-refcite-first nil
-  "When non-nil, use refcite instead of file path when taking notes if possible."
-  :type 'boolean)
-
 (defcustom org-media-note-display-inline-images t
   "When non-nil, display inline images in org buffer after insert screenshot."
   :type 'boolean)
 
-(defcustom org-media-note-pause-after-insert-link nil
-  "When non-nil, pause the media after inserting timestamp link."
-  :type 'boolean
-  )
+;;;;; mpv customization
 
-(defcustom org-media-note-separator-when-merge ""
-  "Separator to use when calling  `org-media-note-merge-item'."
-  :type 'string)
-
-
-(defcustom org-media-note-timestamp-pattern 'hms
-  "Format pattern for timestamps in org-media-note.
-Allows the following substitutions:
-- `hms`: Hours, minutes, and seconds (hh:mm:ss).
-- `hmsf`: Hours, minutes, seconds, and milliseconds (hh:mm:ss.fff)."
-  :type '(choice
-          (const :tag "hh:mm:ss" hms)
-          (const :tag "hh:mm:ss.fff" hmsf)))
-
-(defcustom org-media-note-timestamp-link-format "%timestamp"
-  "Timestamp Link text.
-Allows the following substitutions:
-- %filename :: name of the media file
-- %timestamp :: current media timestamp (hms)
-- %duration :: length of the media file (hms)
-- %file-path :: path of the media file"
-  :type 'string)
-
-(defcustom org-media-note-ab-loop-link-format "%ab-loop-a-%ab-loop-b"
-  "AB-loop Link text.
-Allows the following substitutions:
-- %filename :: name of the media file
-- %ab-loop-a :: timestamp of point a of ab loop (hms)
-- %ab-loop-b :: timestamp of point b of ab loop (hms)
-- %duration :: length of the media file (hms)
-- %file-path :: path of the media file"
-  :type 'string)
-
-(defcustom org-media-note-cursor-start-position 'after
-  "Determine where to position point after inserting a link."
-  :type 'symbol
-  :options '(before after))
-
-(defcustom org-media-note-ref-key-field "Custom_ID"
-  "The property to save `org-ref' key."
-  :type 'string)
-
-(defcustom org-media-note-link-prefix ""
-  "String concatenated to the beginning of links.
-e.g. setting this to \" \" will insert a space before the link.
-This is useful when `org-media-note-cursor-start-position' is set to`before`."
-  :type 'string)
-
-(defcustom org-media-note-use-inheritance t
-  "Ref key inheritance for the outline."
-  :type '(choice
-	  (const :tag "Don't use inheritance" nil)
-	  (const :tag "Inherit parent node ref key" t)))
-
-(defcustom org-media-note-desc-fn #'org-media-note--default-desc-fn
-  "Function to generate link descriptions.
- based on path, timestamp, desc and seconds."
-  :type 'function)
-
-;;;;; mpv Customization
 (defcustom org-media-note-mpv-webstream-download-path
   (expand-file-name "yt-dlp" temporary-file-directory)
   "Path where mpv webstream files are to be stored.
@@ -583,7 +587,8 @@ occurrences of %-escaped PLACEHOLDER with replacement and return a new string.
 
 (defun org-media-note--beginning-of-line-advice (orig-func &optional n)
   "Advice to optimize line beginning detection in plain-lists.
-- ORIG-FUNC: `org-beginning-of-line'."
+- ORIG-FUNC: `org-beginning-of-line'.
+- N: move forward N - 1 lines first."
   (let ((org-list-full-item-re org-media-note--list-full-item-re))
     (funcall orig-func n)))
 
