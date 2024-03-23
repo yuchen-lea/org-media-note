@@ -116,7 +116,13 @@
    "Note"
    (("i" org-media-note-insert-link "Insert timestamp")
     ("a" org-media-note-adjust-timestamp-offset "Adjust timestamp")
-    ("S" org-media-note-insert-screenshot "Insert Screenshot")
+    ("S"
+     (if (org-media-note--ab-loop-p)
+         (org-media-note-capture-ab-loop-and-insert)
+       (org-media-note-insert-screenshot))
+     (if (org-media-note--ab-loop-p)
+         "Insert ab-loop clip"
+       "Insert Screenshot"))
     ("s" org-media-note-insert-sub-text "Insert subtitle")
     ("H-m" org-media-note-merge-item "Merge items"))
    "Import"

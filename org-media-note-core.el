@@ -159,6 +159,24 @@ Should be consistent with `screenshot-format' in MPV."
   "When non-nil, display inline images in org buffer after insert screenshot."
   :type 'boolean)
 
+;;;;; capture-ab-loop customization
+
+(defcustom org-media-note-capture-ab-loop-ask-each-time t
+  "If non-nil, select capture function each time capturing an ab-loop.
+Otherwise, use the preset function."
+  :type 'boolean)
+
+(defcustom org-media-note-capture-ab-loop-functions-alist
+  '(("clip-copy" . org-media-note-capture-ab-loop-default))
+  "Alist of functions to capture ab-loop segments and their descriptions."
+  :type '(alist
+          :key-type string
+          :value-type function))
+
+(defcustom org-media-note-default-capture-ab-loop-function-name "clip-copy"
+  "Default function used for capturing ab-loop segments."
+  :type 'string)
+
 ;;;;; mpv customization
 
 (defcustom org-media-note-mpv-webstream-download-path
@@ -685,6 +703,40 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
     ;; TODO Avoid sleeping here?
     (sleep-for 0.1)
     (org-display-inline-images)))
+
+;;;;;; ab-loop clip
+(defun org-media-note-capture-ab-loop-default (time-a time-b input-file output-file)
+  "Capture a video segment from TIME-A to TIME-B of INPUT-FILE.
+Save to OUTPUT-FILE."
+  (let ((command (format "ffmpeg -ss %s -to %s -i \"%s\" -c copy \"%s\""
+                         time-a time-b input-file output-file)))
+    (async-shell-command command)))
+
+(defun org-media-note-capture-ab-loop-and-insert ()
+  "Capture ab-loop segment, then insert it at the cursor position."
+  (interactive)
+  (cl-multiple-value-bind (media-path media-title _)
+      (org-media-note--current-media-info)
+    (let* ((time-a (org-media-note--seconds-to-timestamp (mpv-get-property "ab-loop-a")))
+           (time-b (org-media-note--seconds-to-timestamp (mpv-get-property "ab-loop-b")))
+           (output-file-name (funcall org-media-note-capture-name-function
+                                      media-path media-title time-a time-b
+                                      (format ".%s"
+                                              (file-name-extension media-path))))
+           (output-file-path (org-media-note--output-file-path output-file-name
+                                                               media-path media-title))
+           (capture-function-name (if org-media-note-capture-ab-loop-ask-each-time
+                                      (org-media-note--select-capture-function)
+                                    org-media-note-default-capture-ab-loop-function-name))
+           (capture-function (cdr (assoc capture-function-name
+                                         org-media-note-capture-ab-loop-functions-alist))))
+      (funcall capture-function time-a time-b media-path output-file-path)
+      (org-media-note--insert-file-link output-file-path))))
+
+(defun org-media-note--select-capture-function ()
+  "Select capture function name from `org-media-note-capture-ab-loop-functions-alist'."
+  (let ((choices (mapcar #'car org-media-note-capture-ab-loop-functions-alist)))
+    (org-media-note--select "Select capture function: " choices)))
 
 ;;;;;; sub-text
 (defun org-media-note-insert-sub-text ()
