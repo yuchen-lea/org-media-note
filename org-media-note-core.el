@@ -167,7 +167,8 @@ Otherwise, use the preset function."
   :type 'boolean)
 
 (defcustom org-media-note-capture-ab-loop-functions-alist
-  '(("clip-copy" . org-media-note-capture-ab-loop-default))
+  '(("clip-copy" . org-media-note-capture-ab-loop-default)
+    ("gif" . org-media-note-capture-ab-loop-to-gif))
   "Alist of functions to capture ab-loop segments and their descriptions."
   :type '(alist
           :key-type string
@@ -710,6 +711,15 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
 Generate OUTPUT-FILE from OUTPUT-FILE-SANS-EXT and return it."
   (let* ((output-file (concat output-file-sans-ext "." (file-name-extension input-file)))
          (command (format "ffmpeg -ss %s -to %s -i \"%s\" -c copy \"%s\""
+                          time-a time-b input-file output-file)))
+    (async-shell-command command)
+    output-file))
+
+(defun org-media-note-capture-ab-loop-to-gif (time-a time-b input-file output-file-sans-ext)
+  "Capture a segment from TIME-A to TIME-B of INPUT-FILE and convert it to GIF.
+Generate OUTPUT-FILE from OUTPUT-FILE-SANS-EXT and return it."
+  (let* ((output-file (concat output-file-sans-ext ".gif"))
+         (command (format "ffmpeg -ss %s -to %s -i \"%s\" -vf \"fps=10,scale=512:-1:flags=lanczos\" -c:v gif -f gif \"%s\""
                           time-a time-b input-file output-file)))
     (async-shell-command command)
     output-file))
