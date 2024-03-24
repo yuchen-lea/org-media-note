@@ -79,13 +79,13 @@
      (let ((time-a (mpv-get-property "ab-loop-a"))
            (time-b (mpv-get-property "ab-loop-b")))
        (if (org-media-note--ab-loop-p)
-           (format "Clear A-B loop (%s-%s)"
+           (format "Clear AB-loop (%s-%s)"
                    (org-media-note--seconds-to-timestamp time-a)
                    (org-media-note--seconds-to-timestamp time-b))
          (if (numberp time-a)
-             (format "Set B of A-B loop (%s-)"
+             (format "Set B of AB-loop (%s-)"
                      (org-media-note--seconds-to-timestamp time-a))
-           "Set A of A-B loop")))
+           "Set A of AB-loop")))
      :width 31)
     ("g" org-media-note-goto-timestamp "Jump to timestamp")
     ("<left>" mpv-seek-backward "Backward 5s")
@@ -136,13 +136,17 @@
      "from subtitle")
     ("I c" org-media-note-insert-note-from-chapter-list
      "from chapters"))
-   "Toggle"
+   "Config"
    (("t m" toggle-org-media-note-auto-insert-item
      "Auto insert media item" :toggle org-media-note-auto-insert-item)
     ("t s" org-media-note-toggle-save-screenshot
      "Auto insert screenshot" :toggle org-media-note-save-screenshot-p)
     ("t S" org-media-note-toggle-screenshot-with-sub
      "Screenshot with sub" :toggle org-media-note-screenshot-with-sub)
+    ("t l" org-media-note-config-ab-loop-capture-method
+     (format "AB-loop Clip: %s"
+             (if org-media-note-capture-ab-loop-ask-each-time
+                 "always ask" org-media-note-default-capture-ab-loop-function-name)))
     ("t c" org-media-note-toggle-refcite
      "Cite key instead of path" :toggle org-media-note-use-refcite-first)
     ("t p" org-media-note-toggle-pause-after-insertion
@@ -225,7 +229,7 @@
                            :follow 'org-media-note-media-link-follow
                            :export 'org-media-note-export-link))
 
-;;;;; Toggle
+;;;;; Config
 
 (defun toggle-org-media-note-auto-insert-item ()
   "Toggle the automatic insertion of media items."
@@ -263,6 +267,21 @@
   (if org-media-note-screenshot-with-sub
       (setq org-media-note-screenshot-with-sub nil)
     (setq org-media-note-screenshot-with-sub t)))
+
+(defun org-media-note-config-ab-loop-capture-method ()
+  "Config the method for capturing AB-loop clips."
+  (interactive)
+  (let ((choice (org-media-note--select "Capture method: "
+                                        '("Always ask" "Select a default"))))
+    (if (equal choice "Select a default")
+        (progn
+          (setq org-media-note-capture-ab-loop-ask-each-time
+                nil)
+          (let ((selected-function (org-media-note--select-capture-function)))
+            (setq org-media-note-default-capture-ab-loop-function-name
+                  selected-function)))
+      (setq org-media-note-capture-ab-loop-ask-each-time
+            t))))
 
 (defun org-media-note-toggle-timestamp-pattern ()
   "Toggle screenshot with sub."
