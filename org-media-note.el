@@ -79,14 +79,14 @@
      (let ((time-a (mpv-get-property "ab-loop-a"))
            (time-b (mpv-get-property "ab-loop-b")))
        (if (org-media-note--ab-loop-p)
-           (format "Clear A-B loop (%s - %s)"
+           (format "Clear A-B loop (%s-%s)"
                    (org-media-note--seconds-to-timestamp time-a)
                    (org-media-note--seconds-to-timestamp time-b))
          (if (numberp time-a)
-             (format "Set B of A-B loop (%s - )"
+             (format "Set B of A-B loop (%s-)"
                      (org-media-note--seconds-to-timestamp time-a))
            "Set A of A-B loop")))
-     :width 33)
+     :width 31)
     ("g" org-media-note-goto-timestamp "Jump to timestamp")
     ("<left>" mpv-seek-backward "Backward 5s")
     ("<right>" mpv-seek-forward "Forward 5s")
@@ -142,16 +142,17 @@
     ("t s" org-media-note-toggle-save-screenshot
      "Auto insert screenshot" :toggle org-media-note-save-screenshot-p)
     ("t S" org-media-note-toggle-screenshot-with-sub
-     "Screenshot with subtitles" :toggle org-media-note-screenshot-with-sub)
+     "Screenshot with sub" :toggle org-media-note-screenshot-with-sub)
     ("t c" org-media-note-toggle-refcite
-     "Use ref key instead of path" :toggle org-media-note-use-refcite-first)
+     "Cite key instead of path" :toggle org-media-note-use-refcite-first)
     ("t p" org-media-note-toggle-pause-after-insertion
-     "Pause media after insert link" :toggle org-media-note-pause-after-insert-link)
+     "Pause after insert link" :toggle org-media-note-pause-after-insert-link)
     ("t t" org-media-note-toggle-timestamp-pattern
      (format "Timestamp format: %s"
              (cond
               ((eq org-media-note-timestamp-pattern 'hms) "hh:mm:ss")
-              ((eq org-media-note-timestamp-pattern 'hmsf) "hh:mm:ss.fff"))))
+              ((eq org-media-note-timestamp-pattern 'hmsf) "hh:mm:ss.fff")))
+     :width 29)
     ("t M" org-media-note-set-separator
      (format "Separator when merge: %s" org-media-note-separator-when-merge)))))
 
