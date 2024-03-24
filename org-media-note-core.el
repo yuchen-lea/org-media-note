@@ -705,12 +705,14 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
     (org-display-inline-images)))
 
 ;;;;;; ab-loop clip
-(defun org-media-note-capture-ab-loop-default (time-a time-b input-file output-file)
+(defun org-media-note-capture-ab-loop-default (time-a time-b input-file output-file-sans-ext)
   "Capture a video segment from TIME-A to TIME-B of INPUT-FILE.
-Save to OUTPUT-FILE."
-  (let ((command (format "ffmpeg -ss %s -to %s -i \"%s\" -c copy \"%s\""
-                         time-a time-b input-file output-file)))
-    (async-shell-command command)))
+Generate OUTPUT-FILE from OUTPUT-FILE-SANS-EXT and return it."
+  (let* ((output-file (concat output-file-sans-ext "." (file-name-extension input-file)))
+         (command (format "ffmpeg -ss %s -to %s -i \"%s\" -c copy \"%s\""
+                          time-a time-b input-file output-file)))
+    (async-shell-command command)
+    output-file))
 
 (defun org-media-note-capture-ab-loop-and-insert ()
   "Capture ab-loop segment, then insert it at the cursor position."
@@ -719,19 +721,18 @@ Save to OUTPUT-FILE."
       (org-media-note--current-media-info)
     (let* ((time-a (org-media-note--seconds-to-timestamp (mpv-get-property "ab-loop-a")))
            (time-b (org-media-note--seconds-to-timestamp (mpv-get-property "ab-loop-b")))
-           (output-file-name (funcall org-media-note-capture-name-function
-                                      media-path media-title time-a time-b
-                                      (format ".%s"
-                                              (file-name-extension media-path))))
-           (output-file-path (org-media-note--output-file-path output-file-name
-                                                               media-path media-title))
            (capture-function-name (if org-media-note-capture-ab-loop-ask-each-time
                                       (org-media-note--select-capture-function)
                                     org-media-note-default-capture-ab-loop-function-name))
            (capture-function (cdr (assoc capture-function-name
-                                         org-media-note-capture-ab-loop-functions-alist))))
-      (funcall capture-function time-a time-b media-path output-file-path)
-      (org-media-note--insert-file-link output-file-path))))
+                                         org-media-note-capture-ab-loop-functions-alist)))
+           (output-file-name (funcall org-media-note-capture-name-function
+                                      media-path media-title time-a time-b ".xxx"))
+           ;; real ext is generated in capture-function
+           (output-file-path-sans-ext (file-name-sans-extension (org-media-note--output-file-path output-file-name
+                                                                                                  media-path media-title)))
+           (output-file (funcall capture-function time-a time-b media-path output-file-path-sans-ext)))
+      (org-media-note--insert-file-link output-file))))
 
 (defun org-media-note--select-capture-function ()
   "Select capture function name from `org-media-note-capture-ab-loop-functions-alist'."
