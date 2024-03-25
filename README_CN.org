@@ -3,6 +3,7 @@
 * 功能介绍
 这是一个方便在 org-mode 中为视频、音频做笔记的插件。基本功能：
 
+- 支持本地媒体和在线媒体（需要安装 yt-dlp，参见[[在线视频播放]]）
 - 控制多媒体：播放进度、速度、音量等
 - 定义了 =video=, =audio= 两种链接
   + *时间戳链接* 类似 =[[video:course.mp4#0:01:56][0:01:56]]=
@@ -11,8 +12,12 @@
   + *区间循环链接* 类似 =[[video:course.mp4#0:01:56-0:01:58][0:01:56-0:01:58]]=
     - 在播放多媒体时，如果在AB循环，则插入区间循环链接
     - 回顾笔记时，点击链接可跳转到0:01:56播放，并在0:01:56-0:01:58进行区间循环
-- 支持本地媒体和在线媒体（需要安装 yt-dlp，参见[[在线视频播放]]）
-- 插入时间戳时，可设定
+- 记录笔记时，可以快速:
+  + 插入时间戳或区间循环链接
+  + 插入当前视频截图或者GIF
+  + 插入当前字幕
+  + 合并多条笔记，适合在导入字幕后的整理。
+- 插入时间戳时，可额外设置：
   + 是否自动插入当前的视频截图
   + 是否在插入时间戳后自动暂停
 - 可以从已有文件导入笔记，目前支持的格式：
@@ -21,7 +26,6 @@
   + PotPlayer 生成的 PBF 文件
   + 由 [[https://www.notedapp.io/][Noted]] 导出的 TXT 文件
   + [[https://orgmode.org/manual/Timers.html][Timers]]
-- 可以快速合并多条笔记，适合在导入字幕后的整理。
 
 如果你使用 [[https://github.com/jkitchin/org-ref][org-ref]]，可以与 org-ref 笔记协同使用：
 
@@ -143,13 +147,14 @@
     - 💡 视频的路径格式与 =org-link-file-path-type= 一致
     - 💡 如果设置 =org-media-note-cursor-start-position= 为 =before= ，则插入链接后光标跳转到链接的开始位置。此选项只在单独插入链接时起作用，对通过 =<M-return>= 自动插入的时间戳不起作用。
   + =a= 将光标所在位置的链接，调整为当前播放位置。并将该时间偏移（offset），应用到当前笔记的其他链接。适合导入org-timer后，或者更新视频后，统一调整偏移。
-  + =S= 插入当前的视频截图 (=org-media-note-insert-screenshot=)
+  + =S= 如果当前没有ab-loop，插入当前的视频截图 (=org-media-note-insert-screenshot=)，否则插入当前ab-loop的视频片段或GIF（=org-media-note-capture-ab-loop-and-insert=）。
     - ℹ 相关变量:
       + =org-media-note-screenshot-save-method= : 定义截图的保存位置
         - directory: 保存到 =org-media-note-screenshot-image-dir=
         - attach: 保存到对应 org-attach-dir.
       + =org-media-note-screenshot-link-type-when-save-in-attach-dir= 当保存到对应 org-attach-dir时，使用file链接或attachment链接
       + 图片的路径格式与 =org-link-file-path-type= 一致
+      + =org-media-note-capture-ab-loop-functions-alist= 定义了截取ab-loop片段的函数列表，默认有截取原始片段和转为gif两种。
   + =s= 插入当前的字幕文本 (=org-media-note-insert-sub-text=)
   + =H-m= 合并所选项为一条，只保留第一条的时间戳。适合导入字幕之后的处理 (=org-media-note-merge-item=)
 - Import: 导入
@@ -157,9 +162,11 @@
   + =I n= 从已有的Noted TXT文件导入笔记 (=org-media-note-insert-note-from-noted=)
   + =I t= 从 org-timer 形式的列表导入笔记 (=org-media-note-convert-from-org-timer=)
   + =I s= 从 srt 字幕文件导入，会尝试搜寻同名srt (=org-media-note-insert-note-from-srt=)
-- Toggle：笔记功能的设置
+  + =I c= 从章节列表导入 (=org-media-note-insert-note-from-chapter-list=)
+- Config：功能设置
   + =t m= 启用后，在形如 =- [[video:video.mp4#00:03:24][00:03:24]] description= 的列表中， =<M-return>= 新建列表项会自动插入对应时间戳链接。
   + =t s= 启用后， =<M-return>= 新建列表项时除了自动插入对应链接，也会自动插入当前视频截图
+  + =t l= 设置截取ab-loop片段的方法
   + =t c= 启用时，会优先使用 =videocite= 或 =audiocite= 链接，而非 =video= 或 =audio= 链接
   + =t p= 启用后，会在插入链接后，自动暂停媒体
   + =t S= 启用后，保存的截图包含字幕，否则不包含字幕
