@@ -7,6 +7,16 @@
 (require 'org-media-note-core)
 
 ;;;; Customization
+
+(defcustom org-media-note-seek-method 'seconds
+  "Method used for seeking. Possible values are 'seconds, 'percentage, 'frames."
+  :type 'symbol
+  :options '(seconds percentage frames))
+
+(defcustom org-media-note-seek-value 5
+  "Value used for seeking, interpretation depends on `org-media-note-seek-method`."
+  :type 'number)
+
 ;;;; Variables
 
 (defvar org-media-note-last-play-speed 1.0
@@ -58,6 +68,29 @@
   (interactive)
   (let ((video-url (read-string "Url to play: ")))
     (org-media-note--follow-link video-url 0)))
+
+(defun org-media-note-seek (direction)
+  "Seek in the given DIRECTION according to the configured method and value."
+  (interactive)
+  (let ((was-pause (mpv-get-property "pause"))
+        (backward? (eq direction 'backward)))
+    (cl-case org-media-note-seek-method
+      (seconds (mpv-run-command "seek"
+                                (if backward?
+                                    (- org-media-note-seek-value)
+                                  org-media-note-seek-value)
+                                "relative"))
+      (percentage (mpv-run-command "seek"
+                                   (if backward?
+                                       (- org-media-note-seek-value)
+                                     org-media-note-seek-value)
+                                   "relative-percent"))
+      (frames (progn
+                (dotimes (_ org-media-note-seek-value)
+                  (mpv-run-command (if backward? "frame-back-step" "frame-step"))))
+              (sleep-for 0.3) ;; without this, frame seek cannot resume play
+              (when (not (eq was-pause t))
+                (mpv-run-command "set_property" "pause" "no"))))))
 
 (defun org-media-note-change-speed-by (speed-step)
   "Modify playing media's speed by SPEED-STEP."

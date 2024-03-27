@@ -88,8 +88,8 @@
            "Set A of AB-loop")))
      :width 31)
     ("g" org-media-note-goto-timestamp "Jump to timestamp")
-    ("<left>" mpv-seek-backward "Backward 5s")
-    ("<right>" mpv-seek-forward "Forward 5s")
+    ("<left>" (org-media-note-seek 'backward) (format "Backward %s" (org-media-note--seek-step t)))
+    ("<right>" (org-media-note-seek 'forward) (format "Forward %s" (org-media-note--seek-step t)))
     ("C-<left>"
      (mpv-run-command "sub-seek" -1)
      "Previous subtitle")
@@ -158,7 +158,9 @@
               ((eq org-media-note-timestamp-pattern 'hmsf) "hh:mm:ss.fff")))
      :width 29)
     ("t M" org-media-note-set-separator
-     (format "Separator when merge: %s" org-media-note-separator-when-merge)))))
+     (format "Separator when merge: %s" org-media-note-separator-when-merge))
+    ("t <right>" org-media-note-set-seek-method
+     (format "Seek step: %s" (org-media-note--seek-step t))))))
 
 
 (defun org-media-note--hydra-title ()
@@ -195,6 +197,19 @@
                           file-path))))
         ;; Title when no media is playing
         (concat icon " org-media-note")))))
+
+(defun org-media-note--seek-step (&optional in-macro?)
+  "Return a formatted string based on the current seek method and value."
+  (format "%s%s"
+          org-media-note-seek-value
+          (cond
+           ((eq org-media-note-seek-method 'seconds) "s")
+           ((eq org-media-note-seek-method 'percentage)
+            (if in-macro? "%%" "%"))
+           ((eq org-media-note-seek-method 'frames)
+            (if (= org-media-note-seek-value 1)
+                " frame"
+              " frames")))))
 
 ;;;;; Customize Org link
 (defun org-media-note--default-desc-fn (base timestamp seconds desc)
@@ -297,6 +312,20 @@
   (interactive "sEnter the new separator: ")
   (setq org-media-note-separator-when-merge new-separator)
   (message "org-media-note-media-note-separator set to: %s" org-media-note-separator-when-merge))
+
+(defun org-media-note-set-seek-method ()
+  "Config the seek method and value for playback."
+  (interactive)
+  (let* ((method (org-media-note--select "Select seek method: "
+                                         '("seconds" "percentage" "frames")))
+         (value (read-number (format "Enter value for %s: " method))))
+    (setq org-media-note-seek-method (cond
+                                      ((string-equal method "seconds") 'seconds)
+                                      ((string-equal method "percentage") 'percentage)
+                                      ((string-equal method "frames") 'frames))
+          org-media-note-seek-value value))
+  (message "Seek method set to: %s."
+           (org-media-note--seek-step)))
 
 ;;;;; Minor Mode
 
