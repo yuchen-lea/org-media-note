@@ -406,9 +406,9 @@ MEDIA-TITLE is the title of the current media, used for some save methods."
   "Insert a link to FILE-PATH using the appropriate method."
   (if (and (eq org-media-note-screenshot-save-method 'attach)
            (eq org-media-note-screenshot-link-type-when-save-in-attach-dir 'attach))
-      (insert (format "[[attachment:%s]]\n"
+      (insert (format "[[attachment:%s]]"
                       (file-relative-name file-path (org-attach-dir))))
-    (insert (format "[[file:%s]]\n"
+    (insert (format "[[file:%s]]"
                     (org-media-note--format-file-path file-path)))))
 
 ;;;;;; Context
