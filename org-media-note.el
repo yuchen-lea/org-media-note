@@ -239,10 +239,26 @@
                        seconds desc))))
    (t (format "[[%s][%s]]" path desc))))
 
+(defun org-media-note-default-timestamp-description (&optional _ _)
+  "Return the timestamp description based on `org-media-note-timestamp-pattern'."
+  (if (eq org-media-note-timestamp-pattern 'hmsf)
+      "00:00:00.000"
+    "00:00:00"))
+
+(defun org-media-note-complete-link (type &optional arg)
+  "Create a media link using completion.
+TYPE is the media type 'video' or 'audio'.
+With optional ARG, abbreviate the file name in the link."
+  (let ((file-link (org-link-complete-file arg))
+        (timestamp (org-media-note-default-timestamp-description)))
+    (concat (replace-regexp-in-string "^file:" (concat type ":") file-link) "#" timestamp)))
+
 (dolist (link '("video" "audio"))
   (org-link-set-parameters link
-                           :follow 'org-media-note-media-link-follow
-                           :export 'org-media-note-export-link))
+                           :follow #'org-media-note-media-link-follow
+                           :export #'org-media-note-export-link
+                           :complete (lambda (&optional arg) (org-media-note-complete-link link arg))
+                           :insert-description #'org-media-note-default-timestamp-description))
 
 ;;;;; Config
 
