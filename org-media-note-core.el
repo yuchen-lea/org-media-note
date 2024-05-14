@@ -436,8 +436,10 @@ This list includes the following elements:
   (let ((element (org-element-context)))
     (if (eq (org-element-type element) 'link)
         (let* ((link-type (org-element-property :type element))
-               (supported-link (member link-type '("file" "http" "https" "attachment" "audio"
-                                                   "video" "audiocite" "videocite"))))
+               (org-yt-type (or (bound-and-true-p org-yt-url-protocol)
+                                "yt"))
+               (supported-link (member link-type `("file" "http" "https" "attachment" "audio"
+                                                   "video" "audiocite" "videocite" ,org-yt-type))))
           (if supported-link
               (let* ((link-path (org-element-property :path element))
                      (path-with-type (format "%s:%s" link-type link-path))
@@ -459,6 +461,8 @@ This list includes the following elements:
                                            (or (org-media-note-get-media-file-by-key key)
                                                (org-media-note-get-url-by-key key))))
                                         ((org-media-note--online-video-p path-with-type) path-with-type)
+                                        ((string= link-type org-yt-type)
+                                         (concat "https://youtu.be/" link-path))
                                         (t nil)))
                      (start-time (if (member link-type '("audio" "video" "audiocite" "videocite"))
                                      (let* ((timestamps (nth 1
