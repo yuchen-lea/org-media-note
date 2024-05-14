@@ -187,7 +187,7 @@ Set this to nil if you prefer to save files in current directory."
   :type 'string)
 
 (defcustom org-media-note-mpv-general-options
-  '("script-opts=ytdl_hook-ytdl_path=yt-dlp")
+  '("--script-opts=ytdl_hook-ytdl_path=yt-dlp")
   "General MPV options."
   :type '(list string))
 

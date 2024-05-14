@@ -190,7 +190,7 @@
 1. =mpv.conf= 文件：mpv 的通用设置
 2. =org-media-note-mpv-general-options=变量：配置org-media-note中的通用设置。默认值指定使用 yt-dlp 来下载：
     #+begin_src ini
-    script-opts=ytdl_hook-ytdl_path=yt-dlp
+    --script-opts=ytdl_hook-ytdl_path=yt-dlp
     #+end_src
 3. =org-media-note-mpv-online-website-options-alist= 变量：配置网站的单独设置，例如bilibili需要下载所有字幕和弹幕，而youtube自动生成的字幕只需要下载指定的语言。
    - 默认配置，youtube会下载中英字幕，bilibili会加载所有字幕和弹幕。bilibili的字幕功能需要加载cookies，获取登录信息，请根据实际情况修改，参见 [[https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp][FAQ · yt-dlp/yt-dlp Wiki]]
