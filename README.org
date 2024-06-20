@@ -194,7 +194,7 @@ Settings can be applied in several places, with priority from low to high:
 1. =mpv.conf= file: General settings for mpv.
 2. =org-media-note-mpv-general-options= variable: General settings in org-media-note. The default value specifies using yt-dlp for downloads:
     #+begin_src ini
-    script-opts=ytdl_hook-ytdl_path=yt-dlp
+    --script-opts=ytdl_hook-ytdl_path=yt-dlp
     #+end_src
 2. =org-media-note-mpv-online-website-options-alist= variable: Individual settings for websites, for example, Bilibili needs to download all subtitles and danmaku, while YouTube's auto-generated subtitles only need to download specific languages.
 
