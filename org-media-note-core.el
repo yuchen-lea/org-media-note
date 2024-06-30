@@ -834,7 +834,7 @@ TIME-A and TIME-B indicate the start and end of a playback loop."
                       (mpv-get-property "path")))
         ;; file-path is not playing
         (progn
-          (message (format "open %s..." path))
+          (message "open %s..." path)
           (apply 'mpv-start path
                  (append (list (concat "--start=+" time-a))
                          (when time-b
