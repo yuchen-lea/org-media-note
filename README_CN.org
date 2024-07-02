@@ -100,8 +100,9 @@
 ℹ 这里，我用 Hyper key =H= 进行绑定，好处在于快速触达，且不会与已有快捷键冲突。更多参见 [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]。当然，你也可以设置成任何适合你的快捷键，毕竟这是Emacs ;)
 * 功能详解
 
-所有功能都可由 =org-media-note-hydra/body= 触达：
+所有功能都可由 =org-media-note-pretty-hydra/body= 或 =org-media-note-transient= 触达（具体函数取决于 =org-media-note-interface= 变量的设置）：
 
+** pretty-hydra ui
 [[../demo/org-media-note-hydra.png?raw=true]]
 
 - Header：展示当前播放的基本信息，文件路径、音量、播放进度、播放速度等
@@ -173,10 +174,22 @@
   + =t t= 切换时间戳的格式：=hh:mm:ss= / =hh:mm:ss.fff=
   + =t M= 设置执行合并所选项时的连接符
 
-ℹ 末尾括号为调用的函数，没有标注的功能多为直接调用mpv命令，可查阅 =org-media-note-hydra= 了解更多。
+ℹ 末尾括号为调用的函数，没有标注的功能多为直接调用mpv命令，可查阅 =org-media-note-pretty-hydra= 了解更多。
+
+
+** transient ui
+
+transient界面与pretty-hydra界面的功能和按键一致。
+
+为了适应更紧凑的布局，功能设置等命令进行了语义化分组：
+
+[[../demo/org-media-note-transient.png?raw=true]]
+
 * 依赖
 - [[https://github.com/kljohann/mpv.el][mpv.el]] 媒体的播放与功能接口
-- [[https://github.com/jerrypnz/major-mode-hydra.el][pretty-hydra]] 创建更美观、易用的Hydra界面
+- 目前提供 2 种前端，通过 =org-media-note-interface= 来自定义：
+  + [[https://github.com/magit/transient][transient]]（默认）：自 Emacs 28 起内置于 Emacs 中，显示在当前 window 底部。
+  + [[https://github.com/jerrypnz/major-mode-hydra.el][pretty-hydra]]：创建更美观、易用的Hydra界面，显示在当前 Frame 底部。
 
 如果要配合 org-ref 笔记使用，当然需要安装 [[https://github.com/jkitchin/org-ref][org-ref]]。
 ** 在线视频播放
