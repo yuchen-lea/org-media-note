@@ -227,8 +227,8 @@
     (let* ((splitted (split-string path "#"))
            (url (nth 0 splitted))
            (timestamp (nth 1 splitted))
-           (seconds (org-media-note--timestamp-to-seconds timestamp))
-           (param-symbol (if (string-match "youtube\\.com" url)
+           (seconds (org-media-note--timestamp-to-seconds timestamp t))
+           (param-symbol (if (string-match org-media-note--youtube-link-pattern url)
                              "&"
                            "?")) ;; youtube, bilibili tested
            (new-url (format "%s%st=%s" url param-symbol seconds)))

@@ -276,12 +276,14 @@ according to `org-media-note-timestamp-pattern'."
         (org-media-note--seconds-to-timestamp position)
       nil)))
 
-(defun org-media-note--timestamp-to-seconds (timestamp)
-  "Convert TIMESTAMP to seconds (string)."
+(defun org-media-note--timestamp-to-seconds (timestamp &optional omit-decimal)
+  "Convert TIMESTAMP to seconds (string).
+If OMIT-DECIMAL is non-nil, return the integer part only."
   (let* ((splitted-timestamp (split-string timestamp "\\(\\.\\|,\\)"))
          (hms (nth 0 splitted-timestamp))
          fff)
-    (if (= (length splitted-timestamp) 2)
+    (if (and (not omit-decimal)
+             (= (length splitted-timestamp) 2))
         (progn
           (setq fff (nth 1 splitted-timestamp))
           (format "%s.%s"
