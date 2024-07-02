@@ -19,6 +19,25 @@
 (declare-function org-media-note-get-media-file-by-key "org-media-note-org-ref" (key))
 (declare-function org-media-note-get-url-by-key "org-media-note-org-ref" (key))
 
+;;;; Constants
+
+(defconst org-media-note--video-types '("avi" "rmvb" "ogg" "ogv" "mp4" "mkv" "mov" "webm" "flv" "ts" "mpg"))
+(defconst org-media-note--audio-types '("flac" "mp3" "wav" "m4a" "aac" "opus"))
+(defconst org-media-note--hms-timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\)[ \t]?")
+(defconst org-media-note--hmsf-timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\(\\.\\|,\\)[0-9]+\\)[ \t]?")
+(defconst org-media-note--link-pattern "\\[\\[\\(?:audiocite\\|videocite\\|audio\\|video\\):[^]]+\\]\\[[^]]+\\]\\]")
+(defconst org-media-note--youtube-link-pattern "\\(youtube\\.com\\|youtu\\.be\\)")
+(defconst org-media-note--list-full-item-re
+  (concat "^[ \t]*\\(\\(?:[-+*]\\|\\(?:[0-9]+\\|[A-Za-z]\\)[.)]\\)\\(?:[ \t]+\\|$\\)\\)"
+          "\\(?:\\[@\\(?:start:\\)?\\([0-9]+\\|[A-Za-z]\\)\\][ \t]*\\)?"
+          "\\(\\(?:\\[[ X-]\\]\\(?:[ \t]+\\|$\\)\\)?" "\\(?:" org-media-note--link-pattern "\\)\\(?:[ \t]*\\|$\\)\\)?"
+          "\\(?:\\(.*\\)[ \t]+::\\(?:[ \t]+\\|$\\)\\)?")
+  "Matches a list item and puts everything into groups:
+group 1: bullet
+group 2: counter
+group 3: checkbox + link
+group 4: description tag")
+
 ;;;; Customization
 
 (defgroup org-media-note nil
@@ -192,7 +211,7 @@ Set this to nil if you prefer to save files in current directory."
   :type '(repeat string))
 
 (defcustom org-media-note-mpv-online-website-options-alist
-  '(("youtube\\.com"
+  `((,org-media-note--youtube-link-pattern
      ;; best audio and best video that is 4K or lower, not using the av01 codec.
      "--ytdl-format=bestvideo[height<=?2160][vcodec!=?av01]+bestaudio/best"
      ;; download both automatically generated and manually created subtitles.
@@ -204,24 +223,6 @@ Set this to nil if you prefer to save files in current directory."
   :type '(alist
           :key-type (regexp :tag "Website Regex")
           :value-type (repeat (string :tag "MPV Option"))))
-
-;;;; Variables
-
-(defconst org-media-note--video-types '("avi" "rmvb" "ogg" "ogv" "mp4" "mkv" "mov" "webm" "flv" "ts" "mpg"))
-(defconst org-media-note--audio-types '("flac" "mp3" "wav" "m4a" "aac" "opus"))
-(defconst org-media-note--hms-timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\)[ \t]?")
-(defconst org-media-note--hmsf-timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\(\\.\\|,\\)[0-9]+\\)[ \t]?")
-(defconst org-media-note--link-pattern "\\[\\[\\(?:audiocite\\|videocite\\|audio\\|video\\):[^]]+\\]\\[[^]]+\\]\\]")
-(defconst org-media-note--list-full-item-re
-  (concat "^[ \t]*\\(\\(?:[-+*]\\|\\(?:[0-9]+\\|[A-Za-z]\\)[.)]\\)\\(?:[ \t]+\\|$\\)\\)"
-          "\\(?:\\[@\\(?:start:\\)?\\([0-9]+\\|[A-Za-z]\\)\\][ \t]*\\)?"
-          "\\(\\(?:\\[[ X-]\\]\\(?:[ \t]+\\|$\\)\\)?" "\\(?:" org-media-note--link-pattern "\\)\\(?:[ \t]*\\|$\\)\\)?"
-          "\\(?:\\(.*\\)[ \t]+::\\(?:[ \t]+\\|$\\)\\)?")
-  "Matches a list item and puts everything into groups:
-group 1: bullet
-group 2: counter
-group 3: checkbox + link
-group 4: description tag")
 
 ;;;; Commands
 ;;;;; Utils
