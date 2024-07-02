@@ -103,8 +103,10 @@ Now, you can access all functions in =org-media-note-hydra/body=
 
 ℹ Here, I use Hyper key =H= for keybinding. In this way, I can quickly access personal functions, and no major or minor modes will stamp on my keys. Look into this for more information: [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]. Or you can bind it to any other key you like. After all, it's Emacs ;)
 * Functions
-All functions can be reached from =org-media-note-hydra/body= :
 
+All functions are accessible via =org-media-note-pretty-hydra/body= or =org-media-note-transient= (depending on the value of the =org-media-note-interface=):
+
+** pretty-hydra ui
 [[../demo/org-media-note-hydra.png?raw=true]]
 
 - Header：Display basic info, file path, volume, duration and so on
@@ -176,11 +178,21 @@ All functions can be reached from =org-media-note-hydra/body= :
   + =t t= Toggle timestamp format between =hh:mm:ss= and =hh:mm:ss.fff=
   + =t M= Set the separator to be used when merging the selected items.
 
-ℹ Corresponding function is in the brackets. Those without brackets usually call mpv commands directly. More info refers =org-media-note-hydra=.
+ℹ Corresponding function is in the brackets. Those without brackets usually call mpv commands directly. More info refers =org-media-note-pretty-hydra=.
+
+** transient ui
+
+The transient interface has the same functions and key bindings as the pretty-hydra interface.
+
+To accommodate a more compact layout, config commands are semantically grouped:
+
+[[../demo/org-media-note-transient.png?raw=true]]
 
 * Dependencies
 - [[https://github.com/kljohann/mpv.el][mpv.el]] control media inside emacs
-- [[https://github.com/jerrypnz/major-mode-hydra.el][pretty-hydra]] create an amiable hydra
+- Currently provides two frontends, customizable via =org-media-note-interface=:
+  + [[https://github.com/magit/transient][transient]] (default): Built into Emacs since version 28, displayed at the bottom of the current window.
+  + [[https://github.com/jerrypnz/major-mode-hydra.el][pretty-hydra]]: create an amiable hydra, displayed at the bottom of the current frame.
 
  [[https://github.com/jkitchin/org-ref][org-ref]] is not required, but it's worth to have a try if you use bib to manage your media file!
 ** Online Video
