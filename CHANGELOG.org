@@ -1,3 +1,12 @@
+- [2024-07-02] Version =1.11.0=
+  + Import from chapter list
+  + Support capture video clip or gif when ab-loop
+  + Support customize seek step
+  + Better support link
+    - org-yt: support open (Thanks @Ban3)
+    - video & audio:
+      + support completion
+      + for online video, export url with timestamp
 - [2024-03-14] Version =1.10.0=
   + support ass subtitle
   + =org-media-note-mpv-online-website-options-alist= to support mpv config per website
