@@ -95,12 +95,12 @@
       #+END_SRC
   + 如果不使用像=package.el=或=straight=这样的包管理器，而是手动加载org-media-note，，需要使用 =(require 'org-media-note-org-ref)=。
 
-现在，你可以从 =org-media-note-hydra/body= 访问所有功能。
+现在，你可以从 =org-media-note-pretty-hydra/body= 或 =org-media-note-transient=（默认）  访问所有功能。
 
 ℹ 这里，我用 Hyper key =H= 进行绑定，好处在于快速触达，且不会与已有快捷键冲突。更多参见 [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]。当然，你也可以设置成任何适合你的快捷键，毕竟这是Emacs ;)
 * 功能详解
 
-所有功能都可由 =org-media-note-pretty-hydra/body= 或 =org-media-note-transient= 触达（具体函数取决于 =org-media-note-interface= 变量的设置）：
+所有功能都可由 =org-media-note-pretty-hydra/body= 或 =org-media-note-transient= 触达（取决于 =org-media-note-interface= 变量的设置）：
 
 ** pretty-hydra ui
 [[../demo/org-media-note-hydra.png?raw=true]]
@@ -125,8 +125,8 @@
   + =<SPC>= 播放/暂停
   + =l= 设置A-B循环，如果已设置，会显示当前的A-B区间
   + =g= 跳转到当前行所包含的时间戳，方便在浏览对应字幕时快速跳转。如果当前行没有找到时间戳，可以手动输入。
-  + =<left>= 后退5s
-  + =<right>= 前进5s
+  + =<left>= 后退5s（默认）。可用 =t <right>= 自定义步长。
+  + =<right>= 前进5s （默认）。可用 =t <right>= 自定义步长。
   + =C-<left>= 跳转到前一字幕
   + =C-<right>= 跳转到后一字幕
   + =<prior>= (即=<PgUp>=) 跳转到前一章节

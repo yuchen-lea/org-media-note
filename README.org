@@ -99,7 +99,7 @@ Open online video, then operate the same as local files!
    3. If manually loading org-media-note without a package manager like
       =package.el= or =straight=, you need to =(require 'org-media-note-org-ref)=.
 
-Now, you can access all functions in =org-media-note-hydra/body=
+Now, you can access all functions in =org-media-note-pretty-hydra/body= or =org-media-note-transient=.
 
 ℹ Here, I use Hyper key =H= for keybinding. In this way, I can quickly access personal functions, and no major or minor modes will stamp on my keys. Look into this for more information: [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]. Or you can bind it to any other key you like. After all, it's Emacs ;)
 * Functions
@@ -129,8 +129,8 @@ All functions are accessible via =org-media-note-pretty-hydra/body= or =org-medi
   + =<SPC>= pause/unpause
   + =l= Set/clear A-B loop points, show points info if possible
   + =g= jump to the position found in current line, useful when you're browsing related subtitles. If no timestamp found, manually input the timestamp.
-  + =<left>= Forward 5s
-  + =<right>= Backward 5s
+  + =<left>= Forward 5s (default). Step can be customized by =t <right>=.
+  + =<right>= Backward 5s (default). Step can be customized by =t <right>=.
   + =C-<left>= Skip to previous subtitle
   + =C-<right>= Skip to next subtitle
   + =<prior>= (=<PgUp>=) Previous chapter
