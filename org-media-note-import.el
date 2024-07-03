@@ -3,11 +3,11 @@
 
 ;;; Commentary:
 ;;
+;;; Code:
 
 (require 'org-media-note-core)
 
 
-;;; Code:
 ;;;; Customization
 
 (defcustom org-media-note-delete-pbf 'ask

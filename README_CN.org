@@ -165,14 +165,15 @@
   + =I s= 从 srt 字幕文件导入，会尝试搜寻同名srt (=org-media-note-insert-note-from-srt=)
   + =I c= 从章节列表导入 (=org-media-note-insert-note-from-chapter-list=)
 - Config：功能设置
-  + =t m= 启用后，在形如 =- [[video:video.mp4#00:03:24][00:03:24]] description= 的列表中， =<M-return>= 新建列表项会自动插入对应时间戳链接。
-  + =t s= 启用后， =<M-return>= 新建列表项时除了自动插入对应链接，也会自动插入当前视频截图
-  + =t l= 设置截取ab-loop片段的方法
-  + =t c= 启用时，会优先使用 =videocite= 或 =audiocite= 链接，而非 =video= 或 =audio= 链接
-  + =t p= 启用后，会在插入链接后，自动暂停媒体
-  + =t S= 启用后，保存的截图包含字幕，否则不包含字幕
-  + =t t= 切换时间戳的格式：=hh:mm:ss= / =hh:mm:ss.fff=
-  + =t M= 设置执行合并所选项时的连接符
+  + =t m= 启用后，在形如 =- [[video:video.mp4#00:03:24][00:03:24]] description= 的列表中， =<M-return>= 新建列表项会自动插入对应时间戳链接。（=org-media-note-toggle-auto-insert-item=）
+  + =t s= 启用后， =<M-return>= 新建列表项时除了自动插入对应链接，也会自动插入当前视频截图 （=org-media-note-toggle-save-screenshot=）
+  + =t S= 启用后，保存的截图包含字幕，否则不包含字幕 （=org-media-note-toggle-screenshot-with-sub=）
+  + =t l= 设置截取ab-loop片段的方法 （=org-media-note-set-ab-loop-capture-method=）
+  + =t c= 启用时，会优先使用 =videocite= 或 =audiocite= 链接，而非 =video= 或 =audio= 链接 （=org-media-note-toggle-refcite=）
+  + =t p= 启用后，会在插入链接后，自动暂停媒体 （=org-media-note-toggle-pause-after-insertion=）
+  + =t t= 切换时间戳的格式：=hh:mm:ss= / =hh:mm:ss.fff= （=org-media-note-toggle-timestamp-pattern=）
+  + =t M= 设置执行合并所选项时的连接符 （=org-media-note-set-separator=）
+  + =t <right>= 设置控制播放进度时，前进/后退的步长。支持设置：秒数，百分比，帧数。 （=org-media-note-set-seek-method=）
 
 ℹ 末尾括号为调用的函数，没有标注的功能多为直接调用mpv命令，可查阅 =org-media-note-pretty-hydra= 了解更多。
 
