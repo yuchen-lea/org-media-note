@@ -6,7 +6,9 @@
 
 ;;;; Requirements
 (require 'transient)
+
 (require 'org-media-note-core)
+(require 'org-media-note-mpv)
 (require 'org-media-note-import)
 
 ;;;; transient interface

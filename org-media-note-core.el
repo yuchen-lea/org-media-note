@@ -206,6 +206,15 @@ Otherwise, use the preset function."
 
 ;;;;; mpv customization
 
+(defcustom org-media-note-seek-method 'seconds
+  "Method used for seeking. Possible values are 'seconds, 'percentage, 'frames."
+  :type 'symbol
+  :options '(seconds percentage frames))
+
+(defcustom org-media-note-seek-value 5
+  "Value used for seeking, interpretation depends on `org-media-note-seek-method`."
+  :type 'number)
+
 (defcustom org-media-note-mpv-webstream-download-path
   (expand-file-name "yt-dlp" temporary-file-directory)
   "Path where mpv webstream files are to be stored.
