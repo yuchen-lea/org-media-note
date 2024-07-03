@@ -1,33 +1,33 @@
 [[file:CHANGELOG.org][Changelog]]
 
-* 功能介绍
+* 🌟 功能介绍
 这是一个方便在 org-mode 中为视频、音频做笔记的插件。基本功能：
 
-- 支持本地媒体和在线媒体（需要安装 yt-dlp，参见[[在线视频播放]]）
-- 控制多媒体：播放进度、速度、音量等
-- 定义了 =video=, =audio= 两种链接
+- 🎥 支持本地媒体和在线媒体（需要安装 yt-dlp，参见[[在线视频播放]]）
+- ⏯️ 控制多媒体：播放进度、速度、音量等
+- 🔗 定义了 =video=, =audio= 两种链接
   + *时间戳链接* 类似 =[[video:course.mp4#0:01:56][0:01:56]]=
     - 在播放多媒体时，如果当前光标位于一个以 org-media-note 链接开头的列表（例如 =- [[video:test.mp4#0:02:33][0:02:33]] note=），=M-RET= 会自动插入当前时间戳的链接
     - 回顾笔记时，点击链接可跳转到指定时间戳播放
   + *区间循环链接* 类似 =[[video:course.mp4#0:01:56-0:01:58][0:01:56-0:01:58]]=
     - 在播放多媒体时，如果在AB循环，则插入区间循环链接
     - 回顾笔记时，点击链接可跳转到0:01:56播放，并在0:01:56-0:01:58进行区间循环
-- 记录笔记时，可以快速:
+- 📝 记录笔记时，可以快速:
   + 插入时间戳或区间循环链接
   + 插入当前视频截图或者GIF
   + 插入当前字幕
   + 合并多条笔记，适合在导入字幕后的整理。
-- 插入时间戳时，可额外设置：
-  + 是否自动插入当前的视频截图
-  + 是否在插入时间戳后自动暂停
-- 可以从已有文件导入笔记，目前支持的格式：
+  + 插入时间戳时，可额外设置：
+    - 是否自动插入当前的视频截图
+    - 是否在插入时间戳后自动暂停
+- 🔄 可以从已有文件导入笔记，目前支持的格式：
   + 字幕文件：SRT、VTT、ASS
   + 当前播放文件的章节列表
   + PotPlayer 生成的 PBF 文件
   + 由 [[https://www.notedapp.io/][Noted]] 导出的 TXT 文件
   + [[https://orgmode.org/manual/Timers.html][Timers]]
 
-如果你使用 [[https://github.com/jkitchin/org-ref][org-ref]]，可以与 org-ref 笔记协同使用：
+📚 如果你使用 [[https://github.com/jkitchin/org-ref][org-ref]]，可以与 org-ref 笔记协同使用：
 
 - 可以在 org-ref 笔记中快速打开该条目对应的媒体文件
 - 定义了 =videocite=, =audiocite= 两种链接
@@ -36,7 +36,7 @@
   + 光标或鼠标置于链接时，显示 bib 条目的相关信息
   + 可以快速打开该 bib 条目的 org-ref 动作列表，执行相应动作，例如跳转到对应笔记等
 
-* 功能演示
+* 🎥 功能演示
 
 快速打开org-ref对应的视频，播放置顶，快速插入当前时间戳、字幕
 
@@ -51,7 +51,7 @@
 打开在线视频后，与本地文件的操作相同！
 [[../demo/org-media-note-online-video-zh.gif?raw=true]]
 
-* 快速指南
+* 🚀 快速指南
 
 - doom 用户
   1. 安装
@@ -97,8 +97,8 @@
 
 现在，你可以从 =org-media-note-pretty-hydra/body= 或 =org-media-note-transient=（默认）  访问所有功能。
 
-ℹ 这里，我用 Hyper key =H= 进行绑定，好处在于快速触达，且不会与已有快捷键冲突。更多参见 [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]。当然，你也可以设置成任何适合你的快捷键，毕竟这是Emacs ;)
-* 功能详解
+ℹ️️️️ 这里，我用 Hyper key =H= 进行绑定，好处在于快速触达，且不会与已有快捷键冲突。更多参见 [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]。当然，你也可以设置成任何适合你的快捷键，毕竟这是Emacs ;)
+* 📖 功能详解
 
 所有功能都可由 =org-media-note-pretty-hydra/body= 或 =org-media-note-transient= 触达（取决于 =org-media-note-interface= 变量的设置）：
 
@@ -149,7 +149,7 @@
     - 💡 如果设置 =org-media-note-cursor-start-position= 为 =before= ，则插入链接后光标跳转到链接的开始位置。此选项只在单独插入链接时起作用，对通过 =<M-return>= 自动插入的时间戳不起作用。
   + =a= 将光标所在位置的链接，调整为当前播放位置。并将该时间偏移（offset），应用到当前笔记的其他链接。适合导入org-timer后，或者更新视频后，统一调整偏移。
   + =S= 如果当前没有ab-loop，插入当前的视频截图 (=org-media-note-insert-screenshot=)，否则插入当前ab-loop的视频片段或GIF（=org-media-note-capture-ab-loop-and-insert=）。
-    - ℹ 相关变量:
+    - ℹ️️️️ 相关变量:
       + =org-media-note-screenshot-save-method= : 定义截图的保存位置
         - directory: 保存到 =org-media-note-screenshot-image-dir=
         - attach: 保存到对应 org-attach-dir.
@@ -175,7 +175,7 @@
   + =t M= 设置执行合并所选项时的连接符 （=org-media-note-set-separator=）
   + =t <right>= 设置控制播放进度时，前进/后退的步长。支持设置：秒数，百分比，帧数。 （=org-media-note-set-seek-method=）
 
-ℹ 末尾括号为调用的函数，没有标注的功能多为直接调用mpv命令，可查阅 =org-media-note-pretty-hydra= 了解更多。
+ℹ️️️️ 末尾括号为调用的函数，没有标注的功能多为直接调用mpv命令，可查阅 =org-media-note-pretty-hydra= 了解更多。
 
 
 ** transient ui
@@ -186,14 +186,14 @@ transient界面与pretty-hydra界面的功能和按键一致。
 
 [[../demo/org-media-note-transient.png?raw=true]]
 
-* 依赖
+* 🛠️ 依赖
 - [[https://github.com/kljohann/mpv.el][mpv.el]] 媒体的播放与功能接口
 - 目前提供 2 种前端，通过 =org-media-note-interface= 来自定义：
   + [[https://github.com/magit/transient][transient]]（默认）：自 Emacs 28 起内置于 Emacs 中，显示在当前 window 底部。
   + [[https://github.com/jerrypnz/major-mode-hydra.el][pretty-hydra]]：创建更美观、易用的Hydra界面，显示在当前 Frame 底部。
 
 如果要配合 org-ref 笔记使用，当然需要安装 [[https://github.com/jkitchin/org-ref][org-ref]]。
-** 在线视频播放
+** 🌐 在线视频播放
 
 使用 org-media-note 来进行在线视频的笔记依赖于 mpv 的流媒体播放功能，需要额外的外部依赖：
 - [[https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation][yt-dlp/yt-dlp: A youtube-dl fork with additional features and fixes]]: 用于下载网站视频，支持的网站参见[[https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md][此处]]。它比mpv 默认使用的 youtube-dl 更流畅也更强大。如果想播放在线视频但是没有安装 yt-dlp，org-media-note 会报错提示。
