@@ -6,17 +6,6 @@
 
 (require 'org-media-note-core)
 
-;;;; Customization
-
-(defcustom org-media-note-seek-method 'seconds
-  "Method used for seeking. Possible values are 'seconds, 'percentage, 'frames."
-  :type 'symbol
-  :options '(seconds percentage frames))
-
-(defcustom org-media-note-seek-value 5
-  "Value used for seeking, interpretation depends on `org-media-note-seek-method`."
-  :type 'number)
-
 ;;;; Variables
 
 (defvar org-media-note-last-play-speed 1.0

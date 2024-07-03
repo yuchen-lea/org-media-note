@@ -6,7 +6,9 @@
 
 ;;;; Requirements
 (require 'pretty-hydra)
+
 (require 'org-media-note-core)
+(require 'org-media-note-mpv)
 (require 'org-media-note-import)
 
 ;;;; pretty-hydra interface
