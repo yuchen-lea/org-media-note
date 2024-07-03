@@ -98,7 +98,7 @@
                  ("i" "Insert timestamp" org-media-note-insert-link
                   :transient nil)
                  ("a" "Adjust timestamp" org-media-note-adjust-timestamp-offset)
-                 ("tm" toggle-org-media-note-auto-insert-item
+                 ("tm" org-media-note-toggle-auto-insert-item
                   :description (lambda ()
                                  (format "Auto insert item [%s]"
                                          (org-media-note--ui-toggle-state 'org-media-note-auto-insert-item))))
@@ -146,7 +146,7 @@
                   :description (lambda ()
                                  (format "Screenshot with sub [%s]"
                                          (org-media-note--ui-toggle-state 'org-media-note-screenshot-with-sub))))
-                 ("tl" org-media-note-config-ab-loop-capture-method
+                 ("tl" org-media-note-set-ab-loop-capture-method
                   :description (lambda ()
                                  (format "AB-loop clip: %s"
                                          (if org-media-note-capture-ab-loop-ask-each-time

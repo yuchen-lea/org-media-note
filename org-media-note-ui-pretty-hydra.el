@@ -88,13 +88,13 @@
     ("I c" org-media-note-insert-note-from-chapter-list
      "from chapters"))
    "Config"
-   (("t m" toggle-org-media-note-auto-insert-item
+   (("t m" org-media-note-toggle-auto-insert-item
      "Auto insert media item" :toggle org-media-note-auto-insert-item)
     ("t s" org-media-note-toggle-save-screenshot
      "Auto insert screenshot" :toggle org-media-note-save-screenshot-p)
     ("t S" org-media-note-toggle-screenshot-with-sub
      "Screenshot with sub" :toggle org-media-note-screenshot-with-sub)
-    ("t l" org-media-note-config-ab-loop-capture-method
+    ("t l" org-media-note-set-ab-loop-capture-method
      (format "AB-loop Clip: %s"
              (if org-media-note-capture-ab-loop-ask-each-time
                  "always ask" org-media-note-default-capture-ab-loop-function-name)))

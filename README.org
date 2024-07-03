@@ -169,14 +169,15 @@ All functions are accessible via =org-media-note-pretty-hydra/body= or =org-medi
   + =I s= Import from srt (=org-media-note-insert-note-from-srt=)
   + =I c= Import from the chapter list (=org-media-note-insert-note-from-chapter-list=)
 - Config：Customization
-  + =t m= When in a list like =- [[video:video.mp4#00:03:24][00:03:24]] description=, =<M-return>= will auto insert media link if this toggles on.
-  + =t c= When on，insert =videocite= or =audiocite= link instead of =video= or =audio= link if possible.
-  + =t p= When on，auto pause media after inserting media link.
-  + =t s= When on， =<M-return>= will auto insert both media link and current screenshot.
-  + =t l= Set the method for capturing ab-loop clips
-  + =t S= When on，save screenshot with subtitles
-  + =t t= Toggle timestamp format between =hh:mm:ss= and =hh:mm:ss.fff=
-  + =t M= Set the separator to be used when merging the selected items.
+  + =t m= When in a list like =- [[video:video.mp4#00:03:24][00:03:24]] description=, =<M-return>= will auto insert media link if this toggles on. (=org-media-note-toggle-auto-insert-item=)
+  + =t s= When on， =<M-return>= will auto insert both media link and current screenshot. (=org-media-note-toggle-save-screenshot=)
+  + =t S= When on，save screenshot with subtitles (=org-media-note-toggle-screenshot-with-sub=)
+  + =t l= Set the method for capturing ab-loop clips (=org-media-note-set-ab-loop-capture-method=)
+  + =t c= When on，insert =videocite= or =audiocite= link instead of =video= or =audio= link if possible. (=org-media-note-toggle-refcite=)
+  + =t p= When on，auto pause media after inserting media link. (=org-media-note-toggle-pause-after-insertion=)
+  + =t t= Toggle timestamp format between =hh:mm:ss= and =hh:mm:ss.fff= (=org-media-note-toggle-timestamp-pattern=)
+  + =t M= Set the separator to be used when merging the selected items. (=org-media-note-set-separator=)
+  + =t <right>=: Set the step for controlling playback progress. Supports: seconds, percentage, or frames. (=org-media-note-set-seek-method=)
 
 ℹ Corresponding function is in the brackets. Those without brackets usually call mpv commands directly. More info refers =org-media-note-pretty-hydra=.
 

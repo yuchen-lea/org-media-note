@@ -596,6 +596,87 @@ This list includes the following elements:
                 " frame"
               " frames")))))
 
+;;;;; Config
+(defun org-media-note-toggle-auto-insert-item ()
+  "Toggle the automatic insertion of media items."
+  (interactive)
+  (setq org-media-note-auto-insert-item (not org-media-note-auto-insert-item))
+  (org-media-note--update-auto-insert-advice org-media-note-auto-insert-item)
+  (message "Auto insert media item: %s" (if org-media-note-auto-insert-item "enabled" "disabled")))
+
+(defun org-media-note-toggle-refcite ()
+  "Toggle refcite for links."
+  (interactive)
+  (if org-media-note-use-refcite-first
+      (setq org-media-note-use-refcite-first nil)
+    (setq org-media-note-use-refcite-first t)))
+
+(defun org-media-note-toggle-pause-after-insertion ()
+  "Toggle pausing after inserting a link."
+  (interactive)
+  (if org-media-note-pause-after-insert-link
+      (setq org-media-note-pause-after-insert-link nil)
+    (setq org-media-note-pause-after-insert-link t)))
+
+
+(defun org-media-note-toggle-save-screenshot ()
+  "Toggle `org-media-note-save-screenshot-p'."
+  (interactive)
+  (if org-media-note-save-screenshot-p
+      (setq org-media-note-save-screenshot-p nil)
+    (setq org-media-note-save-screenshot-p t)))
+
+(defun org-media-note-toggle-screenshot-with-sub ()
+  "Toggle screenshot with sub."
+  (interactive)
+  (if org-media-note-screenshot-with-sub
+      (setq org-media-note-screenshot-with-sub nil)
+    (setq org-media-note-screenshot-with-sub t)))
+
+(defun org-media-note-toggle-timestamp-pattern ()
+  "Toggle screenshot with sub."
+  (interactive)
+  (cond
+   ((eq org-media-note-timestamp-pattern 'hms)
+    (setq org-media-note-timestamp-pattern 'hmsf))
+   ((eq org-media-note-timestamp-pattern 'hmsf)
+    (setq org-media-note-timestamp-pattern 'hms))))
+
+
+(defun org-media-note-set-ab-loop-capture-method ()
+  "Config the method for capturing AB-loop clips."
+  (interactive)
+  (let ((choice (org-media-note--select "Capture method: "
+                                        '("Always ask" "Select a default"))))
+    (if (equal choice "Select a default")
+        (progn
+          (setq org-media-note-capture-ab-loop-ask-each-time
+                nil)
+          (let ((selected-function (org-media-note--select-capture-function)))
+            (setq org-media-note-default-capture-ab-loop-function-name
+                  selected-function)))
+      (setq org-media-note-capture-ab-loop-ask-each-time
+            t))))
+
+(defun org-media-note-set-separator (new-separator)
+  "Set the value of org-media-note-media-note-separator to NEW-SEPARATOR."
+  (interactive "sEnter the new separator: ")
+  (setq org-media-note-separator-when-merge new-separator)
+  (message "org-media-note-media-note-separator set to: %s" org-media-note-separator-when-merge))
+
+(defun org-media-note-set-seek-method ()
+  "Config the seek method and value for playback."
+  (interactive)
+  (let* ((method (org-media-note--select "Select seek method: "
+                                         '("seconds" "percentage" "frames")))
+         (value (read-number (format "Enter value for %s: " method))))
+    (setq org-media-note-seek-method (cond
+                                      ((string-equal method "seconds") 'seconds)
+                                      ((string-equal method "percentage") 'percentage)
+                                      ((string-equal method "frames") 'frames))
+          org-media-note-seek-value value))
+  (message "Seek method set to: %s."
+           (org-media-note--ui-seek-step)))
 
 ;;;;; Add note
 ;;;;;; media note item
