@@ -451,7 +451,8 @@ This list includes the following elements:
 This list includes the following elements:
 - link type.
 - file absolute path or URL path.
-- start time if available."
+- start time if available.
+- end time if available."
   (let ((element (org-element-context)))
     (if (eq (org-element-type element) 'link)
         (let* ((link-type (org-element-property :type element))
@@ -483,16 +484,21 @@ This list includes the following elements:
                                         ((string= link-type org-yt-type)
                                          (concat "https://youtu.be/" link-path))
                                         (t nil)))
-                     (start-time (if (member link-type '("audio" "video" "audiocite" "videocite"))
-                                     (let* ((timestamps (nth 1
-                                                             (split-string link-path "#")))
-                                            (time-a (nth 0
-                                                         (split-string timestamps "-"))))
-                                       (org-media-note--timestamp-to-seconds time-a))
-                                   0)))
-                (list link-type file-path-or-url start-time))
-            (list nil nil 0)))
-      (list nil nil 0))))
+                     (timestamps (if (member link-type '("audio" "video" "audiocite" "videocite"))
+                                     (split-string (nth 1
+                                                        (split-string link-path "#"))
+                                                   "-")
+                                   nil))
+                     (start-time (if timestamps
+                                     (org-media-note--timestamp-to-seconds (nth 0 timestamps))
+                                   nil))
+                     (end-time (if (> (length timestamps) 1)
+                                   (org-media-note--timestamp-to-seconds (nth 1 timestamps))
+                                 nil)))
+                (list link-type file-path-or-url start-time
+                      end-time))
+            (list nil nil nil nil)))
+      (list nil nil nil nil))))
 
 (defun org-media-note--attach-context ()
   "Return a list with info about the attachments.
@@ -564,7 +570,7 @@ This list includes the following elements:
         (concat icon " org-media-note")))))
 
 (defun org-media-note--ui-play-smart-title ()
-  (cl-multiple-value-bind (link _ _)
+  (cl-multiple-value-bind (link _ _ _)
       (org-media-note--link-context)
     (cl-multiple-value-bind (ref-mode key _ _)
         (org-media-note--ref-context)
@@ -993,7 +999,7 @@ Supported formats:
                      (org-media-note--timestamp-to-seconds (nth 1 timestamps)))))
     (org-media-note--follow-link file-path-or-url time-a time-b)))
 
-(defun org-media-note--follow-link (file-path-or-url time-a &optional time-b)
+(defun org-media-note--follow-link (file-path-or-url &optional time-a time-b)
   "Open FILE-PATH-OR-URL in mpv.
 TIME-A and TIME-B indicate the start and end of a playback loop."
   (let* ((online-video-p (if (org-media-note--online-video-p file-path-or-url)
@@ -1018,12 +1024,12 @@ TIME-A and TIME-B indicate the start and end of a playback loop."
         (progn
           (message "open %s..." path)
           (apply 'mpv-start path
-                 (append (list (concat "--start=+" time-a))
+                 (append (when time-a
+                           (list (concat "--start=+" time-a)))
                          (when time-b
                            (list (concat "--ab-loop-a=" time-a)
                                  (concat "--ab-loop-b=" time-b)))
-                         extra-mpv-options))
-          )
+                         extra-mpv-options)))
       ;; file-path is playing
       (org-media-note--seek-position-in-current-media-file
        time-a time-b))))

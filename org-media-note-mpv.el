@@ -27,7 +27,7 @@
    5a. either find a local file to play
    5b. or to provide a URL for online media."
   (interactive)
-  (cl-multiple-value-bind (_ file-or-url-by-link start-time)
+  (cl-multiple-value-bind (_ file-or-url-by-link start-time end-time)
       (org-media-note--link-context)
     (cl-multiple-value-bind (_ _ file-by-key url-by-key)
         (org-media-note--ref-context)
@@ -40,15 +40,15 @@
                                      (car media-files-in-attach-dir))
                                 url-by-key)))
           (cond
-           (file-or-url (org-media-note--follow-link file-or-url start-time))
+           (file-or-url (org-media-note--follow-link file-or-url start-time end-time))
            ((and attach-dir
                  (> number-of-media-files 1))
-            (mpv-play (read-file-name "File to play: " attach-dir)))
+            (org-media-note--follow-link (read-file-name "File to play: " attach-dir)))
            (t (if (string= "local"
                            (org-media-note--select "Play media from: "
                                                    (list "local" "online")
                                                    ))
-                  (mpv-play (read-file-name "File to play: "))
+                  (org-media-note--follow-link (read-file-name "File to play: "))
                 (org-media-note-play-online-video)))))))))
 
 
