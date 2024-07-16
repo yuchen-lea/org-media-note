@@ -15,6 +15,7 @@
 (transient-define-prefix org-media-note-transient ()
   "Main transient for org-media-note."
   :transient-suffix 'transient--do-stay
+  :transient-non-suffix 'transient--do-leave
   [:description org-media-note--ui-title
                 ["\nFile"
                  ("o" org-media-note-play-smart
@@ -100,6 +101,8 @@
                  ("i" "Insert timestamp" org-media-note-insert-link
                   :transient nil)
                  ("a" "Adjust timestamp" org-media-note-adjust-timestamp-offset)
+                 ("M-RET" "Insert item" org-meta-return
+                  :transient nil)
                  ("tm" org-media-note-toggle-auto-insert-item
                   :description (lambda ()
                                  (format "Auto insert item [%s]"

@@ -189,6 +189,18 @@ To accommodate a more compact layout, config commands are semantically grouped:
 
 [[../demo/org-media-note-transient.png?raw=true]]
 
+** transient vs pretty-hydra
+
+The interactive logic is consistent. If a shortcut key that is not within the interface is typed, the interface will exit and the corresponding command will be executed.
+
+The main difference lies in the display style: If the current frame is split into multiple windows, transient's actual display area might not be large enough. The comparison is shown in the table below:
+
+|                     | transient                                     | pretty-hydra                              |
+|---------------------+-----------------------------------------------+-------------------------------------------|
+| Dependency          | Built-in since Emacs 28                       | [[https://github.com/jerrypnz/major-mode-hydra.el][pretty-hydra]]                              |
+| Appearance Position | Bottom of the current window                  | Bottom of the current frame              |
+| ui                  | [[../demo/org-media-note-transient.png?raw=true]] | [[../demo/org-media-note-hydra.png?raw=true]] |
+
 * 🛠️ Dependencies
 - [[https://github.com/kljohann/mpv.el][mpv.el]] control media inside emacs
 - Currently provides two frontends, customizable via =org-media-note-interface=:
