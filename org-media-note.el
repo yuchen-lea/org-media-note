@@ -50,11 +50,10 @@
    (t (error "Unsupported interface: %s" org-media-note-interface))))
 
 ;;;;; Customize Org link
-(defun org-media-note--default-desc-fn (base timestamp seconds desc)
+(defun org-media-note--default-desc-fn (base timestamp desc)
   "Default function to generate link description.
 `BASE': base URL, local path or citekey.
 `TIMESTAMP': original timestamp string.
-`SECONDS': timestamp converted into total seconds.
 `DESC': link description."
   timestamp)
 
@@ -62,19 +61,13 @@
   "Process the link based on the export format."
   (cond
    ((eq format 'html)
-    (let* ((splitted (split-string path "#"))
-           (url (nth 0 splitted))
-           (timestamp (nth 1 splitted))
-           (seconds (org-media-note--timestamp-to-seconds timestamp t))
-           (param-symbol (if (string-match org-media-note--youtube-link-pattern url)
-                             "&"
-                           "?")) ;; youtube, bilibili tested
-           (new-url (format "%s%st=%s" url param-symbol seconds)))
+    (let* ((new-url (org-media-note--generate-url-with-timesamp
+                     path))
+           (timestamp (nth 1
+                           (split-string path "#"))))
       (format "<a href=\"%s\">%s</a>"
               new-url
-              (funcall org-media-note-desc-fn
-                       url timestamp
-                       seconds desc))))
+              (funcall org-media-note-desc-fn new-url timestamp desc))))
    (t (format "[[%s][%s]]" path desc))))
 
 (defun org-media-note-default-timestamp-description (&optional _ _)

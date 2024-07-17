@@ -116,8 +116,12 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
 
 (defcustom org-media-note-desc-fn #'org-media-note--default-desc-fn
   "Function to generate link descriptions.
-Based on path, timestamp, desc and seconds."
+Based on path, timestamp and desc."
   :type 'function)
+
+(defcustom org-media-note-utm-parameter-patterns '("utm_" "si" "share_" ".*source=" ".*id=" "is_" "unique_")
+  "List of UTM parameter patterns to be removed from URLs."
+  :type '(repeat string))
 
 ;;;;; org-ref customization
 
@@ -1102,6 +1106,36 @@ If TIME-B is non-nil, loop media between TIME-A and TIME-B."
     (mpv-set-property "ab-loop-a" time-a)
     (mpv-set-property "ab-loop-b" time-b))
   (mpv-seek time-a))
+
+;;;;; Online URL
+
+(defun org-media-note--remove-utm-parameters (url)
+  "Remove utm parameters from the given URL."
+  (let* ((parsed-url (url-generic-parse-url url))
+         (query (url-filename parsed-url))
+         (split-query (split-string query "\\?"))
+         (base-path (car split-query))
+         (params (if (cdr split-query) (split-string (cadr split-query) "&") nil))
+         (filtered-params (when params
+                            (seq-filter (lambda (param)
+                                          (not (seq-some (lambda (pattern)
+                                                           (string-match-p (concat "^" pattern) param))
+                                                         org-media-note-utm-parameter-patterns)))
+                                        params)))
+         (clean-query (if filtered-params
+                          (concat "?" (string-join filtered-params "&"))
+                        "")))
+    (setf (url-filename parsed-url) (concat base-path clean-query))
+    (url-recreate-url parsed-url)))
+
+(defun org-media-note--generate-url-with-timesamp (path)
+  "Generate new URL with timesamp from PATH."
+  (let* ((splitted (split-string path "#"))
+         (url (org-media-note--remove-utm-parameters (nth 0 splitted)))
+         (timestamp (nth 1 splitted))
+         (seconds (org-media-note--timestamp-to-seconds timestamp t))
+         (param-separator (if (string-match-p "\\?" url) "&" "?")))
+    (format "%s%st=%s" url param-separator seconds)))
 
 ;;;; Footer
 (provide 'org-media-note-core)
