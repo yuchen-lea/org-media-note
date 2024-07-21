@@ -532,7 +532,11 @@ This list includes the following elements:
                      (mpv-get-property "media-title")
                    nil)))
          (timestamp (org-media-note--get-current-timestamp)))
-    (list path name timestamp)))
+    (list (if (org-media-note--online-video-p path)
+              (org-media-note--remove-utm-parameters path)
+            path)
+          name
+          timestamp)))
 
 ;;;;; UI
 
@@ -714,39 +718,38 @@ This list includes the following elements:
 
 (defun org-media-note--link ()
   "Return media link."
-  (let* ((file-path (mpv-get-property "path"))
-         (link-type (if (org-media-note-ref-cite-p)
-                        (concat (org-media-note--current-media-type)
-                                "cite")
-                      (org-media-note--current-media-type)))
-         (filename (mpv-get-property "media-title"))
-         (duration (org-media-note--get-duration-timestamp))
-         (timestamp (org-media-note--get-current-timestamp)))
-    (if (org-media-note--ab-loop-p)
-        ;; ab-loop link
-        (let ((time-a (org-media-note--seconds-to-timestamp (mpv-get-property "ab-loop-a")))
-              (time-b (org-media-note--seconds-to-timestamp (mpv-get-property "ab-loop-b"))))
-          (format "[[%s:%s#%s-%s][%s]]"
-                  link-type
-                  (org-media-note--link-base-file file-path)
-                  time-a
-                  time-b
-                  (org-media-note--link-formatter org-media-note-ab-loop-link-format
-                                                  `(("filename" . ,filename)
-                                                    ("duration" . ,duration)
-                                                    ("ab-loop-a" . ,time-a)
-                                                    ("ab-loop-b" . ,time-b)
-                                                    ("file-path" . ,file-path)))))
-      ;; timestamp link
-      (format "[[%s:%s#%s][%s]]"
-              link-type
-              (org-media-note--link-base-file file-path)
-              timestamp
-              (org-media-note--link-formatter org-media-note-timestamp-link-format
-                                              `(("filename" . ,filename)
-                                                ("duration" . ,duration)
-                                                ("timestamp" . ,timestamp)
-                                                ("file-path" . ,file-path)))))))
+  (cl-multiple-value-bind (file-path filename timestamp)
+      (org-media-note--current-media-info)
+    (let* ((link-type (if (org-media-note-ref-cite-p)
+                          (concat (org-media-note--current-media-type)
+                                  "cite")
+                        (org-media-note--current-media-type)))
+           (duration (org-media-note--get-duration-timestamp)))
+      (if (org-media-note--ab-loop-p)
+          ;; ab-loop link
+          (let ((time-a (org-media-note--seconds-to-timestamp (mpv-get-property "ab-loop-a")))
+                (time-b (org-media-note--seconds-to-timestamp (mpv-get-property "ab-loop-b"))))
+            (format "[[%s:%s#%s-%s][%s]]"
+                    link-type
+                    (org-media-note--link-base-file file-path)
+                    time-a
+                    time-b
+                    (org-media-note--link-formatter org-media-note-ab-loop-link-format
+                                                    `(("filename" . ,filename)
+                                                      ("duration" . ,duration)
+                                                      ("ab-loop-a" . ,time-a)
+                                                      ("ab-loop-b" . ,time-b)
+                                                      ("file-path" . ,file-path)))))
+        ;; timestamp link
+        (format "[[%s:%s#%s][%s]]"
+                link-type
+                (org-media-note--link-base-file file-path)
+                timestamp
+                (org-media-note--link-formatter org-media-note-timestamp-link-format
+                                                `(("filename" . ,filename)
+                                                  ("duration" . ,duration)
+                                                  ("timestamp" . ,timestamp)
+                                                  ("file-path" . ,file-path))))))))
 
 (defun org-media-note--ab-loop-p ()
   "Whether in ab-loop?"
@@ -1013,7 +1016,7 @@ TIME-A and TIME-B indicate the start and end of a playback loop."
                                               "yt-dlp-danmaku is also needed if you want bilibili danmaku.")))
                            nil))
          (path (if online-video-p
-                   file-path-or-url
+                   (org-media-note--remove-utm-parameters file-path-or-url)
                  (expand-file-name file-path-or-url)))
          (time-a (if (numberp time-a)
                      (number-to-string time-a)
