@@ -21,10 +21,13 @@
                  ("o" org-media-note-play-smart
                   :description org-media-note--ui-play-smart-title
                   :transient nil)
-                 ("T" "Toggle ontop"
+                 ("T"
                   (lambda ()
                     (interactive)
-                    (mpv-cycle-property "ontop")))
+                    (mpv-cycle-property "ontop"))
+                  :description (lambda ()
+                                 (concat "Ontop "
+                                         (org-media-note--ui-toggle-state (eq (mpv-get-property "ontop") t)))))
                  ""
                  ("c" "Increase speed"
                   (lambda ()
@@ -46,15 +49,22 @@
                     (interactive)
                     (org-media-note-change-volume-by -5)))
                  ("0" "Toggle" org-media-note-mpv-toggle-volume)
-                 ("m" "(un)mute"
+                 ("m"
                   (lambda ()
                     (interactive)
-                    (mpv-cycle-property "mute")))]
+                    (mpv-cycle-property "mute"))
+                  :description (lambda ()
+                                 (concat "Mute "
+                                         (org-media-note--ui-toggle-state (eq (mpv-get-property "mute") t)))))]
                 ["Playback"
-                 ("<SPC>" "Play/Pause" mpv-pause)
+                 ("<SPC>" mpv-pause
+                  :description (lambda ()
+                                 (if (eq (mpv-get-property "pause") t)
+                                     "Play"
+                                   "Pause")))
                  ("tp" org-media-note-toggle-pause-after-insertion
                   :description (lambda ()
-                                 (format "Auto Pause [%s]"
+                                 (concat "Auto Pause "
                                          (org-media-note--ui-toggle-state 'org-media-note-pause-after-insert-link))))
                  ("l"
                   (lambda ()
@@ -65,8 +75,8 @@
                  ""
                  ("t <right>" org-media-note-set-seek-method
                   :description (lambda ()
-                                 (format "Seek step: %s"
-                                         (org-media-note--ui-seek-step nil))))
+                                 (concat "Seek step: "
+                                         (org-media-note--ui-hightlight (org-media-note--ui-seek-step nil)))))
                  ("<left>"
                   (lambda ()
                     (interactive)
@@ -101,11 +111,10 @@
                  ("i" "Insert timestamp" org-media-note-insert-link
                   :transient nil)
                  ("a" "Adjust timestamp" org-media-note-adjust-timestamp-offset)
-                 ("M-RET" "Insert item" org-meta-return
-                  :transient nil)
+                 ("M-RET" "Insert item" org-meta-return :transient nil)
                  ("tm" org-media-note-toggle-auto-insert-item
                   :description (lambda ()
-                                 (format "Auto insert item [%s]"
+                                 (concat "Auto insert item "
                                          (org-media-note--ui-toggle-state 'org-media-note-auto-insert-item))))
                  ("I" "Import from" org-media-note-import-transient)
                  ""
@@ -118,18 +127,19 @@
                  ("H-m" "Merge items" org-media-note-merge-item)
                  ("tM" org-media-note-set-separator
                   :description (lambda ()
-                                 (format "Separator for merge: %s" org-media-note-separator-when-merge)))
+                                 (concat "Separator for merge: "
+                                         (org-media-note--ui-hightlight org-media-note-separator-when-merge))))
                  ""]
                 ["Note Format"
                  ("tt" org-media-note-toggle-timestamp-pattern
                   :description (lambda ()
-                                 (format "timestamp: %s"
-                                         (cond
-                                          ((eq org-media-note-timestamp-pattern 'hms) "hh:mm:ss")
-                                          ((eq org-media-note-timestamp-pattern 'hmsf) "hh:mm:ss.fff")))))
+                                 (concat "timestamp: "
+                                         (org-media-note--ui-hightlight (cond
+                                                                         ((eq org-media-note-timestamp-pattern 'hms) "hh:mm:ss")
+                                                                         ((eq org-media-note-timestamp-pattern 'hmsf) "hh:mm:ss.fff"))))))
                  ("tc" org-media-note-toggle-refcite
                   :description (lambda ()
-                                 (format "citekey instead of path [%s]"
+                                 (concat "citekey instead of path "
                                          (org-media-note--ui-toggle-state 'org-media-note-use-refcite-first))))
                  ""
                  "Screenshot & Clip"
@@ -145,17 +155,17 @@
                                    "Insert screenshot")))
                  ("ts" org-media-note-toggle-save-screenshot
                   :description (lambda ()
-                                 (format "Auto insert screenshot [%s]"
+                                 (concat "Auto insert screenshot "
                                          (org-media-note--ui-toggle-state 'org-media-note-save-screenshot-p))))
                  ("tS" org-media-note-toggle-screenshot-with-sub
                   :description (lambda ()
-                                 (format "Screenshot with sub [%s]"
+                                 (concat "Screenshot with sub "
                                          (org-media-note--ui-toggle-state 'org-media-note-screenshot-with-sub))))
                  ("tl" org-media-note-set-ab-loop-capture-method
                   :description (lambda ()
-                                 (format "AB-loop clip: %s"
-                                         (if org-media-note-capture-ab-loop-ask-each-time
-                                             "always ask" org-media-note-default-capture-ab-loop-function-name))))]])
+                                 (concat "AB-loop clip: "
+                                         (org-media-note--ui-hightlight (if org-media-note-capture-ab-loop-ask-each-time
+                                                                            "always ask" org-media-note-default-capture-ab-loop-function-name)))))]])
 
 (transient-define-prefix org-media-note-import-transient ()
   "Transient for org-media-note import commands."

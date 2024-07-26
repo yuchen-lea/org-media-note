@@ -594,17 +594,25 @@ This list includes the following elements:
   (let ((time-a (mpv-get-property "ab-loop-a"))
         (time-b (mpv-get-property "ab-loop-b")))
     (if (org-media-note--ab-loop-p)
-        (format "Clear AB-loop (%s-%s)"
-                (org-media-note--seconds-to-timestamp time-a)
-                (org-media-note--seconds-to-timestamp time-b))
+        (concat "Clear AB-loop "
+                (org-media-note--ui-hightlight (format "(%s-%s)"
+                                                       (org-media-note--seconds-to-timestamp time-a)
+                                                       (org-media-note--seconds-to-timestamp time-b))))
       (if (numberp time-a)
-          (format "Set B of AB-loop (%s-)"
-                  (org-media-note--seconds-to-timestamp time-a))
+          (concat "Set B of AB-loop "
+                  (org-media-note--ui-hightlight (format "(%s-)"
+                                                         (org-media-note--seconds-to-timestamp time-a))))
         "Set A of AB-loop"))))
 
 (defun org-media-note--ui-toggle-state (var)
   "Get the state of a toggleable variable VAR."
-  (if (symbol-value var) "✓" "✗"))
+  (org-media-note--ui-hightlight (format "[%s]"
+                                         (if (symbol-value var)
+                                             "✓"
+                                           "✗"))))
+
+(defun org-media-note--ui-hightlight (str)
+  (propertize str 'face 'transient-value))
 
 (defun org-media-note--ui-seek-step (&optional in-macro?)
   "Return a formatted string based on the current seek method and value."
