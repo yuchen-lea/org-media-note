@@ -51,17 +51,17 @@
 
 ;;;;; Customize Org link
 (defun org-media-note--default-desc-fn (base timestamp desc)
-  "Default function to generate link description.
+  "Default function to generate link description when exporting.
 `BASE': base URL, local path or citekey.
 `TIMESTAMP': original timestamp string.
 `DESC': link description."
-  timestamp)
+  desc)
 
 (defun org-media-note-export-link (path desc format)
   "Process the link based on the export format."
   (cond
    ((eq format 'html)
-    (let* ((new-url (org-media-note--generate-url-with-timesamp
+    (let* ((new-url (org-media-note--generate-url-with-timestamp
                      path))
            (timestamp (nth 1
                            (split-string path "#"))))
@@ -86,7 +86,7 @@ With optional ARG, abbreviate the file name in the link."
 
 (dolist (link '("video" "audio"))
   (org-link-set-parameters link
-                           :follow #'org-media-note-media-link-follow
+                           :follow #'org-media-note--open
                            :export #'org-media-note-export-link
                            :complete (lambda (&optional arg) (org-media-note-complete-link link arg))
                            :insert-description #'org-media-note-default-timestamp-description))

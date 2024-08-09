@@ -58,12 +58,12 @@ If ARG argument is provided, force playing from beginning."
   "Open online media file in mpv."
   (interactive)
   (let ((video-url (read-string "Url to play: ")))
-    (org-media-note--follow-link video-url 0)))
+    (org-media-note--follow-link video-url)))
 
 (defun org-media-note-seek (direction)
   "Seek in the given DIRECTION according to the configured method and value."
   (interactive)
-  (let ((was-pause (mpv-get-property "pause"))
+  (let ((was-pause (eq (mpv-get-property "pause") t))
         (backward? (eq direction 'backward)))
     (cl-case org-media-note-seek-method
       (seconds (mpv-run-command "seek"
@@ -80,7 +80,7 @@ If ARG argument is provided, force playing from beginning."
                 (dotimes (_ org-media-note-seek-value)
                   (mpv-run-command (if backward? "frame-back-step" "frame-step"))))
               (sleep-for 0.3) ;; without this, frame seek cannot resume play
-              (when (not (eq was-pause t))
+              (when (not was-pause)
                 (mpv-run-command "set_property" "pause" "no"))))))
 
 (defun org-media-note-change-speed-by (speed-step)

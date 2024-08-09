@@ -78,7 +78,7 @@
         media-file)
     (if (org-media-note-ref-cite-p)
         (progn
-          (setq source-media (org-media-note-get-media-file-by-key key))
+          (setq source-media (org-media-note-cite--file-path key))
           (setq media-link-type (format "%scite"
                                         (org-media-note--file-media-type source-media)))
           (setq media-file key)
@@ -308,7 +308,7 @@ The source of the subtitle counld be:
     (if (org-media-note-ref-cite-p)
         (progn
           (setq media-file key)
-          (setq media-link-type (concat (org-media-note--file-media-type (org-media-note-get-media-file-by-key key))
+          (setq media-link-type (concat (org-media-note--file-media-type (org-media-note-cite--file-path key))
                                         "cite")))
       (progn
         ;; TODO  need more test
@@ -387,7 +387,7 @@ The source of the subtitle counld be:
     (if (org-media-note-ref-cite-p)
         (progn
           (setq key (org-media-note--current-org-ref-key))
-          (setq source-media (org-media-note-get-media-file-by-key key))
+          (setq source-media (org-media-note-cite--file-path key))
           (setq media-file key)
           (setq media-link-type (format "%scite" (org-media-note--file-media-type source-media))))
       (progn

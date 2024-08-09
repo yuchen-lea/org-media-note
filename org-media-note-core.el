@@ -17,8 +17,8 @@
 (declare-function org-timer-hms-to-secs "org-timer" (hms))
 (declare-function org-attach-dir "org-attach")
 
-(declare-function org-media-note-get-media-file-by-key "org-media-note-org-ref" (key))
-(declare-function org-media-note-get-url-by-key "org-media-note-org-ref" (key))
+(declare-function org-media-note-cite--file-path "org-media-note-org-ref" (key))
+(declare-function org-media-note-cite--url "org-media-note-org-ref" (key))
 
 ;;;; Constants
 
@@ -90,21 +90,19 @@ Allows the following substitutions:
           (const :tag "hh:mm:ss.fff" hmsf)))
 
 (defcustom org-media-note-timestamp-link-format "%timestamp"
-  "Timestamp Link text.
+  "Timestamp Link description.
 Allows the following substitutions:
 - %filename :: name of the media file
 - %timestamp :: current media timestamp (hms)
-- %duration :: length of the media file (hms)
 - %file-path :: path of the media file"
   :type 'string)
 
 (defcustom org-media-note-ab-loop-link-format "%ab-loop-a-%ab-loop-b"
-  "AB-loop Link text.
+  "AB-loop Link description.
 Allows the following substitutions:
 - %filename :: name of the media file
 - %ab-loop-a :: timestamp of point a of ab loop (hms)
 - %ab-loop-b :: timestamp of point b of ab loop (hms)
-- %duration :: length of the media file (hms)
 - %file-path :: path of the media file"
   :type 'string)
 
@@ -115,7 +113,7 @@ This is useful when `org-media-note-cursor-start-position' is set to`before`."
   :type 'string)
 
 (defcustom org-media-note-desc-fn #'org-media-note--default-desc-fn
-  "Function to generate link descriptions.
+  "Function to generate link descriptions when exporting.
 Based on path, timestamp and desc."
   :type 'function)
 
@@ -446,8 +444,8 @@ This list includes the following elements:
     (if (org-media-note-ref-cite-p)
         (list t
               key
-              (org-media-note-get-media-file-by-key key)
-              (org-media-note-get-url-by-key key))
+              (org-media-note-cite--file-path key)
+              (org-media-note-cite--url key))
       (list nil nil nil nil))))
 
 (defun org-media-note--link-context ()
@@ -460,49 +458,49 @@ This list includes the following elements:
   (let ((element (org-element-context)))
     (if (eq (org-element-type element) 'link)
         (let* ((link-type (org-element-property :type element))
+               (link-path (org-element-property :path element))
                (org-yt-type (or (bound-and-true-p org-yt-url-protocol)
                                 "yt"))
                (supported-link (member link-type `("file" "http" "https" "attachment" "audio"
                                                    "video" "audiocite" "videocite" ,org-yt-type))))
           (if supported-link
-              (let* ((link-path (org-element-property :path element))
-                     (path-with-type (format "%s:%s" link-type link-path))
-                     (file-path-or-url (cond
-                                        ((string= link-type "file")
-                                         (expand-file-name link-path))
-                                        ((string= link-type "attachment")
-                                         (expand-file-name link-path
-                                                           (org-attach-dir)))
+              (if (member link-type '("audio" "video" "audiocite" "videocite"))
+                  (cl-multiple-value-bind (path-or-key start-time end-time)
+                      (org-media-note--split-link link-path)
+                    (let ((path-or-url (cond
                                         ((member link-type '("audio" "video"))
-                                         (let ((media-path (nth 0
-                                                                (split-string link-path "#"))))
-                                           (if (org-media-note--online-video-p media-path)
-                                               media-path
-                                             (expand-file-name media-path))))
+                                         (if (org-media-note--online-video-p path-or-key)
+                                             path-or-key
+                                           (expand-file-name path-or-key)))
                                         ((member link-type '("audiocite" "videocite"))
-                                         (let ((key (nth 0
-                                                         (split-string link-path "#"))))
-                                           (or (org-media-note-get-media-file-by-key key)
-                                               (org-media-note-get-url-by-key key))))
-                                        ((org-media-note--online-video-p path-with-type) path-with-type)
-                                        ((string= link-type org-yt-type)
-                                         (concat "https://youtu.be/" link-path))
-                                        (t nil)))
-                     (timestamps (if (member link-type '("audio" "video" "audiocite" "videocite"))
-                                     (split-string (nth 1
-                                                        (split-string link-path "#"))
-                                                   "-")
-                                   nil))
-                     (start-time (if timestamps
-                                     (org-media-note--timestamp-to-seconds (nth 0 timestamps))
-                                   nil))
-                     (end-time (if (> (length timestamps) 1)
-                                   (org-media-note--timestamp-to-seconds (nth 1 timestamps))
-                                 nil)))
-                (list link-type file-path-or-url start-time
-                      end-time))
-            (list nil nil nil nil)))
+                                         (org-media-note-cite--path path-or-key)))))
+                      (list link-type path-or-url start-time end-time)))
+                (let* ((path-with-type (format "%s:%s" link-type link-path))
+                       (path-or-url (cond
+                                     ((string= link-type "file")
+                                      (expand-file-name link-path))
+                                     ((string= link-type "attachment")
+                                      (expand-file-name link-path
+                                                        (org-attach-dir)))
+                                     ((org-media-note--online-video-p path-with-type) path-with-type)
+                                     ((string= link-type org-yt-type)
+                                      (concat "https://youtu.be/" link-path))
+                                     (t nil))))
+                  (list link-type path-or-url nil nil)))
+            (list link-type link-path nil nil)))
       (list nil nil nil nil))))
+
+(defun org-media-note--split-link (link)
+  "Split a `LINK' into path, time-a and time-b."
+  (let* ((splitted (split-string link "#"))
+         (timestamps (split-string (nth 1 splitted)
+                                   "-"))
+         (time-a (nth 0 timestamps))
+         (time-b (if (= (length timestamps) 2)
+                     (nth 1 timestamps))))
+    (list (nth 0 splitted)
+          time-a
+          time-b)))
 
 (defun org-media-note--attach-context ()
   "Return a list with info about the attachments.
@@ -728,11 +726,10 @@ This list includes the following elements:
   "Return media link."
   (cl-multiple-value-bind (file-path filename timestamp)
       (org-media-note--current-media-info)
-    (let* ((link-type (if (org-media-note-ref-cite-p)
-                          (concat (org-media-note--current-media-type)
-                                  "cite")
-                        (org-media-note--current-media-type)))
-           (duration (org-media-note--get-duration-timestamp)))
+    (let ((link-type (if (org-media-note-ref-cite-p)
+                         (concat (org-media-note--current-media-type)
+                                 "cite")
+                       (org-media-note--current-media-type))))
       (if (org-media-note--ab-loop-p)
           ;; ab-loop link
           (let ((time-a (org-media-note--seconds-to-timestamp (mpv-get-property "ab-loop-a")))
@@ -744,7 +741,6 @@ This list includes the following elements:
                     time-b
                     (org-media-note--link-formatter org-media-note-ab-loop-link-format
                                                     `(("filename" . ,filename)
-                                                      ("duration" . ,duration)
                                                       ("ab-loop-a" . ,time-a)
                                                       ("ab-loop-b" . ,time-b)
                                                       ("file-path" . ,file-path)))))
@@ -755,7 +751,6 @@ This list includes the following elements:
                 timestamp
                 (org-media-note--link-formatter org-media-note-timestamp-link-format
                                                 `(("filename" . ,filename)
-                                                  ("duration" . ,duration)
                                                   ("timestamp" . ,timestamp)
                                                   ("file-path" . ,file-path))))))))
 
@@ -998,21 +993,17 @@ Aligns them to the current playing position in mpv."
         (widen)))))
 
 ;;;;; Jump to the right position
-(defun org-media-note-media-link-follow (link)
+(defun org-media-note--open (link)
   "Open media LINK.
 Supported formats:
 - video:example.mkv#0:02:13
   jump to 0:02:13
 - video:example.mkv#0:02:13-0:02:20
   jump to 0:02:13 and loop between 0:02:13 and 0:02:20."
-  (let* ((splitted (split-string link "#"))
-         (file-path-or-url (nth 0 splitted))
-         (timestamps (split-string (nth 1 splitted)
-                                   "-"))
-         (time-a (org-media-note--timestamp-to-seconds (nth 0 timestamps)))
-         (time-b (if (= (length timestamps) 2)
-                     (org-media-note--timestamp-to-seconds (nth 1 timestamps)))))
-    (org-media-note--follow-link file-path-or-url time-a time-b)))
+  (cl-multiple-value-bind (file-path-or-url time-a time-b)
+      (org-media-note--split-link link)
+    (org-media-note--follow-link file-path-or-url
+                                 time-a time-b)))
 
 (defun org-media-note--follow-link (file-path-or-url &optional time-a time-b)
   "Open FILE-PATH-OR-URL in mpv.
@@ -1025,30 +1016,31 @@ TIME-A and TIME-B indicate the start and end of a playback loop."
                            nil))
          (path (if online-video-p
                    (org-media-note--remove-utm-parameters file-path-or-url)
-                 (expand-file-name file-path-or-url)))
-         (time-a (if (numberp time-a)
-                     (number-to-string time-a)
-                   time-a))
-         (time-b (if (numberp time-b)
-                     (number-to-string time-b)
-                   time-b))
-         (extra-mpv-options (org-media-note--mpv-options file-path-or-url)))
+                 (expand-file-name file-path-or-url))))
     (if (not (string= path
                       (mpv-get-property "path")))
         ;; file-path is not playing
         (progn
-          (message "open %s..." path)
-          (apply 'mpv-start path
-                 (append (when time-a
-                           (list (concat "--start=+" time-a)))
-                         (when time-b
-                           (list (concat "--ab-loop-a=" time-a)
-                                 (concat "--ab-loop-b=" time-b)))
-                         extra-mpv-options)))
+          (if time-a
+              (message "open %s@t=%s..." path time-a)
+            (message "open %s..." path))
+          (apply 'mpv-start
+                 path
+                 (org-media-note--build-mpv-args path time-a
+                                                 time-b)))
       ;; file-path is playing
       (org-media-note--seek-position-in-current-media-file
        time-a time-b))))
 
+(defun org-media-note--build-mpv-args (path time-a time-b)
+  "Build the argument list for `mpv-start`."
+  (let ((extra-mpv-options (org-media-note--mpv-options path)))
+    (append (when time-a
+              (list (concat "--start=+" time-a)))
+            (when time-b
+              (list (concat "--ab-loop-a=" time-a)
+                    (concat "--ab-loop-b=" time-b)))
+            extra-mpv-options)))
 
 (defun org-media-note--mpv-options (media-path)
   "Get mpv options for `MEDIA-PATH'.
@@ -1139,14 +1131,17 @@ If TIME-B is non-nil, loop media between TIME-A and TIME-B."
     (setf (url-filename parsed-url) (concat base-path clean-query))
     (url-recreate-url parsed-url)))
 
-(defun org-media-note--generate-url-with-timesamp (path)
-  "Generate new URL with timesamp from PATH."
-  (let* ((splitted (split-string path "#"))
-         (url (org-media-note--remove-utm-parameters (nth 0 splitted)))
-         (timestamp (nth 1 splitted))
-         (seconds (org-media-note--timestamp-to-seconds timestamp t))
-         (param-separator (if (string-match-p "\\?" url) "&" "?")))
-    (format "%s%st=%s" url param-separator seconds)))
+(defun org-media-note--generate-url-with-timestamp (path)
+  "Generate new URL with timestamp from PATH."
+  (cl-multiple-value-bind (file-path-or-url time-a time-b)
+      (org-media-note--split-link path)
+    (let* ((url (org-media-note--remove-utm-parameters file-path-or-url))
+           (seconds (org-media-note--timestamp-to-seconds time-a
+                                                          t))
+           (param-separator (if (string-match-p "\\?" url)
+                                "&"
+                              "?")))
+      (format "%s%st=%s" url param-separator seconds))))
 
 ;;;; Footer
 (provide 'org-media-note-core)

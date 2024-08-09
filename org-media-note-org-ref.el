@@ -17,11 +17,10 @@
 (require 'org-media-note-core)
 
 ;;;; Customization
-(defcustom org-media-note-bibtex-files bibtex-files
+(defcustom org-media-note-cite-bibliography bibtex-files
   "List of BibTeX files that are searched for entry keys."
   :type '(repeat (choice (const :tag "bibtex-file-path" bibtex-file-path)
                          directory file)))
-;;;; Variables
 ;;;; Commands
 ;;;;; Help echo
 (defun org-media-note-help-echo (_window _object position)
@@ -77,7 +76,7 @@
       (insert (s-join "\n"
                       (mapcar (lambda (bib)
                                 (format "bibliography:%s" bib))
-                              org-media-note-bibtex-files)))
+                              org-media-note-cite-bibliography)))
       (insert (format "\ncite:%s" ref-cite-key))
       (funcall org-ref-cite-onclick-function nil))))
 
@@ -90,24 +89,24 @@
   :group 'org-media-note)
 
 ;;;;; Link Follow
-(defun org-media-note-media-cite-link-follow (link)
+(defun org-media-note-cite--open (link)
   "Open videocite and audiocite LINKs, supported formats:
 1. videocite:course.104#0:02:13: jump to 0:02:13
 2. videocite:course.104#0:02:13-0:02:20: jump to 0:02:13 and loop between 0:02:13 and 0:02:20"
-  (let* ((splitted (split-string link "#"))
-         (key (nth 0 splitted))
-         (file-path-or-url (or (org-media-note-get-media-file-by-key key) (org-media-note-get-url-by-key key)))
-         (timestamps (split-string (nth 1 splitted)
-                                   "-"))
-         (time-a (int-to-string (org-timer-hms-to-secs (nth 0 timestamps))))
-         (time-b (if (= (length timestamps) 2)
-                     (int-to-string (org-timer-hms-to-secs (nth 1 timestamps))))))
-    (cond
-     ((not file-path-or-url)
-      (error "Cannot find media file for this Key"))
-     (t (org-media-note--follow-link file-path-or-url time-a time-b)))))
+  (cl-multiple-value-bind (key time-a time-b)
+      (org-media-note--split-link link)
+    (let ((path (org-media-note-cite--path key)))
+      (cond
+       ((not path)
+        (error "Cannot find media file for this Key"))
+       (t (org-media-note--follow-link path time-a time-b))))))
 
-(defun org-media-note-get-media-file-by-key (key)
+(defun org-media-note-cite--path (key)
+  "Get media file or URL by KEY."
+  (or (org-media-note-cite--file-path key)
+      (org-media-note-cite--url key)))
+
+(defun org-media-note-cite--file-path (key)
   "Get media file by KEY."
   (let* ((files (bibtex-completion-find-pdf key))
          (video-files (seq-filter (lambda (elt)
@@ -127,7 +126,7 @@
      (t nil))))
 
 
-(defun org-media-note-get-url-by-key (key)
+(defun org-media-note-cite--url (key)
   "Get URL by KEY."
   (if key
       (let ((entry (bibtex-completion-get-entry1 key t)))
@@ -138,7 +137,8 @@
 (defun org-media-note-setup-org-ref ()
   "Set org link parameters for video/audiocite links."
   (dolist (link '("videocite" "audiocite"))
-    (org-link-set-parameters link :follow 'org-media-note-media-cite-link-follow
+    (org-link-set-parameters link
+                             :follow 'org-media-note-cite--open
                              :keymap org-media-note-cite-keymap
                              :help-echo #'org-media-note-help-echo))
 
