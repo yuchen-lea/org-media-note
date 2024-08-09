@@ -876,12 +876,13 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
              (lines (split-string text "\n" t))
              (reformatted-lines (mapcar
                                  (lambda (line)
-                                   (if (string-match (format ".+\\(%s\\) \\(.*\\)$" org-media-note--link-pattern) line)
+                                   (if (string-match (format ".+\\(%s\\) ?\\(.*\\)$" org-media-note--link-pattern) line)
                                        (match-string 2 line)
                                      line))
                                  (cdr lines)))) ;; reformatted from the second line.
         (delete-region begin end)
-        (insert (concat (car lines) org-media-note-separator-when-merge (mapconcat 'identity reformatted-lines org-media-note-separator-when-merge))))
+        (insert (concat (car lines) org-media-note-separator-when-merge (mapconcat 'identity reformatted-lines org-media-note-separator-when-merge)))
+        (deactivate-mark))
     (message "No region selected!")))
 
 ;;;;;; screenshot
