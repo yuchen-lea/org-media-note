@@ -197,7 +197,6 @@ transient界面与pretty-hydra界面的功能和按键一致。
 | 出现位置 | 当前window的底部                              | 当前frame的底部                           |
 | 界面     | [[../demo/org-media-note-transient.png?raw=true]] | [[../demo/org-media-note-hydra.png?raw=true]] |
 
-
 * 🛠️ 依赖
 - [[https://github.com/kljohann/mpv.el][mpv.el]] 媒体的播放与功能接口
 - 目前提供 2 种前端，通过 =org-media-note-interface= 来自定义：
@@ -207,23 +206,16 @@ transient界面与pretty-hydra界面的功能和按键一致。
 如果要配合 org-ref 笔记使用，当然需要安装 [[https://github.com/jkitchin/org-ref][org-ref]]。
 ** 🌐 在线视频播放
 
-使用 org-media-note 来进行在线视频的笔记依赖于 mpv 的流媒体播放功能，需要额外的外部依赖：
-- [[https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation][yt-dlp/yt-dlp: A youtube-dl fork with additional features and fixes]]: 用于下载网站视频，支持的网站参见[[https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md][此处]]。它比mpv 默认使用的 youtube-dl 更流畅也更强大。如果想播放在线视频但是没有安装 yt-dlp，org-media-note 会报错提示。
-- [[https://github.com/UlyssesZh/yt-dlp-danmaku/][UlyssesZh/yt-dlp-danmaku: yt-dlp plugin for converting Bilibili danmaku into ASS format]]：如果需要加载bilibili的弹幕。
+使用 org-media-note 来进行在线视频的笔记依赖于 mpv 的流媒体播放功能，需要安装 [[https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation][yt-dlp]]用于下载网站视频，支持的网站参见[[https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md][此处]]。它比 mpv 默认使用的 youtube-dl 更流畅也更强大。如果想播放在线视频但是没有安装 yt-dlp，org-media-note 会报错提示。
 
 可以在以下几处进行设置，优先级由低到高：
 
 1. =mpv.conf= 文件：mpv 的通用设置
-2. =org-media-note-mpv-general-options=变量：配置org-media-note中的通用设置。默认值指定使用 yt-dlp 来下载：
-    #+begin_src ini
-    --script-opts=ytdl_hook-ytdl_path=yt-dlp
-    #+end_src
-3. =org-media-note-mpv-online-website-options-alist= 变量：配置网站的单独设置，例如bilibili需要下载所有字幕和弹幕，而youtube自动生成的字幕只需要下载指定的语言。
-   - 默认配置，youtube会下载中英字幕，bilibili会加载所有字幕和弹幕。bilibili的字幕功能需要加载cookies，获取登录信息，请根据实际情况修改，参见 [[https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp][FAQ · yt-dlp/yt-dlp Wiki]]
+2. =org-media-note-mpv-general-options=变量：配置org-media-note中的通用设置。默认值指定使用 yt-dlp 来下载。
+3. =org-media-note-mpv-online-website-options-alist= 变量：配置网站的单独设置，例如bilibili需要下载所有字幕和弹幕，而youtube自动生成的字幕只需要下载指定的语言。请根据实际情况修改，参见 [[https://github.com/yuchen-lea/org-media-note/wiki/org%E2%80%90media%E2%80%90note%E2%80%90mpv%E2%80%90online%E2%80%90website%E2%80%90options%E2%80%90alist-demo][org-media-note-mpv-online-website-options-alist demo]] 和 [[https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp][FAQ · yt-dlp/yt-dlp Wiki]]
 4. =org-media-note-mpv-webstream-download-path= 变量：配置在线视频字幕等文件的下载目录。默认为临时文件夹。如果设置为nil，会下载到当前目录。
 
 只要你能在 mpv 中正常的加载字幕，那么，org-media-note 就可以像处理本地媒体一样，控制播放、插入时间戳和截图，甚至是导入字幕！
-
 
 下图演示了播放bilibili视频，弹幕导航，切换字幕，导入字幕等功能：
 [[../demo/org-media-note-online-video-zh.gif?raw=true]]

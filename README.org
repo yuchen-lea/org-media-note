@@ -210,27 +210,14 @@ The main difference lies in the display style: If the current frame is split int
  [[https://github.com/jkitchin/org-ref][org-ref]] is not required, but it's worth to have a try if you use bib to manage your media file!
 ** 🌐 Online Video
 
-Using org-media-note for online video notes relies on mpv's streaming feature and requires additional external dependencies:
-- [[https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation][yt-dlp/yt-dlp: A youtube-dl fork with additional features and fixes]]: Used for downloading website videos. [[https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md][List of supported websites]]. It is smoother and more powerful than youtube-dl, which is the default used by mpv. If you want to play online videos but haven't installed yt-dlp, org-media-note will raise an error.
-- [[https://github.com/UlyssesZh/yt-dlp-danmaku/][UlyssesZh/yt-dlp-danmaku: yt-dlp plugin for converting Bilibili danmaku into ASS format]]: If you need to load Bilibili danmaku.
+Using org-media-note for online video notes relies on mpv's streaming feature and requires additional external dependencies. It requires the installation of [[https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation][yt-dlp]] to download videos from websites. You can find the list of supported websites [[https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md][here]]. yt-dlp is smoother and more powerful than youtube-dl, which is the default used by mpv. If you want to play online videos but haven't installed yt-dlp, org-media-note will raise an error.
 
 Settings can be applied in several places, with priority from low to high:
 
 1. =mpv.conf= file: General settings for mpv.
-2. =org-media-note-mpv-general-options= variable: General settings in org-media-note. The default value specifies using yt-dlp for downloads:
-    #+begin_src ini
-    --script-opts=ytdl_hook-ytdl_path=yt-dlp
-    #+end_src
-2. =org-media-note-mpv-online-website-options-alist= variable: Individual settings for websites, for example, Bilibili needs to download all subtitles and danmaku, while YouTube's auto-generated subtitles only need to download specific languages.
-
-   - The default configuration will download Chinese and English subtitles for YouTube and load all subtitles together with danmaku for Bilibili. The subtitle feature for Bilibili requires loading cookies to obtain login information, please modify according to actual conditions, see [[https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp][FAQ · yt-dlp/yt-dlp Wiki]].
-
+2. =org-media-note-mpv-general-options= variable: General settings in org-media-note. The default value specifies using yt-dlp for downloads.
+2. =org-media-note-mpv-online-website-options-alist= variable: Individual settings for websites, for example, Bilibili needs to download all subtitles and danmaku, while YouTube's auto-generated subtitles only need to download specific languages. Please modify according to actual conditions, see [[https://github.com/yuchen-lea/org-media-note/wiki/org%E2%80%90media%E2%80%90note%E2%80%90mpv%E2%80%90online%E2%80%90website%E2%80%90options%E2%80%90alist-demo][org-media-note-mpv-online-website-options-alist demo]] and  [[https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp][FAQ · yt-dlp/yt-dlp Wiki]].
 4. =org-media-note-mpv-webstream-download-path= variable: Download directory for online video subtitles and other files. Default is temporary folder. If set to nil, it will download to the current directory.
-
-Configure general streaming settings. For example, specify using yt-dlp to download:
-    #+begin_src ini
-    script-opts=ytdl_hook-ytdl_path=yt-dlp
-    #+end_src
 
 
 As long as you can normally load subtitles in mpv, org-media-note can control playback, insert timestamps and screenshots, and even import subtitles just like with local media!

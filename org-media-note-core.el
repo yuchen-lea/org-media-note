@@ -27,7 +27,6 @@
 (defconst org-media-note--hms-timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\)[ \t]?")
 (defconst org-media-note--hmsf-timestamp-pattern "\\([0-9]+:[0-9]+:[0-9]+\\(\\.\\|,\\)[0-9]+\\)[ \t]?")
 (defconst org-media-note--link-pattern "\\[\\[\\(?:audiocite\\|videocite\\|audio\\|video\\):[^]]+\\]\\[[^]]+\\]\\]")
-(defconst org-media-note--youtube-link-pattern "\\(youtube\\.com\\|youtu\\.be\\)")
 (defconst org-media-note--list-full-item-re
   (concat "^[ \t]*\\(\\(?:[-+*]\\|\\(?:[0-9]+\\|[A-Za-z]\\)[.)]\\)\\(?:[ \t]+\\|$\\)\\)"
           "\\(?:\\[@\\(?:start:\\)?\\([0-9]+\\|[A-Za-z]\\)\\][ \t]*\\)?"
@@ -228,15 +227,7 @@ Set this to nil if you prefer to save files in current directory."
   "General MPV options."
   :type '(repeat string))
 
-(defcustom org-media-note-mpv-online-website-options-alist
-  `((,org-media-note--youtube-link-pattern
-     ;; best audio and best video that is 4K or lower, not using the av01 codec.
-     "--ytdl-format=bestvideo[height<=?2160][vcodec!=?av01]+bestaudio/best"
-     ;; download both automatically generated and manually created subtitles.
-     "--ytdl-raw-options=write-subs=,write-auto-subs=,sub-langs=\"en,zh-Hans\",no-simulate=,skip-download=")
-    ("bilibili\\.com"
-     ;; download subtitles and danmaku
-     "--ytdl-raw-options=use-postprocessor=danmaku:when=before_dl,write-subs=,sub-langs=all,all-subs=,no-simulate=,skip-download=,cookies-from-browser=chrome"))
+(defcustom org-media-note-mpv-online-website-options-alist nil
   "Alist of website regex patterns and their corresponding mpv options."
   :type '(alist
           :key-type (regexp :tag "Website Regex")
