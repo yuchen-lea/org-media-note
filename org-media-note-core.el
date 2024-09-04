@@ -903,9 +903,12 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
 (defun org-media-note-capture-ab-loop-default (time-a time-b input-file output-file-sans-ext)
   "Capture a video segment from TIME-A to TIME-B of INPUT-FILE.
 Generate OUTPUT-FILE from OUTPUT-FILE-SANS-EXT and return it."
-  (let* ((output-file (concat output-file-sans-ext "." (file-name-extension input-file)))
-         (command (format "ffmpeg -ss %s -to %s -i \"%s\" -c copy \"%s\""
-                          time-a time-b input-file output-file)))
+  (let* ((output-file (concat output-file-sans-ext "." (or (file-name-extension input-file) "mp4")))
+         (command (if (org-media-note--online-video-p input-file)
+                      (format "yt-dlp \"%s\" --downloader ffmpeg --downloader-args \"ffmpeg_i: -ss %s -to %s\" -o \"%s\""
+                              input-file time-a time-b output-file)
+                    (format "ffmpeg -ss %s -to %s -i \"%s\" -c copy \"%s\""
+                            time-a time-b input-file output-file))))
     (async-shell-command command)
     output-file))
 
@@ -913,8 +916,11 @@ Generate OUTPUT-FILE from OUTPUT-FILE-SANS-EXT and return it."
   "Capture a segment from TIME-A to TIME-B of INPUT-FILE and convert it to GIF.
 Generate OUTPUT-FILE from OUTPUT-FILE-SANS-EXT and return it."
   (let* ((output-file (concat output-file-sans-ext ".gif"))
-         (command (format "ffmpeg -ss %s -to %s -i \"%s\" -vf \"fps=10,scale=512:-1:flags=lanczos\" -c:v gif -f gif \"%s\""
-                          time-a time-b input-file output-file)))
+         (command (if (org-media-note--online-video-p input-file)
+                      (format "yt-dlp \"%s\" --downloader ffmpeg --downloader-args \"ffmpeg_i: -ss %s -to %s\" -o - | ffmpeg -i - \"%s\""
+                              input-file time-a time-b output-file)
+                    (format "ffmpeg -ss %s -to %s -i \"%s\" -vf \"fps=10,scale=512:-1:flags=lanczos\" -c:v gif -f gif \"%s\""
+                            time-a time-b input-file output-file))))
     (async-shell-command command)
     output-file))
 
