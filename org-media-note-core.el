@@ -1141,6 +1141,28 @@ If TIME-B is non-nil, loop media between TIME-A and TIME-B."
                               "?")))
       (format "%s%st=%s" url param-separator seconds))))
 
+
+(defun org-media-note-copy-mpv-command ()
+  "Copy the mpv command to play media at point."
+  (interactive)
+  (let* ((link (org-element-context))
+         (type (org-element-property :type link)))
+    (cl-multiple-value-bind (key-or-path time-a time-b)
+        (org-media-note--split-link (org-element-property :path link))
+      (let* ((path (cond
+                    ((org-media-note--online-video-p key-or-path)
+                     (org-media-note--remove-utm-parameters
+                      key-or-path))
+                    ((member type '("audiocite" "videocite"))
+                     (org-media-note-cite--path key-or-path))
+                    (t key-or-path)))
+             (mpv-args (org-media-note--build-mpv-args path time-a
+                                                       time-b))
+             (command (concat (format "mpv \"%s\" " path)
+                              (mapconcat 'identity mpv-args " "))))
+        (kill-new command)
+        (message (format "Copied: %s" command))))))
+
 ;;;; Footer
 (provide 'org-media-note-core)
 ;;; org-media-note-core.el ends here

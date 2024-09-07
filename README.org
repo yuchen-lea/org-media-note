@@ -222,3 +222,10 @@ As long as you can normally load subtitles in mpv, org-media-note can control pl
 
 The following image demonstrates playing a Bilibili video, danmaku navigation, switching subtitles, importing subtitles, and other functions:
 [[../demo/org-media-note-online-video-en.gif?raw=true]]
+
+* ⚙️ Debug
+
+The extension is essentially a wrapper around the functionality of mpv. If mpv cannot play properly, you can call =org-media-note-copy-mpv-command= to copy the mpv command, then paste it into the terminal and check if it works.
+
+- If it cannot play correctly in the terminal, please try adjusting the mpv configuration.
+- If it plays fine in the terminal but not in Emacs, please report the issue.

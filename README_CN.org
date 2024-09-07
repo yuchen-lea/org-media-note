@@ -217,3 +217,9 @@ transient界面与pretty-hydra界面的功能和按键一致。
 
 下图演示了播放bilibili视频，弹幕导航，切换字幕，导入字幕等功能：
 [[../demo/org-media-note-online-video-zh.gif?raw=true]]
+* ⚙️ 调试
+
+本扩展基本是对 mpv 功能的封装，如果 mpv 无法正常播放，可以调用 =org-media-note-copy-mpv-command= 复制mpv命令，然后粘贴到终端，检查能否运行。
+
+- 如果终端不能正常播放，请尝试调整 mpv 的配置。
+- 如果终端可以正常播放但是 Emacs 中不能正常播放，请报错。
