@@ -64,7 +64,7 @@
    (use-package! org-media-note
    :hook (org-mode .  org-media-note-mode)
    :bind (
-         ("H-v" . org-media-note-hydra/body))  ;; 主功能入口
+         ("H-v" . org-media-note-show-interface))  ;; 主功能入口
    :config
    (setq org-media-note-screenshot-image-dir "~/Notes/imgs/")  ;; 用于存储视频截图的目录
    )
@@ -75,7 +75,7 @@
    :init (setq org-media-note-use-org-ref t)
    :hook (org-mode .  org-media-note-mode)
    :bind (
-       ("H-v" . org-media-note-hydra/body))  ;; 主功能入口
+       ("H-v" . org-media-note-show-interface))  ;; 主功能入口
    :config
    (setq org-media-note-screenshot-image-dir "~/Notes/imgs/")  ;; 用于存储视频截图的目录
    (setq org-media-note-use-refcite-first t)  ;; 插入链接时，优先使用refcite链接
@@ -89,18 +89,18 @@
 (use-package org-media-note
   :quelpa (org-media-note :fetcher github :repo "yuchen-lea/org-media-note")
   :hook (org-mode .  org-media-note-mode)
-  :bind (("H-v" . org-media-note-hydra/body))  ;; Main entrance
+  :bind (("H-v" . org-media-note-show-interface))  ;; Main entrance
   :config
   (setq org-media-note-screenshot-image-dir "~/notes/imgs/"))
       #+END_SRC
   + 如果不使用像=package.el=或=straight=这样的包管理器，而是手动加载org-media-note，，需要使用 =(require 'org-media-note-org-ref)=。
 
-现在，你可以从 =org-media-note-pretty-hydra/body= 或 =org-media-note-transient=（默认）  访问所有功能。
+现在，你可以从 =org-media-note-show-interface= 访问所有功能。
 
 ℹ️️️️ 这里，我用 Hyper key =H= 进行绑定，好处在于快速触达，且不会与已有快捷键冲突。更多参见 [[http://ergoemacs.org/emacs/emacs_hyper_super_keys.html][Emacs: How to Bind Super Hyper Keys]]。当然，你也可以设置成任何适合你的快捷键，毕竟这是Emacs ;)
 * 📖 功能详解
 
-所有功能都可由 =org-media-note-pretty-hydra/body= 或 =org-media-note-transient= 触达（取决于 =org-media-note-interface= 变量的设置）：
+所有功能都可从 =org-media-note-show-interface= 访问所有功能。根据 =org-media-note-interface= 变量的设置，可以是调用 =org-media-note-pretty-hydra/body= 或 =org-media-note-transient= 。
 
 ** pretty-hydra ui
 [[../demo/org-media-note-hydra.png?raw=true]]
