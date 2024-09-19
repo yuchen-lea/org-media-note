@@ -810,8 +810,12 @@ Pass ARGS to ORIG-FN, `org-insert-item'."
   (interactive "P")
   (let ((itemp (org-in-item-p))
         (pos (point)))
-    ;; If cursor isn't is a list or if list is invisible, return nil.
+    ;; return nil, if either condition matched:
+    ;; 1. cursor isn't in a list
+    ;; 2. list is invisible
+    ;; 3. no playing media
     (unless (or (not itemp)
+                (not (mpv-get-property "path"))
                 (save-excursion
                   (goto-char itemp)
                   (org-invisible-p)))
