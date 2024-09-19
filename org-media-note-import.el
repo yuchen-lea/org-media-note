@@ -379,6 +379,64 @@ The source of the subtitle counld be:
                     (point-max))
     (buffer-string)))
 
+;;;; import from TextGrid:
+
+(defcustom org-media-note-python-command (if (memq system-type '(cygwin windows-nt ms-dos)) "python.exe" "python3")
+  "The Python interpreter used to run python script."
+  :type 'string)
+
+(defcustom org-media-note-textgrid-python-script
+  (let* ((pkg-name "org-media-note")
+         (library-path (expand-file-name "textgrid.py" (file-name-directory (find-library-name pkg-name))))
+         (repo-path (expand-file-name "textgrid.py" (expand-file-name pkg-name (straight--repos-dir)))))
+    (cond
+     ((file-exists-p library-path)
+      library-path)
+     ((file-exists-p repo-path)
+      repo-path)
+     (t
+      (error "textgrid.py not found in either library or repos paths"))))
+  "The Python script to convert TextGrid."
+  :type 'string)
+
+(defun org-media-note-insert-note-from-textgrid ()
+  "Insert note from textgrid."
+  (interactive)
+  (cl-multiple-value-bind (source-media _ media-link-type _)
+      (org-media-note--import-context)
+    (insert (org-media-note--convert-from-textgrid (read-file-name "TextGrid File: ")
+                                                   media-link-type
+                                                   source-media))))
+
+(defun org-media-note--convert-from-textgrid (textgrid-file media-link-type media-file)
+  (let ((output-buffer (get-buffer-create "*TextGrid Output*")))
+    (with-current-buffer output-buffer
+      (erase-buffer)
+      (call-process org-media-note-python-command nil output-buffer nil org-media-note-textgrid-python-script textgrid-file)
+      (goto-char (point-min))
+      (while (re-search-forward "^\\([[:digit:].-]+\\):\\(.*\\)" nil t)
+        (let* ((time-field (buffer-substring (match-beginning 1)
+                                             (match-end 1)))
+               (label (buffer-substring (match-beginning 2)
+                                        (match-end 2)))
+               (beg (match-beginning 0))
+               (end (match-end 0))
+               (times (split-string time-field "-"))
+               (start-time (car times))
+               (end-time (if (cdr times) (cadr times) nil))
+               (hms-start (org-media-note--seconds-to-timestamp start-time))
+               (hms-end (if end-time (org-media-note--seconds-to-timestamp end-time) nil))
+               (new-text (if end-time
+                             (format "- [[%s:%s#%s-%s][%s-%s]] %s"
+                                     media-link-type media-file hms-start hms-end hms-start hms-end label)
+                           (format "- [[%s:%s#%s][%s]] %s"
+                                   media-link-type media-file hms-start hms-start label))))
+          (goto-char beg)
+          (delete-region beg end)
+          (insert new-text))))
+    (with-current-buffer output-buffer
+      (buffer-string))))
+
 ;;;; import org-timer:
 (defun org-media-note-convert-from-org-timer ()
   "Convert `org-timer' to media link."

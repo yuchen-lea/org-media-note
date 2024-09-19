@@ -174,7 +174,9 @@
     ("c" "Chapter" org-media-note-insert-note-from-chapter-list)]
    [("t" "Org-timer item" org-media-note-convert-from-org-timer)
     ("p" "PBF (Potplayer)" org-media-note-insert-note-from-pbf)
-    ("n" "Noted" org-media-note-insert-note-from-noted)]])
+    ("n" "Noted" org-media-note-insert-note-from-noted)
+    ("g" "TextGrid" org-media-note-insert-note-from-textgrid)]])
+
 
 (provide 'org-media-note-ui-transient)
 

@@ -88,7 +88,9 @@
     ("I s" org-media-note-insert-note-from-subtitle
      "from subtitle")
     ("I c" org-media-note-insert-note-from-chapter-list
-     "from chapters"))
+     "from chapters")
+    ("I g" org-media-note-insert-note-from-textgrid
+     "from TextGrid"))
    "Config"
    (("t m" org-media-note-toggle-auto-insert-item
      "Auto insert media item" :toggle org-media-note-auto-insert-item)
