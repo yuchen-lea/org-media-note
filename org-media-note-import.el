@@ -387,8 +387,13 @@ The source of the subtitle counld be:
 
 (defcustom org-media-note-textgrid-python-script
   (let* ((pkg-name "org-media-note")
-         (library-path (expand-file-name "textgrid.py" (file-name-directory (find-library-name pkg-name))))
-         (repo-path (expand-file-name "textgrid.py" (expand-file-name pkg-name (straight--repos-dir)))))
+         (library-path (expand-file-name "textgrid.py"
+                                         (file-name-directory (find-library-name pkg-name))))
+         (repo-path (if (fboundp 'straight--repos-dir)
+                        (expand-file-name "textgrid.py"
+                                          (expand-file-name pkg-name
+                                                            (straight--repos-dir)))
+                      "nil")))
     (cond
      ((file-exists-p library-path)
       library-path)
