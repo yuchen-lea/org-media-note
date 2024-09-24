@@ -1145,6 +1145,31 @@ If TIME-B is non-nil, loop media between TIME-A and TIME-B."
                               "?")))
       (format "%s%st=%s" url param-separator seconds))))
 
+(defun org-media-note--url-at-point ()
+  "Retrieve the URL with timestamp at point."
+  (let* ((link (org-element-context))
+         (type (org-element-property :type link))
+         (path (org-element-property :path link)))
+    (cond
+     ((and (member type '("audio" "video"))
+           (org-media-note--online-video-p path))
+      (org-media-note--generate-url-with-timestamp
+       path))
+     ((member type '("audiocite" "videocite"))
+      (let* ((key (nth 0
+                       (split-string path "#")))
+             (url (org-media-note-cite--url key)))
+        (if url url nil)))
+     (t nil))))
+
+(defun org-media-note-open-url-at-point ()
+  "Open the URL with timestamp at point."
+  (interactive)
+  (let ((url (org-media-note--url-at-point)))
+    (if url
+        (browse-url url)
+      (message "Please place cursor at a timestamp link of online media."))))
+
 
 (defun org-media-note-copy-mpv-command ()
   "Copy the mpv command to play media at point."
