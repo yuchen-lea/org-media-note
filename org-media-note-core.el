@@ -77,6 +77,11 @@ group 4: description tag")
           (const :tag "pretty-hydra" pretty-hydra)
           (const :tag "transient" transient)))
 
+
+(defcustom org-media-note-interface-display-browse-url t
+  "When non-nil, display browse url command in transient."
+  :type 'boolean)
+
 ;;;;; link format customization
 
 (defcustom org-media-note-timestamp-pattern 'hms

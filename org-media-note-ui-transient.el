@@ -21,6 +21,13 @@
                  ("o" org-media-note-play-smart
                   :description org-media-note--ui-play-smart-title
                   :transient nil)
+                 ("M-o" "Browse url"
+                  org-media-note-open-url-at-point
+                  :transient nil
+                  :if (lambda ()
+                        (and org-media-note-interface-display-browse-url
+                             (org-media-note--url-at-point))))
+                 ""
                  ("T"
                   (lambda ()
                     (interactive)
@@ -28,7 +35,6 @@
                   :description (lambda ()
                                  (concat "Ontop "
                                          (org-media-note--ui-toggle-state (eq (mpv-get-property "ontop") t)))))
-                 ""
                  ("c" "Increase speed"
                   (lambda ()
                     (interactive)
