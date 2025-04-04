@@ -9,6 +9,7 @@
 (require 'org)
 
 (require 'cl-lib)
+(require 's)
 
 (declare-function org-element-context "org-element" (&optional element))
 (declare-function org-element-property "org-element-ast" (property node &optional dflt force-undefer))
