@@ -489,10 +489,12 @@ This list includes the following elements:
 (defun org-media-note--split-link (link)
   "Split a `LINK' into path, time-a and time-b."
   (let* ((splitted (split-string link "#"))
-         (timestamps (split-string (nth 1 splitted)
-                                   "-"))
+         (path (nth 0 splitted))
+         (timestamps (if (> (length splitted) 1)
+                         (split-string (nth 1 splitted) "-")
+                       nil))
          (time-a (nth 0 timestamps))
-         (time-b (if (= (length timestamps) 2)
+         (time-b (if (and timestamps (= (length timestamps) 2))
                      (nth 1 timestamps))))
     (list (nth 0 splitted)
           time-a
@@ -1184,9 +1186,9 @@ If TIME-B is non-nil, loop media between TIME-A and TIME-B."
     (cl-multiple-value-bind (key-or-path time-a time-b)
         (org-media-note--split-link (org-element-property :path link))
       (let* ((path (cond
-                    ((org-media-note--online-video-p key-or-path)
+                    ((string-match "^http" type)
                      (org-media-note--remove-utm-parameters
-                      key-or-path))
+                      (format "%s:%s" type key-or-path)))
                     ((member type '("audiocite" "videocite"))
                      (org-media-note-cite--path key-or-path))
                     (t key-or-path)))
