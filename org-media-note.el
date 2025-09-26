@@ -35,6 +35,7 @@
 (require 'org-media-note-core)
 (require 'org-media-note-mpv)
 (require 'org-media-note-import)
+(require 'org-media-note-obsidian)
 
 (declare-function org-media-note-cite-setup "org-media-note-cite")
 
