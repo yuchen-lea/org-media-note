@@ -104,7 +104,7 @@ Returns a plist with :path, :filename, :extension."
 
 (defun org-media-note-obsidian--generate-frontmatter (properties tags)
   "Generate YAML frontmatter from PROPERTIES and TAGS."
-  (let ((frontmatter '("---")))
+  (let ((frontmatter (list "---")))
     ;; Add tags
     (when tags
       (push "tags:" frontmatter)
@@ -130,7 +130,7 @@ MEDIA-FILENAME is the target media file name in the vault."
   (let* ((org-cite-activate-processor nil)
          (org-cite-export-processors nil)
          (org-export-with-toc nil)
-         (org-md-export-with-properties nil)
+         (org-export-with-properties nil)
          (md-content (org-export-string-as content 'md t)))
     
     ;; Then replace the converted markdown links with Obsidian format
