@@ -1030,6 +1030,20 @@ Aligns them to the current playing position in mpv."
             (insert adjusted-hms)))
         (widen)))))
 
+(defun org-media-note-remove-timestamps-in-region ()
+  "Remove all org-media-note links in the selected region.
+Removes video, audio, videocite, and audiocite links."
+  (interactive)
+  (if (use-region-p)
+      (let ((begin (region-beginning))
+            (end (copy-marker (region-end))))
+        (save-excursion
+          (goto-char begin)
+          (while (re-search-forward org-media-note--link-pattern end t)
+            (replace-match "")))
+        (deactivate-mark))
+    (message "No region selected!")))
+
 ;;;;; Jump to the right position
 (defun org-media-note--open (link)
   "Open media LINK.

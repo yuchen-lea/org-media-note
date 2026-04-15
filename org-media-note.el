@@ -151,6 +151,8 @@
                  ("i" "Insert timestamp" org-media-note-insert-link
                   :transient nil)
                  ("a" "Adjust timestamp" org-media-note-adjust-timestamp-offset)
+                 ("M" "Remove timestamps" org-media-note-remove-timestamps-in-region
+                  :transient nil)
                  ("M-RET" "Insert item" org-meta-return :transient nil)
                  ("tm" org-media-note-toggle-auto-insert-item
                   :description (lambda ()

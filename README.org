@@ -138,6 +138,7 @@ Appearance Position depends on =transient-display-buffer-action=.
     - 💡 Video path format is consistent with =org-link-file-path-type=
     - 💡 When set =org-media-note-cursor-start-position= to =before= , move cursor to the start of link after insertion. This works for manual insertion only. Cursor is always at the end of link for those auto inserted by =<M-return>=.
   + =a= Adjust current link position to current playing position. Then, apply this offset to all links under current heading.
+  + =M= Remove all org-media-note links (=video=, =audio=, =videocite=, =audiocite=) in the selected region. (=org-media-note-remove-timestamps-in-region=)
   + =t m= When in a list like =- [[video:video.mp4#00:03:24][00:03:24]] description=, =<M-return>= will auto insert media link if this toggles on. (=org-media-note-toggle-auto-insert-item=)
   + =I= Opens the "Import" submenu
   + =s= Insert current subtitle text (=org-media-note-insert-sub-text=)

@@ -135,6 +135,7 @@
     - 💡 视频的路径格式与 =org-link-file-path-type= 一致
     - 💡 如果设置 =org-media-note-cursor-start-position= 为 =before= ，则插入链接后光标跳转到链接的开始位置。此选项只在单独插入链接时起作用，对通过 =<M-return>= 自动插入的时间戳不起作用。
   + =a= 将光标所在位置的链接，调整为当前播放位置。并将该时间偏移（offset），应用到当前笔记的其他链接。适合导入org-timer后，或者更新视频后，统一调整偏移。
+  + =M= 删除选中区域内的所有 org-media-note 链接（=video=、=audio=、=videocite=、=audiocite=）。（=org-media-note-remove-timestamps-in-region=）
   + =t m= 启用后，在形如 =- [[video:video.mp4#00:03:24][00:03:24]] description= 的列表中， =<M-return>= 新建列表项会自动插入对应时间戳链接。（=org-media-note-toggle-auto-insert-item=）
   + =I= 打开「导入」二级菜单
   + =s= 插入当前的字幕文本 (=org-media-note-insert-sub-text=)
